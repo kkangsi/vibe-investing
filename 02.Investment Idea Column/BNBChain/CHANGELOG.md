@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-05-01
+
+### Fixed (Critical)
+- **Section 5.2 correlation values**: Replaced incorrect Pearson coefficients with correct values from `correlation_results.txt`:
+  - BTC-ETH: 0.7831 → 0.6769 (p: 0.0125 → 0.0452, * unchanged)
+  - BTC-BNB: 0.8518 → 0.6617 (p: 0.0036 → 0.0522, ** → n.s. marginal)
+  - ETH-BNB: 0.8362 → 0.8518 (p: 0.0050 → 0.0036, ** unchanged)
+- **Section 5.2 Observation**: Rewrote interpretation to reflect ETH-BNB (not BTC-BNB) as the strongest correlation, supporting the alt season hypothesis (H1)
+- **Section 5.4 BTC dominance direction**: Corrected reversed direction error — 25.47% BNB outperformance occurs during BTC dominance *decline* phases, not *increase* phases. Added explicit Mann-Whitney U test results (U = 14.00, p = 0.0714)
+
+### Changed
+- **Figure renumbering to body-appearance order**: Figures now appear sequentially as 1, 2, 3, 4, 5, 6, 7 in the paper
+  - Figure 1 (was Figure 3): Foundation Break-Even Region — Section 4.7
+  - Figure 2 (unchanged): Forest Plot — Section 6.2.1
+  - Figure 3 (was Figure 4): HYPE Counterfactual — Section 6.2.7
+  - Figure 4 (was Figure 5): Decoupling Chart — Section 7.4
+  - Figure 5 (was Figure 6): Decoupling Domains Diagram — Section 7.4
+  - Figure 6 (was Figure 7): Three-Actor Impact — Section 7.6
+  - Figure 7 (was Figure 1): Mathematical Causal Chain — Section 10.1
+- Updated `docs/figures_guide.md` to reflect new numbering with file-to-figure mapping table
+- Image files retain original names (e.g., `Diagram1_Causal_Chain.png` is now Figure 7) for development history traceability
+
 ## [1.0.0] - 2026-05-01
 
 ### Added
