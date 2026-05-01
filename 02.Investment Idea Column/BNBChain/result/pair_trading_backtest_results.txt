@@ -1,0 +1,73 @@
+===========================================================================
+Phase 5 Pair Trading Backtest - Walk-Forward Validation
+===========================================================================
+
+CAUTION: This is observational evidence based on interpolated daily data.
+         Section 5.4 of the paper warns against trading strategy use.
+         Subsequent versions will use real daily OHLCV data.
+
+## 1. Daily Time Series Generation
+  - Period: 2024-01-01 to 2025-12-31
+  - Total days: 731
+  - BTC: $72,165 -> $91,340
+  - ETH: $3,530 -> $3,705
+  - BNB: $566 -> $1,090
+
+## 2. Walk-Forward Split (50/50)
+  - Train: 2024-01-01 to 2024-12-30 (365 days)
+  - Test:  2024-12-31 to 2025-12-31 (366 days)
+
+## 3. Cointegration Test (Train Period)
+  - beta: -0.0352
+  - Intercept: 722.7249
+  - R-squared: 0.0675
+  - ADF t-stat: -4.4061
+  - p-value (approx): 0.0000
+  - Cointegrated (alpha=0.05): True
+
+## 4. Walk-Forward Backtest
+  - beta (from train): -0.0352
+  - Test period: 365 days
+  - Number of trades: 31
+  - Cumulative return: 40.76%
+  - Sharpe ratio (annualized): 0.74
+  - Max Drawdown: -37.11%
+  - Calmar ratio: 1.10
+  - Win rate: 21.92%
+
+## 5. Parameter Sensitivity (Threshold Variation)
+
+Entry sigma   Exit sigma  Cumul Ret   Sharpe    Max DD    N Trades  
+----------------------------------------------------------------------
+1.5           0.5         189.45      2.12      -35.64    65        
+2.0           0.5         40.76       0.74      -37.11    31        
+2.5           0.5         17.65       0.38      -32.06    19        
+2.0           0.0         -40.62      -0.80     -52.62    2         
+2.0           1.0         196.88      3.21      -10.25    52        
+
+===========================================================================
+Synthesis
+===========================================================================
+
+1. Cointegration verified: BNB-ETH have cointegration relationship in train period
+2. Pair trading performance: Sharpe 0.74
+3. Realistic costs reflected: 0.1% commission + 0.15% slippage = 0.25% per trade
+4. Max Drawdown -37.11% measure of high volatility tolerance
+
+Important Caveats:
+- This is daily simulation based on interpolated quarterly data
+- Real daily OHLCV data should be used in subsequent versions for full backtest
+- Korean tax (22% capital gains) is not reflected
+- Out-of-sample period N=365 days is small for statistical inference
+
+Section 5.4 of the paper limits the BTC dominance pattern to *observational evidence*,
+explicitly excluding *trading strategy verification*. This script is supplementary
+exploration.
+
+For full SSRN working paper subsequent versions, the following enhancements are needed:
+- Real daily OHLCV data from CoinGecko/Binance API
+- Walk-forward window rolling
+- Multiple asset pairs (BTC-BNB, ETH-BNB, BTC-ETH)
+- Bear market 2022 inclusion
+- Korean residents tax considerations
+
