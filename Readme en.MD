@@ -1,247 +1,231 @@
 # vibe-investing
 
-> **AI-Powered Investment Research & Trading Tools — Curation, Columns, and Open-Source Implementations**
+A repository of AI-powered market analysis essays, quant trading strategies, and curated AI investment tool lists.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Made with](https://img.shields.io/badge/Made%20with-Claude%20%2B%20Python-blue)]()
-[![Updates](https://img.shields.io/badge/Updates-Weekly-brightgreen)]()
-[![Awesome Lists](https://img.shields.io/badge/Awesome-Lists%20%C3%97%202-orange)]()
-[![Columns](https://img.shields.io/badge/Columns-7%20Published-purple)]()
-[![Tools](https://img.shields.io/badge/Tools-3%20Built-cyan)]()
-[![Datasets](https://img.shields.io/badge/Datasets-14%2B%20CSV-red)]()
-[![Language](https://img.shields.io/badge/Primary-Korean%20%F0%9F%87%B0%F0%9F%87%B7-lightgrey)]()
+Markets covered: US NASDAQ / S&P500, cryptocurrency, European luxury sector, crypto-equity correlation.
 
-**🇰🇷 한국어 독자는 [README.md](README.md)를 읽어주세요.** ← Main Korean version
+- Author: Dennis Kim (HoKwang Kim)
+- License: MIT
+- Update frequency: 1-2 times per week
+- Korean README: [README.md](README.md)
+
+> **Language note:** Most articles are written in Korean. Items tagged `[KR]` have not been translated yet. Use a translator (Google Translate, DeepL, ChatGPT, Claude) to read them. Code, datasets, and table headers are language-neutral.
 
 ---
 
-## 🌏 English Quick Start
+## Investment Philosophy
 
-This repository curates AI-powered investing tools, publishes market analysis columns, and shares reference implementations. **Primary content is in Korean**, but this page provides an English summary for international readers.
+1. **I have worked in the blockchain market since 2017, serving as a bridge between Korea and China.** Hypotheses that worked in one market often moved in the opposite direction in the other. Reading that gap is the starting point.
 
-### What's Inside
+2. **AI is a tool — like Excel.** LLMs are not omnipotent. The human insight that reads the model matters more.
 
-| Category | Count | Description |
+3. **Model intelligence is not trading intelligence.** In Alpha Arena Season 1, GPT-5 returned -75% while DeepSeek V3.1 returned +46%. The smarter model is not the one that makes money.
+
+4. **A backtest is just a hypothesis.** Survival in live trading is verification. Every backtest result in this repo is published with its limitations.
+
+5. **Data is open.** 14+ CSVs make every analysis reproducible. Closed alpha is not alpha.
+
+---
+
+## Quick Start
+
+| Goal | Recommended Path |
+|---|---|
+| Market insights only | [Columns](#columns) — start with LTCM or After Market Close |
+| Browse trading strategies | [Trading Strategies](#trading-strategies) |
+| Browse AI investment tools | [Curation](AWESOME.md) |
+| Run code immediately | [Tools](#tools) — Nasdaq-BTC Coupling Bot |
+| Get datasets only | [Datasets](#datasets) |
+| Read research papers | [Research / Papers](#research--papers) |
+
+---
+
+## Recent Updates
+
+| Date | Item | Type |
 |---|---|---|
-| **Awesome Lists** | 2 | 50+ AI trading repos (Stocks + Crypto) |
-| **Analysis Columns** | 7 | 70,000+ words of market structure analysis |
-| **Trading Tools** | 3 | Python implementations (547+ lines of code) |
-| **CSV Datasets** | 14+ | 1,400+ data points for reproducibility |
-| **Academic Citations** | 95+ | Peer-reviewed papers & industry reports |
+| 2026-05 | Awesome claude quant scripts (4 strategies) | Trading Strategy `[KR]` |
+| 2026-05-01 | Awesome AI Quant Prompt evaluation | Curation `[KR]` |
+| 2026-05-01 | Awesome Vibe Trading Bot | Curation `[KR]` |
+| 2026-04-17 | Nasdaq-BTC Coupling Bot v1 | Tool |
+| 2026-04 | BTC-Nasdaq coupling analysis | Column `[KR]` |
+| 2026-04 | Luxury investment strategy | Column `[KR]` |
+| 2026-04 | DAT mNAV arbitrage | Column `[KR]` |
+| 2026-04 | After Market Close disclosure timing | Column `[KR]` |
 
 ---
 
-## 📰 Columns — Key Findings
+## Columns
 
-### 1. The LTCM Lesson — Reading the Model vs. Fingers
-*1998's LTCM collapse (Nobel laureates lost $4.6B in 4 months) applied to 2026's AI-powered investing. Functional homogenization, Shiller CAPE 38, and 5 risk management principles.*
+Seven essays analyzing macro market trends and industry shifts. Full index in [02.Investment Idea Column/README.md](02.Investment%20Idea%20Column/README.md).
 
-### 2. Microsoft's Fintool Acquisition — Excel as the New Bloomberg
-*6 employees, $7.24M raised, acquired by Microsoft. Analysis of the $37B financial terminal market (Bloomberg, FactSet, S&P Capital IQ) and Microsoft's entry strategy via 6 synergy vectors.*
+| # | Title | Topic | Data | Lang |
+|---|---|---|---|---|
+| 1 | [Risk Management Lessons from LTCM](Vibe%20Investing%20Risk%20Management.MD) | 1998 LTCM collapse + AI investing risks | - | KR |
+| 2 | [Microsoft's Fintool Acquisition](Microsoft%20fintool%20acquisition%20column.MD) | $37B financial data terminal market analysis | - | KR |
+| 3 | [Invisible Hand or Coordinated Fraud?](Crypto%20perp%20manipulation%20column.MD) | Mathematical analysis of crypto perp pump-dump | - | KR |
+| 4 | [Does the Market Open When Closed?](AfterMarketClose/After_Market_Close_Column.md) | 91.2% of impactful disclosures hit AMC | 34 cases | KR |
+| 5 | [DAT mNAV Arbitrage Strategy](mNAV(Market-to-Net-Asset-Value)%20arbitrage/Dat%20mnav%20arbitrage%20strategy.MD) | MSTR/BMNR digital asset treasury analysis | 3 CSVs | KR |
+| 6 | [When to Buy Luxury](01.Trading%20Strategy/Luxury%20investment%20strategy/Luxury%20investment%20strategy.md) | LVMH/Hermès/Kering 3-tier portfolio | 4 CSVs | KR |
+| 7 | [BTC-Nasdaq Coupling](01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/Nasdaq%20crypto%20coupling%20strategy.MD) | 6-year correlation + 6 regime classification | 4 CSVs | KR |
 
-### 3. Invisible Hand or Coordinated Strategy?
-*Mathematical and statistical analysis of the "pump → liquidation cascade → round-trip" pattern in crypto perpetual futures. VTCLR pattern definition, Benford's Law deviation, Bayesian hypothesis testing. Covers Hyperliquid XPL ($46M attacker profit), Fartcoin 4-wallet coordination, $20B October 2025 liquidation.*
+`[KR]` = Article body is in Korean. Use a translator to read.
 
-### 4. Does the Market Open When Closed?
-*Empirical analysis of 34 Nasdaq-100 disclosure cases (2020-2025). **91.2% of shock disclosures happen After Market Close**, averaging -6.45% next-day return (vs. +1.15% for BMO). AMC + Severe combination: -10.79%.*
-
-### 5. DAT (Digital Asset Treasury) mNAV Arbitrage Strategy
-*15 DAT companies (MSTR, BMNR, SBET + 12 others, $84B total assets). **MSTR +2,950% vs BTC +940% (2020-2026)**. mNAV range: 0.7x trough → 3.89x peak → 1.20x current. Reconstructs Jim Chanos's actual pair trade. Warning: BMNR sub-NAV trap (-43%p underperformance vs direct ETH).*
-
-### 6. When to Buy Luxury?
-*Post-COVID luxury sector asymmetry analysis. **Ferrari +389%, Hermès +311%, LVMH +32%, Kering -42%** (2020-2026 cumulative). Includes 225-case backtest proving single-stock DCA fails (-10.87% LVMH), ETF diversification succeeds (~+30-40% GLUX estimated). 3-tier risk portfolios (Low/Medium/High).*
-
-### 7. 🆕 How Correlated Are Crypto and Nasdaq?
-*6-year empirical study of BTC-QQQ 30-day rolling correlation across 26 quarters + 31 macro events.*
-- **Average correlation 2020-2026: +0.335** (vs ~0 pre-2020)
-- **2025 average: 0.52** — double 2024's 0.23 (LSEG data)
-- **Regime swing**: -0.68 → +0.72 in 2 weeks (Feb 2026)
-- **April 2026: -0.20 — 10-year low** (historical BTC rebound signal)
-- **Asymmetric coupling**: BTC ignores Nasdaq rallies but follows sell-offs
-- **Intraday lag**: Nasdaq leads BTC by 15-60 minutes in Medium regime
+Recommended reading order: 1 → 4 → 6 → 7 (risk management → market structure → sector analysis → quantitative analysis)
 
 ---
 
-## 🛠️ Trading Tools
+## Trading Strategies
 
-### 1. Harness Quant v2 — Scenario Matrix Platform
-*6-scenario LLM-based analysis (short/medium-term × long/short × sector-trigger). Bull vs Bear multi-agent debate. MCP server integration. Backtest engine.*
+Full index in [01.Trading Strategy/README.md](01.Trading%20Strategy/README.md).
 
-### 2. Earnings Momentum Agent — Top 30 Recommendations
-*7-stage pipeline: Universe Scanner → Fundamental Filter → Technical Filter → Sentiment Engine → Analyst Consensus → Multi-Agent Judge → Top 30 Report.*
+| Category | Description |
+|---|---|
+| [Awesome claude quant scripts](01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/) | 4 trading strategies built with Claude (AI supply chain Bayesian / DAT / Declining stocks / Long-term dividend) |
+| [Luxury investment strategy](01.Trading%20Strategy/Luxury%20investment%20strategy/) | LVMH/Hermès/Kering luxury sector 3-tier portfolio |
+| [Investment Strategy Based on Bitcoin and Nasdaq Coupling](01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/) | BTC-QQQ correlation-based 6 regime trading |
 
-**24-month backtest (2024-04 to 2026-04)**:
-- Total decisions: 768 (BUY 108 / HOLD 582 / SELL 78)
-- Forward 30-day avg return: **+7.15%**
-- Forward 90-day avg return: **+14.97%**
-- 30-day hit rate: **83.3%** (idealized scenario — real slippage/costs will reduce)
+---
 
-### 3. 🆕 Nasdaq-BTC Coupling Bot (547 lines, Python)
+## Tools
 
-**Open-source Python implementation** — real-time BTC-QQQ correlation tracking and trading signal generator. Full source published under MIT license.
+Three AI trading tools developed in-house.
 
-**Architecture** (10 classes, 18 functions):
+| # | Name | Description | Validation |
+|---|---|---|---|
+| 1 | [Harness Quant v2](Harness%20quant%20v2%20readme%20.MD) | LLM-based NASDAQ/S&P500 analysis. 6 scenarios + backtest + MCP + multi-agent debate | - |
+| 2 | [Earnings Momentum Agent](Harness%20quantv2/Earnings%20momentum%20agent%20readme%20.MD) | Earnings surprise Top 30 recommendation pipeline | 24-month backtest hit rate 83.3% (backtest only) |
+| 3 | [Nasdaq-BTC Coupling Bot](01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/) | Real-time BTC-QQQ 30-day rolling correlation tracking + regime classification + signal generation | Python 547 lines |
+
+Tool documentation is currently in Korean. Code, comments, and class/function names are in English. Read each tool's "Known Limitations" section before any live trading.
+
+---
+
+## Research / Papers
+
+Quantitative analysis based on data and statistics. All analyses are reproducible from public CSVs.
+
+| Topic | Location | Data Scale |
+|---|---|---|
+| AI supply chain Bayesian analysis | [Awesome claude quant scripts/AI supply chain bayesian analysis/](01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/) | Bayesian inference model |
+| AMC disclosure timing empirical study | [AfterMarketClose/](AfterMarketClose/) | 34 8-K disclosures + next-day returns |
+| DAT mNAV cycle analysis | [mNAV(...) arbitrage/](mNAV(Market-to-Net-Asset-Value)%20arbitrage/) | 12 cycles + 15 companies |
+| Luxury sector backtest | [Luxury investment strategy/](01.Trading%20Strategy/Luxury%20investment%20strategy/) | 225 backtests + 3 strategies compared |
+| BTC-Nasdaq coupling analysis | [Investment Strategy ... Coupling/](01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/) | 26 quarters + 31 events + 6 regimes |
+| Earnings momentum backtest | [Harness quantv2/](Harness%20quantv2/) | 24 months, 768 decisions |
+
+---
+
+## Datasets
+
+CSV datasets published for research and validation. Analyzable immediately with Python pandas. Column headers are in English.
+
+| Category | File | Description |
+|---|---|---|
+| Disclosure timing | `disclosure_timing_cases.csv` | 34 AMC disclosures + next-day returns |
+| DAT companies | `dat_companies_2026.csv` | 15 DAT company status |
+| DAT companies | `dat_vs_benchmark_performance.csv` | Half-year return comparison |
+| DAT companies | `mnav_cycles_arbitrage_signals.csv` | mNAV cycles + trade signals |
+| Luxury sector | `luxury_companies_etfs_2026.csv` | 13 luxury companies/ETFs |
+| Luxury sector | `luxury_performance_2020_2026.csv` | Half-year returns |
+| Luxury sector | `luxury_backtest_3strategies.csv` | 225 backtest log entries |
+| Luxury sector | `luxury_portfolio_by_risk.csv` | Risk-tier portfolios |
+| Coupling | `btc_qqq_correlation_2020_2026.csv` | 26 quarters of correlation |
+| Coupling | `btc_nasdaq_event_log.csv` | 31 event impacts |
+| Coupling | `intraday_coupling_samples.csv` | 4 intraday sessions |
+| Coupling | `correlation_regimes_signals.csv` | 6 regime classification |
+| Earnings momentum | `backtest_log_24months.csv` | 768 decision logs |
+
+Each CSV is located in its corresponding column or strategy folder.
+
+---
+
+## Curation
+
+Awesome series — AI investment tools evaluated by category — has been moved to a separate file.
+
+→ [AWESOME.md](AWESOME.md)
+
+Categories covered:
+- Stocks & Equities (30+ NASDAQ/S&P500 AI tools)
+- Crypto & DeFi (LLM trading bots + benchmarks)
+- AI Quant Prompt `[KR]`
+- Vibe Trading Bot `[KR]`
+
+---
+
+## Directory Structure
+
 ```
-CouplingBot (Orchestrator)
-├── DataCollector (Binance + Alpaca WebSocket)
-├── CorrelationAnalyzer (30-day rolling + regime classification + lag measurement)
-├── SignalGenerator (6 regimes → trading signals)
-└── NotificationDispatcher (Telegram/Slack/Email)
+vibe-investing/
+├── README.md                              Korean main
+├── README_EN.md                           This file
+├── AWESOME.md                             Curation index
+│
+├── 01.Trading Strategy/                   Trading strategies
+│   ├── README.md
+│   ├── Awesome claude quant scripts/      Claude-based 4 strategies + Sample
+│   ├── Luxury investment strategy/        Luxury sector + 4 CSVs
+│   └── Investment Strategy Based on Bitcoin and Nasdaq Coupling/
+│
+├── 02.Investment Idea Column/             Column index
+│   └── README.md
+│
+├── AfterMarketClose/                      AMC column + CSV
+├── mNAV(...)/                             DAT mNAV column + 3 CSVs
+├── Harness quantv2/                       Earnings Momentum Agent
+│
+├── Vibe Investing Risk Management.MD      LTCM column
+├── Microsoft fintool acquisition column.MD Fintool column
+├── Crypto perp manipulation column.MD     Crypto perp column
+├── Harness quant v2 readme .MD            Harness Quant v2 tool
+│
+├── Awesome vibe invest.MD                 Curation 1
+├── Awesome vibe invest crypto.MD          Curation 2
+├── Awesome AI Quant Prompt ...kr.MD       Curation 3
+└── Awesome Vibe Trading Bot.MD            Curation 4
 ```
 
-**6 Regime Parameters**:
+---
 
-| Regime | Range | Signal | Position | Stop Loss | Target | 90d Historical Return |
-|---|---|---|---|---|---|---|
-| 🟢 NEGATIVE | < -0.50 | STRONG_LONG_BTC | +15% | -15% | +25% | **+28.5%** |
-| 🟢 DECOUPLING | -0.10 to -0.49 | ACCUMULATE_BTC | +8% | -10% | +15% | +15.2% |
-| ⚪ LOW | -0.10 to +0.30 | NEUTRAL | 0% | — | — | +8.5% |
-| 🟡 **MEDIUM** | +0.30 to +0.60 | FOLLOW_NASDAQ | +10% | -8% | +12% | +12.8% |
-| 🟠 STRONG | +0.60 to +0.80 | RISK_OFF | -5% | -5% | +5% | -5.2% |
-| 🔴 EXTREME | > +0.80 | CRISIS_MODE | -20% | -3% | +3% | -12.5% |
+## About
 
-**Run Modes**:
-```bash
-python nasdaq_btc_coupling_bot.py --mode once      # Current regime check
-python nasdaq_btc_coupling_bot.py --mode paper     # Paper trading (signals only)
-python nasdaq_btc_coupling_bot.py --mode backtest  # Historical validation
-python nasdaq_btc_coupling_bot.py --mode live      # Real-time signals
-```
+**Dennis Kim (HoKwang Kim)**
 
-Full code: [`nasdaq_btc_coupling_bot.py`](./01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/)
+Cyworld CEO, CEO of BetaLabs Inc., Web3 Investor
+
+Working in the blockchain market since 2017, with a long-running role as a bridge between the Korean and Chinese blockchain ecosystems. The work of cross-validating patterns observed in one market against the other is woven into the analytical stance of this repository.
+
+- Email: gameworker@gmail.com
+- GitHub: [@gameworkerkim](https://github.com/gameworkerkim)
 
 ---
 
-## 📊 CSV Datasets (14+ files, 1,400+ data points)
+## Disclaimer
 
-All datasets are in UTF-8-BOM CSV format, ready for `pandas.read_csv()`. Each column has a `notes` field with source attribution.
+All content is for research and educational purposes only.
 
-### Disclosure Timing
-- `disclosure_timing_cases.csv` — 34 Nasdaq-100 8-K/earnings cases with next-day returns
+- No tool guarantees returns
+- Backtest results are based on idealized scenarios; live trading returns will differ (slippage, commissions, taxes, latency)
+- Self-managed assets are fine; managing third-party funds requires a license
+- Market structure analysis columns are statistical/academic commentary and do not name specific actors
+- Short-selling, inverse ETFs, and leveraged products can be catastrophic for individuals
+- The user is solely responsible for investment outcomes and legal risks
 
-### DAT (Digital Asset Treasury)
-- `dat_companies_2026.csv` — 15 companies with holdings, mNAV, and characteristics
-- `dat_vs_benchmark_performance.csv` — Half-year returns (MSTR, BMNR, SBET vs BTC, ETH, IBIT, ETHA, S&P500, QQQ)
-- `mnav_cycles_arbitrage_signals.csv` — 12 mNAV cycle points with trading signals
-
-### Luxury Sector
-- `luxury_companies_etfs_2026.csv` — 13 companies + ETFs (LVMH, Hermès, Kering, Ferrari, GLUX, etc.)
-- `luxury_performance_2020_2026.csv` — Half-year returns (13 periods, 9 assets)
-- `luxury_backtest_3strategies.csv` — 225-row backtest log (DCA vs Buy-the-Dip vs China-shock Contrarian)
-- `luxury_portfolio_by_risk.csv` — 19 allocations across Low/Medium/High risk tiers
-
-### 🆕 Crypto-Nasdaq Coupling
-- `btc_qqq_correlation_2020_2026.csv` — 26 quarters of 30-day rolling correlation
-- `btc_nasdaq_event_log.csv` — 31 major macro/industry events with correlation impact
-- `intraday_coupling_samples.csv` — 56 intraday price points across 4 representative sessions
-- `correlation_regimes_signals.csv` — 6 regime definitions with trading parameters
-
-### Earnings Momentum
-- `backtest_log_24months.csv` — 768 decisions with 3-reason attribution + forward returns
+For detailed risk disclosures, see the "Known Limitations" section of each column/tool.
 
 ---
 
-## 🔬 What Makes This Repo Different
+## License
 
-**Most AI-trading repos fall into one of two categories**:
-1. **README theater** — polished marketing, no reproducible results
-2. **Code dumps** — working code, no analytical context
+MIT License. Free to use, modify, and distribute.
 
-**This repo aims for the middle path**:
-- **Columns explain why** (market structure, historical patterns)
-- **CSVs show the evidence** (reproducible numbers)
-- **Python tools demonstrate application** (you can run them)
-- **Academic citations ground the claims** (95+ sources)
-
-Uniquely, this repo analyzes *cross-asset* and *traditional sector* opportunities:
-- Crypto × Equity arbitrage (DAT mNAV)
-- Consumer Discretionary (Luxury)
-- Market Microstructure (AMC disclosures)
-- Correlation Regimes (Nasdaq-BTC coupling)
-
-**This combination is rare even in English-language resources.**
+When citing columns, please attribute "Dennis Kim / vibe-investing".
 
 ---
 
-## 🚀 Getting Started
+## Contributing
 
-### For Readers (English)
-1. **Most data-driven insights** → Read the column summaries above
-2. **Reproduce numbers** → Check the CSV datasets (each column in the repo has its own `/` folder)
-3. **Run the code** → Clone and execute `nasdaq_btc_coupling_bot.py`
-
-### For Contributors
-Issues and PRs welcome in English or Korean:
-- Missing repos in Awesome lists
-- Data corrections or additions
-- English translation of any column
-- Bug fixes in Coupling Bot
-- New column topic proposals
-
-### For Researchers
-- All CSV data available under MIT license
-- Academic citations encouraged — please cite as:
-  *"Kim, D. (2026). vibe-investing. GitHub. https://github.com/gameworkerkim/vibe-investing"*
-
----
-
-## ⚠️ Disclaimer
-
-**All content is for research and educational purposes. Not investment advice.**
-
-- Backtest results (83.3% hit rate, +28.5% regime returns, etc.) are **idealized scenarios**. Real trading involves slippage, commission, taxes, and execution delays.
-- Historical correlation patterns (including the current -0.20 BTC-QQQ reading) do **not guarantee future results**.
-- Short selling, inverse ETFs, and leverage can result in **unlimited losses**. Position sizes recommended are maximums, not minimums.
-- Market structure analysis (perp manipulation, AMC disclosures, DAT arbitrage) uses **statistical induction only**; no specific entities are accused of wrongdoing.
-- Regulatory compliance (SEC, CFTC, Korean FSC, EU MiCA) is the reader's responsibility.
-
-**Before deploying any strategy with real capital**: paper trade ≥3 months, backtest ≥6 months, legal review required.
-
----
-
-## 👤 About the Author
-
-**Dennis Kim (김호광)**
-Cyworld CEO · Web3 Investor · Developer
-
-Active in Web3, blockchain, and AI trading. This repository reflects insights gained as an AI-leveraging entrepreneur.
-
-- 📧 gameworker@gmail.com
-- 🔗 [GitHub @gameworkerkim](https://github.com/gameworkerkim)
-- 🔗 [Main repository (Korean)](https://github.com/gameworkerkim/vibe-investing)
-
----
-
-## 📜 License
-
-MIT License — free to use, modify, and redistribute. Attribution appreciated:
-> *"Kim, D. (Dennis Kim) / vibe-investing"*
-
----
-
-## 🔔 Stay Updated
-
-Weekly updates (1-2 new columns/tools per week):
-- ⭐ **Star** the repo to show support
-- 🔔 **Watch → All Activity** to get notifications
-- 🍴 **Fork** if you want to build on top
-
-Currently: 34 stars · 7 forks · 0 watchers (as of April 2026)
-
----
-
-<p align="center">
-  <i><b>"Models always point to truth. Fingers always point to greed."</b></i><br><br>
-  <i><b>"Model intelligence is not trading intelligence."</b></i><br>
-  — Alpha Arena Season 1 lesson<br><br>
-  <i><b>"Trade the premium, not the faith."</b></i><br>
-  — DAT mNAV Arbitrage column<br><br>
-  <i><b>"The question was never whether crypto and stocks move together.<br>
-  The question is — when, how fast, and in which direction?<br>
-  Those who know the regime, know the trade."</b></i><br>
-  — Nasdaq-Crypto Coupling column
-</p>
-
-<p align="center">
-  🇰🇷 <b>Korean readers</b>: <a href="README.md">Read the full Korean version</a> for complete column analysis, risk warnings, and regulatory context specific to Korean investors.
-</p>
+- Issues and PRs are welcome
+- Counterpoints to evaluations, missing repo suggestions, and backtest results all welcome
+- English translation contributions especially welcome
