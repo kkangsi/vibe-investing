@@ -1,0 +1,175 @@
+{
+  "main_analysis_no_ht": {
+    "n_controls": 16,
+    "category_means": {
+      "EXCH": -0.08445,
+      "L1": -0.07531666666666666,
+      "DEFI": 0.024624999999999998,
+      "OTHER": -0.03425
+    },
+    "category_individual": {
+      "EXCH": {
+        "OKB": -0.0788,
+        "CRO": -0.0901
+      },
+      "L1": {
+        "SOL": -0.263,
+        "AVAX": -0.0289,
+        "FTM": -0.1402,
+        "DOT": 0.0181,
+        "ADA": 0.1149,
+        "ATOM": -0.1528
+      },
+      "DEFI": {
+        "UNI": 0.1445,
+        "AAVE": -0.029,
+        "MKR": -0.1119,
+        "LINK": 0.0949
+      },
+      "OTHER": {
+        "XRP": -0.0185,
+        "TRX": -0.2278,
+        "DOGE": 0.1198,
+        "ALGO": -0.0105
+      }
+    },
+    "bnb_change": -0.1088,
+    "all_control_mean": -0.04120625,
+    "all_control_median": -0.02895,
+    "all_control_std": 0.12210490827562993,
+    "did_estimator": -0.06759375,
+    "bnb_rank_lower_better": 6,
+    "pool_size": 17
+  },
+  "statistical_tests": {
+    "one_sample_t_test": {
+      "t_stat": -2.22,
+      "p_value": 0.042713976915195094,
+      "interpretation": "Natural framing: t = (BNB - ctrl_mean) / SE = -2.22 (negative sign = BNB decoupled more than control mean)"
+    },
+    "wilcoxon_signed_rank": {
+      "W": 32.0,
+      "p_value": 0.065399169921875,
+      "interpretation": "Symmetric test on (control - BNB) distribution"
+    },
+    "empirical_rank_test": {
+      "one_sided_p": 0.35294117647058826,
+      "two_sided_p": 0.7058823529411765,
+      "interpretation": "BNB position in empirical control distribution"
+    },
+    "standardized_deviation": {
+      "z_score": -0.5535711131891539,
+      "interpretation": "Number of std devs from control pool mean"
+    }
+  },
+  "robustness_with_ht": {
+    "n_controls": 17,
+    "all_control_mean": -0.040505882352941176,
+    "difference_due_to_ht_inclusion": 0.0007003676470588235
+  },
+  "numerator_denominator_decomposition": {
+    "sigma_bnb_pre_pct": 3.1,
+    "sigma_bnb_post_pct": 2.89,
+    "sigma_eth_pre_pct": 3.8,
+    "sigma_eth_post_pct": 4.01,
+    "ratio_pre": 0.8157894736842106,
+    "ratio_post": 0.7206982543640899,
+    "dln_sigma_bnb_pct": -7.014560936675977,
+    "dln_sigma_eth_pct": 5.379017458613779,
+    "dln_ratio_pct": -12.393578395289756,
+    "bnb_side_contribution_share": 0.5659835047593597,
+    "eth_side_contribution_share": 0.4340164952406403,
+    "counterfactual_ratio_only_bnb": 0.7605263157894737,
+    "counterfactual_ratio_only_eth": 0.773067331670823,
+    "interpretation": "Both numerator (BNB-side, ~57%) and denominator (ETH-side, ~43%) contribute meaningfully to the volatility-ratio decline, motivating ETH-side investigation in follow-up work."
+  },
+  "main_synthetic_counterfactual_no_trx_xrp": {
+    "description": "Synthetic control sensitivity check excluding TRX and XRP from donor pool, motivated by their fundamental difference from BNB in tokenomics",
+    "n_controls": 14,
+    "top_weights": {
+      "OKB": 0.776,
+      "DOGE": 0.1131,
+      "CRO": 0.1109
+    },
+    "pre_rmse": 0.1512,
+    "post_gap_mean": -0.0896,
+    "bnb_rank": 4,
+    "pool_size": 15,
+    "p_approx": 0.267,
+    "comparison_to_main": "In main 16-token specification, BNB rank is 12/17, p\u22480.71. Excluding TRX/XRP yields rank 4/15, p\u22480.27 \u2014 stronger decoupling signal but smaller pool. Both consistent with placebo distribution; main specification is conservative.",
+    "note": "PROMOTED to main specification in v9.1 on principle of donor-pool economic comparability"
+  },
+  "sensitivity_synthetic_counterfactual_with_trx_xrp": {
+    "pool_size": 16,
+    "top_weights": {
+      "CRO": 0.13479416541414538,
+      "ATOM": 0.06635271422492432,
+      "MKR": 0.11375787312841046,
+      "XRP": 0.14946345885173543,
+      "TRX": 0.5356317883815978
+    },
+    "pre_rmse": 0.096240156905574,
+    "post_gap_mean": 0.059627754536227866,
+    "placebo_gaps": {
+      "OKB": 0.049420837917485375,
+      "CRO": 0.1353971128292412,
+      "SOL": -0.10929501935832599,
+      "AVAX": 0.054690933090188576,
+      "FTM": 0.022435025185073357,
+      "DOT": 0.0667561613818756,
+      "ADA": 0.1049920771291396,
+      "ATOM": -0.10560616368699514,
+      "UNI": 0.17987479985803392,
+      "AAVE": 0.03179385833283172,
+      "MKR": 0.013855346000629378,
+      "LINK": -0.0652468191707331,
+      "XRP": -0.2601053790916435,
+      "TRX": -0.30589164312663747,
+      "DOGE": 0.20314740446546833,
+      "ALGO": -0.03926003358826414
+    },
+    "bnb_rank": 12,
+    "p_approx": 0.7058823529411765,
+    "note": "DEMOTED to sensitivity check in v9.1; TRX (53.6%) and XRP (15%) weights are statistically efficient but economically incomparable to BNB"
+  },
+  "eth_etf_event_study": {
+    "etf_approval": {
+      "event": "ETF approval (2024-05-23)",
+      "pre_window_n": 60,
+      "post_window_n": 60,
+      "pre_vol_pct_per_day": 3.8556031106155264,
+      "post_vol_pct_per_day": 2.227955405875833,
+      "vol_change_pct": -42.21512583228122,
+      "levene_F": 5.381284415847084,
+      "levene_p": 0.022073014975938755
+    },
+    "etf_trading": {
+      "event": "ETF trading launch (2024-07-23)",
+      "pre_window_n": 60,
+      "post_window_n": 60,
+      "pre_vol_pct_per_day": 2.2475523139277604,
+      "post_vol_pct_per_day": 3.8262852142798955,
+      "vol_change_pct": 70.24232052659923,
+      "levene_F": 6.775122073509759,
+      "levene_p": 0.010429435120293411
+    },
+    "etf_window": {
+      "event": "Full ETF window (approval to +30d post-trading)",
+      "pre_window_n": 120,
+      "post_window_n": 121,
+      "pre_vol_pct_per_day": 3.552179404336686,
+      "post_vol_pct_per_day": 3.1177558816857287,
+      "vol_change_pct": -12.229774265359195,
+      "levene_F": 0.6565421838471531,
+      "levene_p": 0.41858939432025577
+    },
+    "etf_window_contribution_to_eth_vol_increase": {
+      "post_partition_full_vol_pct": 3.6979496049760994,
+      "post_partition_excl_etf_vol_pct": 3.800309164390477,
+      "etf_window_vol_pct": 3.1115439408571977,
+      "etf_window_returns_n": 122,
+      "estimated_etf_contribution_to_post_vol_increase_pct": -81.17459009978836
+    },
+    "note": "Added in v9.2: Event-study test of spot Ethereum ETF approval (May 23, 2024) and trading launch (July 23, 2024). Negative result: ETF events do not drive the 43% ETH-side share of the volatility-ratio decline."
+  }
+}
