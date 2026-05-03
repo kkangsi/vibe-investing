@@ -48,7 +48,7 @@ Claude를 활용해 만든 트레이딩 전략 스크립트 모음입니다.
 
 -  **칼럼**: [LLM이 모두 추천한 종목, 그래서 사도 되나? — 마이크로소프트 사례에서 본 AI 시대 투자의 함정](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Dividend%20growth%20prompt/Column%20llm%20consensus%20vs%20reality%20msft%20case.md) (markdown)
 -  **PDF 버전**: [Column_LLM_Consensus_vs_Reality_MSFT_Case_v2.pdf](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Dividend%20growth%20prompt/Column_LLM_Consensus_vs_Reality_MSFT_Case_v2.pdf)
--  **학술 논문 v5**: [Cross-Lingual LLM Accuracy Paper (v5)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Dividend%20growth%20prompt/result/ENG_Report/Cross_Lingual_LLM_Accuracy_Paper.pdf) — 4개 LLM × 3개 언어 = 11개 결과물의 정량 메트릭 분석
+-  **학술 논문 예정** — 4개 LLM × 3개 언어 = 11개 결과물의 정량 메트릭 분석
 
 본 폴더의 모든 스크립트는 위 연구의 결과를 사전 인지한 사용자를 전제로 작성되었습니다.
 
