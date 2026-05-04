@@ -21,10 +21,11 @@
 
 ---
 
-### 🔗 Source Link
-- Original File:  
-https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Pharma%20sector%20prompt/Pharma%20sector%20prompt%20KR%20EN%20CN.MD
+### 🔗 Source
 
+- **Original 프롬프트 File** — [`Pharma sector prompt KR EN CN.MD`](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Pharma%20sector%20prompt/Pharma%20sector%20prompt%20KR%20EN%20CN.MD)
+- **Folder** — [`Pharma sector prompt/`](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Pharma%20sector%20prompt)
+- **Repository** — [gameworkerkim/vibe-investing](https://github.com/gameworkerkim/vibe-investing)
 ---
 
 ### 프롬프트 페르소나와 목표 (Korean)
