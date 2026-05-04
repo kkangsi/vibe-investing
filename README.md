@@ -39,10 +39,43 @@ AI 기반 시장 분석 칼럼, 퀀트 트레이딩 전략, AI 투자 도구 큐
 
 ---
 
+## 설치 / 실행
+
+이 레포의 Python 스크립트(도구·백테스트·피규어 생성)는 공통적으로 다음 패키지에 의존합니다.
+
+```bash
+git clone https://github.com/gameworkerkim/vibe-investing.git
+cd vibe-investing
+
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+[requirements.txt](requirements.txt)에 포함된 패키지:
+
+- `pandas`, `numpy`, `scipy` — 데이터 처리 및 통계 분석
+- `matplotlib` — 칼럼 피규어 생성
+- `yfinance` — 주가 데이터 (NASDAQ/QQQ/BTC 등)
+- `requests` — 외부 API 호출
+- `tqdm` — 진행률 표시
+
+도구별 추가 환경 변수(LLM API 키 등)는 각 도구의 README를 참조하세요.
+
+빠른 실행 예시 — NASDAQ 100 일일 등락 Top 10:
+
+```bash
+python QQQUpDownSignal/qqq_up_down_signal.py
+```
+
+---
+
 ## 최근 업데이트
 
 | 일자 | 항목 | 종류 |
 |---|---|---|
+| 2026-05 | NASDAQ 100 일일 등락 Top 10 시그널 | 도구 |
 | 2026-05 | Awesome claude quant scripts (4종 전략) | 트레이딩 전략 |
 | 2026-05-01 | Awesome AI Quant Prompt 평가 | 큐레이션 |
 | 2026-05-01 | Awesome Vibe Trading Bot | 큐레이션 |
@@ -93,6 +126,7 @@ AI 기반 시장 분석 칼럼, 퀀트 트레이딩 전략, AI 투자 도구 큐
 | 1 | [Harness Quant v2](Harness%20quant%20v2%20readme%20.MD) | LLM 기반 NASDAQ/S&P500 분석. 6개 시나리오 + 백테스트 + MCP + 멀티 에이전트 토론 | - |
 | 2 | [Earnings Momentum Agent](Harness%20quantv2/Earnings%20momentum%20agent%20readme%20.MD) | 어닝 서프라이즈 Top 30 추천 파이프라인 | 24개월 백테스트 hit rate 83.3% (백테스트 기준) |
 | 3 | [Nasdaq-BTC Coupling Bot](01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/) | BTC-QQQ 30일 rolling correlation 실시간 추적 + regime 분류 + 신호 생성 | Python 547 lines |
+| 4 | [QQQ Up/Down Signal](QQQUpDownSignal/) | NASDAQ 100 직전 거래일 종가 기준 상승·하락 Top 10 출력 | Python (yfinance) |
 
 각 도구의 README에 사용법, 환경 변수, 알려진 한계를 정리해두었습니다. 실거래 적용 전 반드시 한계 섹션을 먼저 읽으세요.
 
