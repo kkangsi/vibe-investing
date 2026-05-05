@@ -22,7 +22,10 @@ from telegram.ext import (
     filters,
 )
 
+import os
+
 from services.i18n import SUPPORTED, normalize_language, t
+from services.market_report import MarketReportService
 from services.persona_engine import PersonaEngine, get_persona, list_personas
 from services.stock_service import StockService, StockServiceError
 from services.user_profile import UserProfile, UserProfileRepo
@@ -54,6 +57,7 @@ class BotDependencies:
     persona_engine: PersonaEngine
     stock_service: StockService
     profile_repo: UserProfileRepo
+    market_report_service: MarketReportService
     default_persona_key: str
 
 
@@ -66,6 +70,8 @@ def build_application(token: str, deps: BotDependencies) -> Application:
     app.add_handler(CommandHandler("persona", _cmd_persona))
     app.add_handler(CommandHandler("personas", _cmd_personas))
     app.add_handler(CommandHandler("lang", _cmd_lang))
+    app.add_handler(CommandHandler("forget", _cmd_forget))
+    app.add_handler(CommandHandler("policy", _cmd_policy))
 
     app.add_handler(CallbackQueryHandler(_on_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, _on_message))
@@ -183,6 +189,8 @@ async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/persona — persona keyboard\n"
         "/personas — list personas\n"
         "/lang — switch language (ko / en / ja / zh)\n"
+        "/policy — data handling & disclaimer\n"
+        "/forget — delete all my stored data\n"
         "/help — this message\n\n"
         f"{s.disclaimer}"
     )
@@ -209,6 +217,21 @@ async def _cmd_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Choose language / 언어 선택 / 言語選択 / 选择语言:",
         reply_markup=_lang_keyboard(),
     )
+
+
+async def _cmd_forget(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    profile = _profile(update, context)
+    s = t(profile.language)
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(s.forget_yes, callback_data="forget:confirm"),
+        InlineKeyboardButton(s.forget_no,  callback_data="forget:cancel"),
+    ]])
+    await update.message.reply_text(s.forget_prompt, reply_markup=keyboard)
+
+
+async def _cmd_policy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    profile = _profile(update, context)
+    await update.message.reply_text(t(profile.language).policy)
 
 
 # -----------------------------
@@ -260,27 +283,41 @@ async def _on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         lang = profile.language
         s = t(lang)
         if choice == "show":
-            # Phase 1차-C[4] — placeholder. The full MarketReportService lands later in 1차-C.
-            placeholder = (
-                "📊 " + ("오늘의 시황 리포트는 다음 작업 단계에서 제공됩니다 (services/market_report.py 신설 예정). "
-                           "지금은 종목 티커를 직접 입력하시면 페르소나 해설을 받아보실 수 있습니다."
-                           if lang == "ko" else
-                           "The full daily report ships in the next sub-task (services/market_report.py). "
-                           "For now, send a ticker and the persona will analyze it."
-                           if lang == "en" else
-                           "本日の市況レポートは次のサブタスクで提供します(services/market_report.py)。"
-                           "今はティッカーを送ってください。ペルソナが解説します。"
-                           if lang == "ja" else
-                           "完整的市场报告将在下一步实现(services/market_report.py)。"
-                           "目前您可以直接发送股票代码,人设会进行分析。")
+            await context.bot.send_chat_action(
+                chat_id=query.message.chat_id, action=ChatAction.TYPING,
             )
-            await query.message.reply_text(placeholder)
+            persona = get_persona(profile.persona_key)
+            rendered = await _try_blob_cached_report(persona.key, lang)
+            if rendered is not None:
+                await query.message.reply_text(rendered)
+            else:
+                interests = [_localize_tag(tag, lang) for tag in profile.interest_tags]
+                interests.extend(profile.watchlist_tickers)
+                try:
+                    report = await deps.market_report_service.build(
+                        persona=persona, language=lang, interests=interests,
+                    )
+                    await query.message.reply_text(report.render(lang, persona.name(lang)))
+                except Exception:
+                    logger.exception("Daily report generation failed")
+                    await query.message.reply_text(s.error_market_data)
 
         deps.profile_repo.update(user_key, onboarding_step=STEP_INTEREST)
         await query.message.reply_text(
             s.interest_prompt,
             reply_markup=_interest_keyboard(lang, set(profile.interest_tags)),
         )
+        return
+
+    if data.startswith("forget:"):
+        choice = data.split(":", 1)[1]
+        lang = profile.language
+        s = t(lang)
+        if choice == "confirm":
+            deps.profile_repo.delete(user_key)
+            await query.message.reply_text(s.forget_done)
+        else:
+            await query.message.reply_text(s.forget_cancelled)
         return
 
     if data.startswith("interest:"):
@@ -417,6 +454,26 @@ async def _handle_ticker_query(
 
     header = f"[{persona.name(lang)} · {snapshot.ticker}]"
     await update.message.reply_text(f"{header}\n\n{reply}")
+
+
+async def _try_blob_cached_report(persona_key: str, language: str) -> str | None:
+    """In Azure (STORAGE_BACKEND=blob), fetch the pre-rendered report from Blob/CDN.
+
+    Falls back to None on any error or when not running on Azure — caller
+    will then build the report on-demand via DeepSeek.
+    """
+    backend = os.getenv("STORAGE_BACKEND", "sqlite").lower()
+    account = os.getenv("STORAGE_ACCOUNT_NAME", "").strip()
+    if backend != "blob" or not account:
+        return None
+    try:
+        from datetime import datetime, timezone
+        from services.blob_report_writer import fetch_cached_report
+        date_str = datetime.now(timezone.utc).date().isoformat()
+        return await fetch_cached_report(account, date_str, persona_key, language)
+    except Exception:
+        logger.exception("blob report fetch failed")
+        return None
 
 
 async def _on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:

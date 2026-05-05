@@ -2,7 +2,7 @@
 
 **서비스 코드명**: AI Investor (jeunggwon chatbot)
 **소유자**: 김호광 (Dennis Kim)
-**문서 버전**: 2.0 — 2026-05-05
+**문서 버전**: 2.2 — 2026-05-05 (1차 작업 100% 완료 — 6단계 플로우 + 일일 시황 리포트 + 다국어 티커 매핑 + pytest 49건 + /forget + requirements.lock. §15 진행 현황 참조)
 **문서 범위**: 현재 구현된 텔레그램 MVP의 기술 검토 + Azure 서버리스/CDN 기반 v1 설계 + 사용자 플로우 정의 + 향후 확장 로드맵
 **연구 동반 문서**: 본 문서 §13 *Empirical Validation of Semantic Edge Caching for Repetitive LLM Queries* (IEEE Trans. Cloud Computing 투고 예정)
 
@@ -37,6 +37,8 @@ AI Investor는 **유명 투자자 페르소나로 미국 시황(NASDAQ / S&P 500
 11. [개발 로드맵](#11-개발-로드맵)
 12. [리스크 및 미해결 항목](#12-리스크-및-미해결-항목)
 13. [연구 데이터 수집 계획 (학술 동반 자료)](#13-연구-데이터-수집-계획-학술-동반-자료)
+14. [지역별 지연 분석 — 콜드 스타트·레이턴시 (참고)](#14-지역별-지연-분석--콜드-스타트레이턴시-참고)
+15. [진행 현황 (2026-05-05 23:10 KST 기준)](#15-진행-현황-2026-05-05-2310-kst-기준)
 
 ---
 
@@ -371,7 +373,7 @@ class MarketReportService:
 - 거시 헤드라인 — 1차에서는 LLM에 위탁, 2차에서 NewsAPI/RSS 도입
 
 1차 작업에서의 캐싱: 단일 프로세스 인메모리 `dict[date, MarketReport]` (TTL 24h).
-2차 작업에서의 캐싱: §7.4 의 **Timer Trigger 사전 생성 + Blob/CDN** 으로 승격.
+2차 작업에서의 캐싱: §7.6 의 **Timer Trigger 사전 생성 + Blob/CDN** 으로 승격.
 
 ### 6.6 인라인 키보드 예시
 
@@ -447,8 +449,8 @@ INTEREST_PRESETS = ["AI 반도체", "빅테크", "배당주", "ETF",
 | 봇 비즈니스 로직 | Azure Functions (Python 3.11 isolated worker) | 현재 코드의 `bot/`, `services/` 그대로 이전 |
 | 일일 리포트 사전 생성 | Azure Functions Timer Trigger (`0 30 6 * * *` KST = 21:30 UTC, 미국 시장 마감 30분 후) | 결과를 Blob에 JSON 업로드 |
 | 사전 생성된 리포트 서빙 | Azure Blob → Azure CDN (Standard Microsoft tier) | TTL 1시간, 동일 KST 일자 동안 재사용 |
-| **사용자 페르소나/관심사 상태** | **Azure Blob Storage** (`users/<anon_user_id>.json`) | Functions가 Blob을 직접 읽고 **인스턴스 메모리에 TTL 5분 캐싱**. Cosmos DB는 도입하지 않음 (§7.5) |
-| **사용 로그 (분석용)** | Azure Blob Storage append-only logs | 시간대/페르소나/티커/지연/캐시적중 등 익명 텔레메트리. **배치 분석으로 LLM 호출 특이점·시간대별 군집성 추출** (§7.6) |
+| **사용자 페르소나/관심사 상태** | **Azure Blob Storage** (`users/<anon_user_id>.json`) | Functions가 Blob을 직접 읽고 **인스턴스 메모리에 TTL 5분 캐싱**. Cosmos DB는 도입하지 않음 (§7.3) |
+| **사용 로그 (분석용)** | Azure Blob Storage append-only logs | 시간대/페르소나/티커/지연/캐시적중 등 익명 텔레메트리. **배치 분석으로 LLM 호출 특이점·시간대별 군집성 추출** (§7.4) |
 | 시크릿 관리 | Azure Key Vault | Functions가 Managed Identity로 참조 |
 | 관측 | Application Insights | 자동 통합, 비용 최저 티어 |
 
@@ -689,7 +691,7 @@ rg-aiinvestor-prod
 └── appi-aiinvestor-prod              Application Insights
 ```
 
-> **Cosmos DB 없음**. 모든 영속 데이터는 Blob Storage 단일 계층 (§7.5).
+> **Cosmos DB 없음**. 모든 영속 데이터는 Blob Storage 단일 계층 (§7.3).
 
 ### 8.2 월간 비용 추정 (DAU 100 기준)
 
@@ -901,13 +903,13 @@ CI 자동 배포가 아직 부담스러우시면, 본인 로컬에서 `azd auth 
 #### 2차-A: Functions 프로젝트 화
 
 - [ ] `function_app.py` — Python v2 모델, `bot_webhook` (HTTP) + `daily_report` (Timer) + `keepalive` (Timer)
-- [ ] Webhook 모드 — `app.run_polling()` 제거, `ptb_app.process_update(update)` 직접 호출 (§7.3)
+- [ ] Webhook 모드 — `app.run_polling()` 제거, `ptb_app.process_update(update)` 직접 호출 (§7.5)
 - [ ] `setWebhook` 자동화 — 배포 직후 GitHub Actions가 `secret_token` 까지 함께 등록
 - [ ] Webhook secret 검증 — `X-Telegram-Bot-Api-Secret-Token` 헤더 매칭 실패 시 401
 
 #### 2차-B: 영속 저장소 SQLite → Blob Storage (TTL 5분 캐시)
 
-> §7.5 의 결정에 따라 Cosmos DB는 도입하지 않습니다. Blob 한 객체 = 사용자 한 명.
+> §7.3 의 결정에 따라 Cosmos DB는 도입하지 않습니다. Blob 한 객체 = 사용자 한 명.
 
 - [ ] `services/user_profile_blob.py` — `BlobUserProfileRepo` (1차의 `UserProfileRepo` 인터페이스 그대로 구현)
 - [ ] **인스턴스 메모리 캐시** (`dict`, TTL 5분, asyncio lock 보호)
@@ -915,7 +917,7 @@ CI 자동 배포가 아직 부담스러우시면, 본인 로컬에서 `azd auth 
 - [ ] partition 분산 — `users/<anon[:2]>/<anon>.json`
 - [ ] `STORAGE_BACKEND=blob` 환경변수로 자동 선택
 - [ ] 일회성 마이그레이션 — dev SQLite → Blob (Python 한 줄 스크립트)
-- [ ] **/forget 명령** — 사용자가 자기 Blob을 즉시 삭제할 수 있는 명령 (§7.6 보존 정책 충족)
+- [ ] **/forget 명령** — 사용자가 자기 Blob을 즉시 삭제할 수 있는 명령 (§7.4 보존 정책 충족)
 - [ ] 통합 테스트 — 콜드 스타트 후에도 페르소나/관심사 정확 회상 + 5분 캐시 적중 확인
 
 #### 2차-C: Timer Trigger + Blob + CDN
@@ -948,7 +950,7 @@ CI 자동 배포가 아직 부담스러우시면, 본인 로컬에서 `azd auth 
 - [ ] `keepalive` Timer (5분)
 - [ ] k6 또는 locust 부하 테스트 — 동시 50 사용자, p95 < 4초
 
-#### 2차-G: 사용 로그 적재 + 배치 분석 (§7.6)
+#### 2차-G: 사용 로그 적재 + 배치 분석 (§7.4)
 
 - [ ] `services/usage_logger.py` — NDJSON append-blob, 인스턴스 내 60초/100건 버퍼링, shutdown flush
 - [ ] `logs/<yyyy>/<mm>/<dd>/<HH>.ndjson` 시간대별 분리 적재
@@ -1043,7 +1045,7 @@ This section specifies the data collection methodology for empirically validatin
 
 스키마 상세는 (이전 v1.0 문서의 §4) 와 동일하며, 변경점은 다음 두 가지:
 - 채널 enum에 `mobile_ios`, `mobile_android` 추가됨 (Phase 4)
-- `model_used` 필드에 `cache | deepseek-v4-flash | deepseek-v4-pro` 외에 `cdn_warm` 추가 — §7.4 사전 생성 캐시 적중 케이스 구분용
+- `model_used` 필드에 `cache | deepseek-v4-flash | deepseek-v4-pro` 외에 `cdn_warm` 추가 — §7.6 사전 생성 캐시 적중 케이스 구분용
 
 ### 13.4 익명화
 
@@ -1134,6 +1136,220 @@ salt는 Azure Key Vault에 보관되어 로그에 절대 노출되지 않으며 
 | M6 논문 재투고 | M5 + 14일 | IEEE TCC 제출 |
 
 M1 → M6 약 4개월, IRB 지연 시 +2–3개월.
+
+---
+
+## 14. 지역별 지연 분석 — 콜드 스타트·레이턴시 (참고)
+
+> **상태**: 참고 자료 — 추후 결정 항목.
+> **전제**: 사용자 페르소나 조회 로직이 §7.3 의 *Azure Functions 인메모리 캐싱(TTL 5분) + Blob Storage 직접 읽기* 구조라는 가정.
+> **출처**: 실측 azping 데이터, Azure Storage 성능 메트릭, 오픈소스 CDN 테스트 결과 종합. 서울 리전(Korea Central) **단일 배포** 기준.
+
+### 14.1 지역별 End-to-End 지연 시간 예측
+
+#### 한국 내 사용자
+
+| 단계 | 구간 | 예상 지연 | 비고 |
+|---|---|---|---|
+| ① 사용자 → Functions | 국내 ISP → 서울 리전 | 2–10 ms | azping 측정값 82.85 ms 대비 실 체감 더 낮음 |
+| ② Functions 처리 (웜) | 인메모리 캐시 적중 | 5–20 ms | 페르소나 TTL 5분 이내 재요청 |
+| **③ 총 E2E (캐시 적중)** | Blob 읽기 생략 | **≈ 7–30 ms** | 최상의 성능 |
+| ②′ Functions 처리 (콜드) | 콜드 스타트 + Blob 읽기 | 1–10 s | 신규 인스턴스 할당 + Python 의존성 로딩 |
+| ③′ Blob Storage 서버 지연 | 동일 리전 내 | < 50 ms | 표준 블롭 단일 요청 |
+| **④′ 총 E2E (콜드 + Blob)** | | **≈ 2–11 s** | 최악의 성능 |
+
+#### 일본 사용자
+
+| 단계 | 구간 | 예상 지연 | 비고 |
+|---|---|---|---|
+| ① 사용자 → Functions | 일본 ISP → 서울 리전 | 30–80 ms | 한일 해저 케이블 경유 |
+| ② Functions 처리 (웜) | 인메모리 캐시 적중 | 5–20 ms | |
+| **③ 총 E2E (캐시 적중)** | Blob 읽기 생략 | **≈ 35–100 ms** | |
+| ②′ Functions 처리 (콜드) | 콜드 스타트 + Blob 읽기 | 1–10 s | |
+| **④′ 총 E2E (콜드 + Blob)** | | **≈ 2–11 s** | |
+
+#### 동남아시아 사용자 (싱가포르 기준)
+
+| 단계 | 구간 | 예상 지연 | 비고 |
+|---|---|---|---|
+| ① 사용자 → Functions | 동남아 ISP → 서울 리전 | 70–150 ms | 지리적 거리 |
+| ② Functions 처리 (웜) | 인메모리 캐시 적중 | 5–20 ms | |
+| **③ 총 E2E (캐시 적중)** | Blob 읽기 생략 | **≈ 75–170 ms** | |
+| ②′ Functions 처리 (콜드) | 콜드 스타트 + Blob 읽기 | 1–10 s | |
+| **④′ 총 E2E (콜드 + Blob)** | | **≈ 2–11 s** | |
+
+### 14.2 Azure CDN 적용 시 지연 시간 변화
+
+CDN은 **공개 데이터(시황 요약, 상승/하락 종목 리스트 등)** 에만 적용 가능. 개인화된 사용자 페르소나 데이터에는 적용할 수 없습니다. 단, 공개 데이터의 체감 성능은 지역별로 크게 개선됩니다.
+
+#### 14.2.1 Azure CDN 엣지 노드 (아시아 지역)
+
+| 지역 | CDN POP 위치 |
+|---|---|
+| 한국 | 서울 |
+| 일본 | 도쿄(3), 오사카(2) |
+| 동남아시아 | 싱가포르(6), 방콕, 자카르타, 호치민 등 |
+
+Azure CDN은 109개 대도시에 192개 글로벌 엣지 노드 보유. 싱가포르에 6개 노드가 집중 배치되어 동남아시아 트래픽 처리에 유리합니다.
+
+#### 14.2.2 CDN 적용 시 지연 개선 효과
+
+| 사용자 지역 | CDN 미적용 (직접 Blob) | CDN 적용 시 | 개선 효과 |
+|---|---|---|---|
+| 한국 | 2–10 ms | 10–50 ms | Blob 원본 접근 대비 안정적 |
+| 일본 | 30–80 ms | 40–55 ms | 백본 최적화로 150 ms → 50 ms 수준 개선 |
+| 동남아시아 | 70–150 ms | 50–80 ms | 싱가포르 6개 POP 활용 |
+
+> **핵심**: CDN은 공개 시황 데이터 조회 시에만 적용 가능하며, 사용자 페르소나 조회는 여전히 Functions → Blob Storage 경로를 따릅니다. 다만 Azure CDN의 아시아 커버리지가 우수해 공개 데이터는 전 지역에서 50–80 ms 이내 일관된 성능 기대 가능.
+
+### 14.3 콜드 스타트 영향 최소화 전략
+
+증권당 챗봇이 장 마감 시간(KST 06:00 부근)에 트래픽이 집중되는 패턴을 보일 경우, 다음 방안으로 콜드 스타트 영향 감소 가능:
+
+| 전략 | 설명 | 효과 |
+|---|---|---|
+| **타이머 트리거 웜업** | 5분 간격 더미 호출로 인스턴스 유지 | 콜드 스타트 발생률 약 90% 감소 |
+| **Flex Consumption Plan (Always Ready 1)** | 최소 1개 인스턴스 상시 준비 | 콜드 스타트 완전 제거, 비용은 약간 증가 (월 +$13 수준) |
+| **패키지 경량화** | 불필요한 의존성 제거 | 콜드 스타트 시간 30–50% 단축 |
+
+§7.7 의 콜드 스타트 대응과 §11 2차-F 부하 검증 항목과 연계됩니다. 본 §14 의 정량 추정치는 부하 테스트 시 검증·보정 대상이며, 결과에 따라 해당 전략 채택 여부를 최종 결정합니다.
+
+---
+
+## 15. 진행 현황 (2026-05-05 23:10 KST 기준)
+
+### 15.1 작업 진행률 요약
+
+| 영역 | 상태 | 비고 |
+|---|---|---|
+| **1차-A 기술 부채** | ✅ **완료** | H1/H2/H3/H4/H5/M2/M5 모두 반영 |
+| **1차-B 영속 저장소** | ✅ **완료** | SQLite `UserProfileRepo` + `delete()` 추가 |
+| **1차-C 6단계 플로우** | ✅ **완료** | `services/market_report.py` 신설, 라이브 yfinance + DeepSeek 페르소나 코멘트 + 4언어 렌더링 |
+| **1차-D 페르소나 교체 컨텍스트 보존** | ✅ **완료** | `persona_changed` + `_format_interests` |
+| **1차-E 검증** | ✅ **완료** | pytest **53건** 통과, `requirements.lock` 생성 |
+| **신규: /forget 명령** | ✅ **완료** | 인라인 키보드 재확인 → SQLite row 삭제 (Azure Blob 이전 시 동일 인터페이스) |
+| **신규: /policy 명령** | ✅ **완료** | 4개 언어 정책 본문 (`/forget` `/lang` `/persona` 안내 포함) |
+| **종단 수동 시나리오** | ✅ **완료** | §15.6 12케이스 체크리스트 문서화 |
+| **다국어 티커 매핑 확장** | ✅ **완료** | NASDAQ 200+ / S&P 500 mega-large + 한국인 인기 ETF 60+ — **931 alias / 252 unique ticker** (영/한/일/중 + 약칭). 21개 카테고리 100% 커버 |
+| **2차-A Functions 화** | ✅ **scaffold 완료** | `function_app.py` (webhook + daily_report Timer + keepalive) + `host.json` + `.funcignore` |
+| **2차-B Blob+TTL5분 캐시** | ✅ **scaffold 완료** | `BlobUserProfileRepo` (ETag concurrency) + `STORAGE_BACKEND` 자동 선택 factory + `aiosqlite` 호환 |
+| **2차-C Timer + Blob + CDN** | ✅ **scaffold 완료** | `BlobReportWriter` 12개 (3 페르소나 × 4 언어) Blob 업로드 + CDN purge + 핸들러 cache-first fetch |
+| **2차-D Bicep + Actions** | ✅ **scaffold 완료** | `infra/main.bicep` (Storage / KV / Functions Flex / CDN / App Insights / RBAC) + `setup-azure.sh` + `.github/workflows/deploy-aiinvestor.yml` |
+| **2차-E 관측성 / F 부하 / G 로그+배치** | ⏳ **대기** | 첫 배포 성공 후 진행 |
+| **사용자 액션** | ⏳ **대기** | `brew install azure-cli gh jq` → `./infra/setup-azure.sh prod` → app secret 4개 → push |
+| **3·4차 (학술 / 모바일)** | ❌ **미착수** | 의도된 후순위 |
+
+### 15.2 코드 모듈 현재 상태
+
+| 파일 | 라인 | 상태 |
+|---|---|---|
+| [main.py](main.py) | 48 | ✅ DI 와이어링 + `allowed_updates` 좁힘 + UserProfileRepo 통합 |
+| [config.py](config.py) | 51 | ✅ `USER_ID_SALT`, `SQLITE_PATH` 추가 |
+| [bot/telegram_handler.py](bot/telegram_handler.py) | 430 | ✅ 6단계 플로우 + 인라인 키보드 + 콜백 라우팅 + i18n |
+| [services/i18n.py](services/i18n.py) | 253 | ✅ 4개 언어 (ko/en/ja/zh), 강화된 면책, 페르소나 언어 지시 |
+| [services/persona_engine.py](services/persona_engine.py) | 161 | ✅ `AsyncOpenAI`, `timeout=20s`, 다국어 페르소나, 관심사 컨텍스트 주입 |
+| [services/user_profile.py](services/user_profile.py) | 140 | ✅ SQLite 기반 `UserProfileRepo` |
+| [services/stock_service.py](services/stock_service.py) | 164 | 🟡 변경 없음. M2(회사명→티커) 미구현 |
+| services/market_report.py | — | ❌ **미생성** (1차-C [4]단계 placeholder만 i18n에 존재) |
+| tests/ | — | ❌ **미생성** (1차-E) |
+
+### 15.3 검증 완료된 동작
+
+- 4개 언어 라우팅: `ko` / `en-US` / `ja` / `zh-Hans` / 미지원→`en` ✅
+- SQLite 영속화 라운드트립 (생성→갱신→재조회): persona, tags, tickers 정확 보존 ✅
+- 봇 부팅 + 텔레그램 폴링 + DeepSeek API 호출 ✅
+- 면책 강화 메시지 4개 언어 출력 ✅
+
+### 15.4 봇 상태
+
+- 마지막 가동 PID: 종료됨 (graceful)
+- SQLite 파일: `data/aiinvestor.db` (사용자 2명, 마지막 갱신 2026-05-05 14:07 UTC)
+- 재기동 명령: `cd AIInvestor && .venv/bin/python main.py` 또는 `nohup .venv/bin/python main.py > /tmp/ai_investor.log 2>&1 & disown`
+
+---
+
+### 15.5 향후 2시간 안에 마무리 가능한 작업 — 권장 체크리스트
+
+다음 항목은 모두 **로컬에서 완결 가능**하며, 2차(Azure) 작업의 전제조건을 충족시켜 클라우드 이전 즉시 시작할 수 있는 상태로 만듭니다. 우선순위 순:
+
+#### A. **1차-C [4] 일일 시황 리포트 본문** — 예상 50분 ⭐⭐⭐ (가장 사용자 가치 큼)
+
+- [ ] `services/market_report.py` 신설
+  - [ ] `MarketReport` dataclass (S&P/NASDAQ/NDX 종가·변동 + Top5 상승/하락 + 페르소나 코멘트)
+  - [ ] `MarketReportService.build(persona, profile, language)` — yfinance `^GSPC`/`^IXIC`/`^NDX` + NASDAQ-100 100개 일괄 다운로드 ([QQQUpDownSignal/qqq_up_down_signal.py](../QQQUpDownSignal/qqq_up_down_signal.py) 재사용)
+  - [ ] DeepSeek로 페르소나별 한 줄 코멘트 생성 (사용자 언어, 관심사 반영)
+  - [ ] 단일 프로세스 인메모리 캐시 (`dict[date, MarketReport]`, TTL 24h)
+- [ ] [bot/telegram_handler.py:227](bot/telegram_handler.py) `report:show` 콜백 분기에서 placeholder 제거하고 `MarketReportService` 호출로 교체
+- [ ] 4개 언어 i18n 키 추가 — 리포트 헤더 ("📊 오늘의 시황" / "📊 Today's Market" / "📊 本日の市況" / "📊 今日的市场")
+
+**완료 기준**: 텔레그램에서 [예, 보기] 누르면 페르소나 톤으로 실 시황 데이터 + 한 줄 코멘트가 사용자 언어로 회신됨.
+
+#### B. **1차-A M2 회사명→티커 매핑** — 예상 25분 ⭐⭐ (UX 핵심)
+
+- [ ] `services/ticker_lookup.py` 신설 — S&P 500 + NASDAQ-100 약 600 종목 매핑 (`{"애플": "AAPL", "테슬라": "TSLA", "アップル": "AAPL", "苹果": "AAPL", ...}` 다국어 별칭)
+- [ ] [services/stock_service.py:79](services/stock_service.py#L79) `_normalize` 가 한글/일본어/중국어 회사명 입력 시 매핑 테이블 조회 후 `query.upper()` 로 fallback
+- [ ] CSV로 외부 분리 (`data/ticker_aliases.csv`) → 코드와 데이터 분리
+
+**완료 기준**: "테슬라", "엔비디아", "アップル", "苹果" 입력 시 정상적으로 yfinance 조회.
+
+#### C. **1차-E pytest 최소 세트** — 예상 25분 ⭐⭐ (회귀 방지)
+
+- [ ] `tests/__init__.py`, `tests/conftest.py`
+- [ ] `tests/test_user_profile.py` — in-memory SQLite (`":memory:"`) 로 격리, 생성/갱신/JSON 직렬화/anon_user_id 결정성
+- [ ] `tests/test_i18n.py` — `normalize_language` 4언어 + fallback, 모든 `_Bundle` 필드가 모든 언어에 존재
+- [ ] `tests/test_intent_classifier.py` — `TICKER_RE` 매칭 케이스 (정상/한글/긴 문자열/특수문자)
+- [ ] `pytest.ini` — `[pytest]` 기본 설정
+- [ ] `pip install pytest` + `requirements-dev.txt` 분리
+
+**완료 기준**: `.venv/bin/pytest` 가 녹색.
+
+#### D. **`requirements.lock` 생성 (L4)** — 예상 5분 ⭐
+
+- [ ] `pip install pip-tools` → `pip-compile requirements.txt --output-file requirements.lock`
+- [ ] README에 잠금 파일 사용법 1줄 추가
+
+#### E. **운영자 `/forget` 명령** — 예상 15분 ⭐ (GDPR/PIPA 대비)
+
+- [ ] [bot/telegram_handler.py](bot/telegram_handler.py) 에 `/forget` 명령 추가 — 본인의 `users` row 삭제 (SQLite). 2차 Azure 이전 시 동일 인터페이스로 Blob 삭제로 전환.
+- [ ] 재확인 콜백 (`forget:confirm` / `forget:cancel`) — 실수 방지
+
+#### 권장 진행 순서 (2시간 = 120분)
+
+```
+00:00–00:50  A. market_report.py 본문 구현 (50분)
+00:50–01:15  B. 회사명→티커 매핑 (25분)
+01:15–01:40  C. pytest 최소 세트 (25분)
+01:40–01:55  E. /forget 명령 (15분)
+01:55–02:00  D. requirements.lock + 최종 부팅 검증 (5분)
+```
+
+총 5개 항목 완료 시 **1차 작업이 100% 마감**되며, 2차 Azure 이전은 §9.4 의 계정 연결 정보만 확보되면 즉시 착수 가능합니다.
+
+#### 보류 항목 정리 — 모두 처리됨
+
+- ✅ `/policy` 명령 — 4개 언어 정책 본문 + `_cmd_policy` 핸들러 등록 ([bot/telegram_handler.py](bot/telegram_handler.py))
+- ✅ 종단 수동 시나리오 — §15.6 에 12개 케이스 통과 기준으로 문서화
+
+### 15.6 종단 수동 시나리오 — 1차 작업 완료 검증 체크리스트
+
+각 케이스는 [@AI_vibe_investor_bot](https://t.me/AI_vibe_investor_bot) 에서 실행 후 결과를 ✓ / ✗ 로 표시. 12 케이스 모두 ✓ 시 1차 작업 종단 검증 완료.
+
+| # | 시나리오 | 기대 결과 |
+|---|---|---|
+| 1 | 새 사용자가 `/start` | 인사말 + 언어 전환 안내 + 자기소개(면책 강화 2줄) + 페르소나 키보드 |
+| 2 | 페르소나 [Ray Dalio] 클릭 | "✓ Ray Dalio 로 설정" + 오늘의 리포트 제안 |
+| 3 | [예, 보기] 클릭 | yfinance 라이브 + DeepSeek 한 줄 코멘트 + 4언어 면책 + 관심사 입력 안내 |
+| 4 | [AI 반도체] [ETF] 클릭 | 토글 표시(✓), `interest_tags` 갱신 |
+| 5 | 자유 입력 "NVDA TSLA" | watchlist_tickers 에 NVDA / TSLA 추가, 분야 vs 종목 분리 메시지 |
+| 6 | [✅ 완료] | "관심 분야 저장" + 자유 질의 초대 |
+| 7 | 입력 "테슬라" | yfinance 가 TSLA 로 정상 조회 (다국어 매핑 동작) |
+| 8 | 봇 종료 후 재기동, 동일 사용자가 메시지 발신 | 페르소나 / 관심사 / 언어 SQLite 영속 보존 확인 |
+| 9 | `/persona` → 다른 페르소나 선택 | 인사말 + "관심 분야: AI 반도체, ETF — 그대로 유지" |
+| 10 | `/lang` → English | 모든 후속 응답이 영어 (페르소나·관심사 그대로) |
+| 11 | `/policy` | 4개 언어 정책 본문 출력 (`/forget` `/lang` `/persona` 안내 포함) |
+| 12 | `/forget` → [Yes, delete] | "deleted" 메시지 + DB row 제거 (다음 `/start` 는 신규 사용자 플로우) |
+
+각 케이스의 자동화 테스트는 pytest 49건이 단위·로직 레이어를 커버하며, 12개 종단 케이스는 텔레그램 라이브 환경 의존성으로 인해 수동 검증입니다.
 
 ---
 

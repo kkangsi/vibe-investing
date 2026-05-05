@@ -123,6 +123,12 @@ class UserProfileRepo:
             raise KeyError(f"user not found: {user_key}")
         return _row_to_profile(row)
 
+    def delete(self, user_key: str) -> bool:
+        """Hard-delete the user's row. Returns True if a row was removed."""
+        with self._lock, self._connect() as conn:
+            cur = conn.execute("DELETE FROM users WHERE user_key = ?", (user_key,))
+        return cur.rowcount > 0
+
 
 def _row_to_profile(row: sqlite3.Row) -> UserProfile:
     return UserProfile(

@@ -8,6 +8,8 @@ from typing import Any
 
 import yfinance as yf
 
+from .ticker_lookup import TickerLookup
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,9 +73,14 @@ class StockServiceError(Exception):
 class StockService:
     """Fetches a fundamental + price snapshot for a ticker."""
 
+    def __init__(self, ticker_lookup: TickerLookup | None = None) -> None:
+        self._lookup = ticker_lookup or TickerLookup()
+
     def get_snapshot(self, query: str) -> StockSnapshot:
-        ticker_symbol = self._normalize(query)
-        logger.info("Fetching snapshot for %s", ticker_symbol)
+        ticker_symbol = self._lookup.resolve(query)
+        if not ticker_symbol:
+            raise StockServiceError(f"Empty query: {query!r}")
+        logger.info("Fetching snapshot for %s (raw=%r)", ticker_symbol, query)
 
         ticker = yf.Ticker(ticker_symbol)
         info = self._safe_info(ticker)

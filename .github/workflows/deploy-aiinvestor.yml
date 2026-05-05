@@ -1,0 +1,109 @@
+name: deploy-aiinvestor
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'AIInvestor/**'
+      - '.github/workflows/deploy-aiinvestor.yml'
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, prod]
+
+env:
+  PYTHON_VERSION: '3.11'
+  AZURE_RG_PREFIX: rg-aiinvestor
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AIInvestor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: AIInvestor/requirements.txt
+      - run: pip install -r requirements.txt pytest pip-tools
+      - run: pytest -q
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AIInvestor
+    env:
+      ENV_NAME: ${{ github.event.inputs.env || (github.ref_name == 'main' && 'prod' || 'dev') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure resource group
+        run: |
+          RG="${AZURE_RG_PREFIX}-${ENV_NAME}"
+          az group create --name "$RG" --location koreacentral --output none
+          echo "RG=$RG" >> $GITHUB_ENV
+
+      - name: Deploy infrastructure (Bicep)
+        run: |
+          DEPLOYER_OID=$(az ad sp show --id "${{ secrets.AZURE_DEPLOYER_CLIENT_ID }}" --query id -o tsv)
+          az deployment group create \
+            --resource-group "$RG" \
+            --template-file infra/main.bicep \
+            --parameters env=$ENV_NAME deployerObjectId=$DEPLOYER_OID \
+            --output none
+
+      - name: Read Bicep outputs
+        id: bicep
+        run: |
+          DEP=$(az deployment group list --resource-group "$RG" --query "[0].name" -o tsv)
+          OUT=$(az deployment group show --resource-group "$RG" --name "$DEP" --query properties.outputs -o json)
+          echo "$OUT" | jq -r 'to_entries | .[] | "\(.key | ascii_upcase)=\(.value.value)"' >> $GITHUB_ENV
+
+      - name: Sync secrets into Key Vault
+        run: |
+          az keyvault secret set --vault-name "$KEYVAULTNAME" --name telegram-bot-token       --value "${{ secrets.TELEGRAM_BOT_TOKEN }}"        --output none
+          az keyvault secret set --vault-name "$KEYVAULTNAME" --name deepseek-api-key         --value "${{ secrets.DEEPSEEK_API_KEY }}"          --output none
+          az keyvault secret set --vault-name "$KEYVAULTNAME" --name telegram-webhook-secret  --value "${{ secrets.TELEGRAM_WEBHOOK_SECRET }}"   --output none
+          az keyvault secret set --vault-name "$KEYVAULTNAME" --name user-id-salt             --value "${{ secrets.USER_ID_SALT }}"              --output none
+
+      - name: Build Functions package
+        run: |
+          pip install --quiet -r requirements.txt --target .python_packages/lib/site-packages
+          zip -r ../aiinvestor.zip . -x "*.venv/*" "*.pyc" "__pycache__/*" "tests/*" "data/aiinvestor.db" "*.env"
+
+      - name: Deploy Functions package
+        run: |
+          az functionapp deployment source config-zip \
+            --resource-group "$RG" \
+            --name "$FUNCTIONAPPNAME" \
+            --src ../aiinvestor.zip \
+            --output none
+
+      - name: Set Telegram webhook
+        run: |
+          WEBHOOK_URL="https://${FUNCTIONAPPHOST}/api/telegram/webhook"
+          curl -fsS -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/setWebhook" \
+            -d "url=${WEBHOOK_URL}" \
+            -d "secret_token=${{ secrets.TELEGRAM_WEBHOOK_SECRET }}" \
+            -d "allowed_updates=[\"message\",\"callback_query\"]" \
+            -d "drop_pending_updates=true"
+          echo ""
+          curl -fsS "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/getWebhookInfo"

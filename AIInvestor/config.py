@@ -20,6 +20,8 @@ class Config:
     default_persona: str
     user_id_salt: str
     sqlite_path: str
+    storage_backend: str  # 'sqlite' (1차 / dev) or 'blob' (2차 / Azure)
+    storage_account_name: str
     log_level: str
 
     @staticmethod
@@ -40,6 +42,8 @@ class Config:
             default_persona=os.getenv("DEFAULT_PERSONA", "buffett").lower(),
             user_id_salt=os.getenv("USER_ID_SALT", "ai-investor-default-salt-change-me"),
             sqlite_path=os.getenv("SQLITE_PATH", "./data/aiinvestor.db"),
+            storage_backend=os.getenv("STORAGE_BACKEND", "sqlite").lower(),
+            storage_account_name=os.getenv("STORAGE_ACCOUNT_NAME", "").strip(),
             log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
         )
 

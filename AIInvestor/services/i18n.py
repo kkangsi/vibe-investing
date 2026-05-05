@@ -48,6 +48,12 @@ class _Bundle:
     unknown_input: str
     error_market_data: str
     error_llm: str
+    forget_prompt: str
+    forget_yes: str
+    forget_no: str
+    forget_done: str
+    forget_cancelled: str
+    policy: str
 
 
 _KO = _Bundle(
@@ -95,6 +101,27 @@ _KO = _Bundle(
     unknown_input="이해하지 못했어요. /help 를 입력하시면 명령 목록을 볼 수 있습니다.",
     error_market_data="지금 시장 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     error_llm="지금 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    forget_prompt="저장된 페르소나·관심사·언어 설정을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
+    forget_yes="네, 모두 삭제",
+    forget_no="취소",
+    forget_done="✓ 저장된 데이터를 모두 삭제했습니다. /start 로 다시 시작할 수 있습니다.",
+    forget_cancelled="삭제를 취소했습니다.",
+    policy=(
+        "📋 데이터 처리 및 면책 안내\n\n"
+        "• 본 챗봇은 실수할 수 있으며, 어떤 응답도 투자 자문이 아닙니다.\n"
+        "• 모든 투자 판단과 그 결과에 대한 책임은 전적으로 본인에게 있습니다.\n\n"
+        "데이터 출처:\n"
+        "• 시세·펀더멘털: Yahoo Finance (yfinance)\n"
+        "• AI 응답: DeepSeek (deepseek-chat / deepseek-reasoner)\n\n"
+        "저장되는 정보:\n"
+        "• 페르소나, 언어, 관심 분야·종목 (서비스 운영 목적)\n"
+        "• 텔레그램 ID 는 SHA-256 익명화되어 anon_user_id 로만 보관\n"
+        "• 원시 ID·이름·연락처·IP 는 저장하지 않음\n\n"
+        "권리:\n"
+        "• /forget 으로 저장된 데이터를 즉시 삭제할 수 있습니다.\n"
+        "• /lang 으로 언제든 언어를 변경할 수 있습니다.\n"
+        "• /persona 로 페르소나를 변경해도 관심사는 보존됩니다."
+    ),
 )
 
 _EN = _Bundle(
@@ -142,6 +169,27 @@ _EN = _Bundle(
     unknown_input="I didn't catch that. Send /help for commands.",
     error_market_data="I couldn't fetch market data right now. Please try again shortly.",
     error_llm="I couldn't generate a response right now. Please try again shortly.",
+    forget_prompt="Delete your saved persona, interests, and language settings? This cannot be undone.",
+    forget_yes="Yes, delete everything",
+    forget_no="Cancel",
+    forget_done="✓ Your stored data has been deleted. Send /start to begin again.",
+    forget_cancelled="Cancelled.",
+    policy=(
+        "📋 Data handling & disclaimer\n\n"
+        "• This chatbot can make mistakes; nothing it says is financial advice.\n"
+        "• All investment decisions and their consequences are entirely your own responsibility.\n\n"
+        "Data sources:\n"
+        "• Quotes & fundamentals: Yahoo Finance (yfinance)\n"
+        "• AI responses: DeepSeek (deepseek-chat / deepseek-reasoner)\n\n"
+        "What we store:\n"
+        "• Persona, language, interest tags & watchlist tickers (operational)\n"
+        "• Your Telegram ID is one-way hashed (SHA-256) to anon_user_id\n"
+        "• Raw IDs, names, contact info, and IP are NOT stored\n\n"
+        "Your rights:\n"
+        "• /forget — delete all stored data immediately\n"
+        "• /lang — switch language at any time\n"
+        "• /persona — change persona; interests are preserved"
+    ),
 )
 
 _JA = _Bundle(
@@ -189,6 +237,27 @@ _JA = _Bundle(
     unknown_input="理解できませんでした。/help でコマンド一覧を確認できます。",
     error_market_data="市場データを取得できませんでした。しばらくしてから再度お試しください。",
     error_llm="回答を生成できませんでした。しばらくしてから再度お試しください。",
+    forget_prompt="保存されたペルソナ・関心分野・言語設定をすべて削除しますか? この操作は取り消せません。",
+    forget_yes="はい、すべて削除",
+    forget_no="キャンセル",
+    forget_done="✓ 保存データを削除しました。/start で再度始められます。",
+    forget_cancelled="キャンセルしました。",
+    policy=(
+        "📋 データの取扱いと免責事項\n\n"
+        "• 本チャットボットは誤りを含むことがあり、いかなる応答も投資助言ではありません。\n"
+        "• すべての投資判断とその結果については、ご自身が全責任を負うものとします。\n\n"
+        "データソース:\n"
+        "• 株価・ファンダメンタルズ: Yahoo Finance (yfinance)\n"
+        "• AI応答: DeepSeek (deepseek-chat / deepseek-reasoner)\n\n"
+        "保存される情報:\n"
+        "• ペルソナ、言語、関心分野・銘柄 (サービス運用目的)\n"
+        "• Telegram ID は SHA-256 で匿名化された anon_user_id のみ保管\n"
+        "• 生の ID・氏名・連絡先・IP は保存されません\n\n"
+        "ユーザーの権利:\n"
+        "• /forget — 保存データを即時削除\n"
+        "• /lang — いつでも言語を切替可能\n"
+        "• /persona — ペルソナ変更時も関心分野は保持"
+    ),
 )
 
 _ZH = _Bundle(
@@ -236,6 +305,27 @@ _ZH = _Bundle(
     unknown_input="我没理解。发送 /help 查看命令列表。",
     error_market_data="目前无法获取市场数据,请稍后再试。",
     error_llm="目前无法生成回复,请稍后再试。",
+    forget_prompt="确认删除已保存的人设、关注领域和语言设置吗? 此操作不可撤销。",
+    forget_yes="是,全部删除",
+    forget_no="取消",
+    forget_done="✓ 已删除您的存储数据。发送 /start 即可重新开始。",
+    forget_cancelled="已取消。",
+    policy=(
+        "📋 数据处理与免责声明\n\n"
+        "• 本聊天机器人可能出错,所有回复均不构成投资建议。\n"
+        "• 一切投资决策及其后果由您本人完全自行承担。\n\n"
+        "数据来源:\n"
+        "• 行情与基本面: Yahoo Finance (yfinance)\n"
+        "• AI 回复: DeepSeek (deepseek-chat / deepseek-reasoner)\n\n"
+        "保存的信息:\n"
+        "• 人设、语言、关注领域与股票 (服务运行所需)\n"
+        "• Telegram ID 经 SHA-256 单向哈希为 anon_user_id 后保存\n"
+        "• 原始 ID、姓名、联系方式、IP 不会被保存\n\n"
+        "您的权利:\n"
+        "• /forget — 立即删除所存数据\n"
+        "• /lang — 随时切换语言\n"
+        "• /persona — 切换人设时关注领域将保留"
+    ),
 )
 
 _BUNDLES: dict[str, _Bundle] = {"ko": _KO, "en": _EN, "ja": _JA, "zh": _ZH}

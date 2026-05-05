@@ -1,0 +1,14 @@
+.git*
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.env.example
+tests/
+pytest.ini
+data/aiinvestor.db
+infra/
+*.md
+*.zip
+.python_packages/lib/site-packages/azure_functions_worker

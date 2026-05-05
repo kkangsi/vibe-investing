@@ -60,13 +60,16 @@ OpenAI에서 DeepSeek로 전환한 이유: ChatGPT는 실시간 데이터성 미
 
 | 명령 | 동작 |
 |---|---|
-| `/start` | 환영 + 현재 페르소나 |
+| `/start` | 6단계 온보딩 시작 (인사 → 소개 → 페르소나 → 오늘의 리포트 → 관심사 → 자유 질의) |
+| `/persona` | 페르소나 인라인 키보드 (`buffett` / `dalio` / `wood`) — 관심사는 보존 |
+| `/personas` | 사용 가능한 페르소나 목록 (현재 선택 표시) |
+| `/lang` | 언어 전환 인라인 키보드 (`ko` / `en` / `ja` / `zh`) |
+| `/policy` | 데이터 처리 정책 + 면책 (4개 언어) |
+| `/forget` | 저장된 페르소나·관심사·언어 일괄 삭제 (재확인 키보드) |
 | `/help` | 명령 목록 |
-| `/personas` | 사용 가능한 페르소나 |
-| `/persona <key>` | 페르소나 전환 (`buffett` / `dalio` / `wood`) |
-| 일반 텍스트 | 티커로 간주 → yfinance 조회 → 페르소나 해설 |
+| 자유 입력 | 티커(`NVDA`) / 다국어 회사명(`테슬라`, `テスラ`, `特斯拉`) → yfinance 조회 → 페르소나 해설 (사용자 언어로) |
 
-이상의 명령은 MVP 현재 동작 기준이며, [paper_plan.md §6](paper_plan.md#6-사용자-플로우) 에 정의된 5단계 골든 패스(입장 → 설명 → 페르소나 → 오늘의 리포트 → 자유 질의)는 Phase 1에서 구현 예정입니다.
+봇이 텔레그램 사용자 언어 코드(`language_code`)를 자동 감지하여 한국어 / 영어 / 일본어 / 중국어 중 선택하며, `/lang` 으로 언제든 전환 가능. 5단계 → 6단계 골든 패스 상세는 [paper_plan.md §6](paper_plan.md#6-사용자-플로우) 참조.
 
 ---
 
@@ -74,14 +77,24 @@ OpenAI에서 DeepSeek로 전환한 이유: ChatGPT는 실시간 데이터성 미
 
 ```
 AIInvestor/
-├── main.py                       엔트리 포인트
+├── main.py                       엔트리 포인트, DI 와이어링
 ├── config.py                     env 로딩 + 로깅
 ├── bot/
-│   └── telegram_handler.py       명령/메시지 라우팅, 페르소나 상태
+│   └── telegram_handler.py       6단계 온보딩 + 콜백 + i18n 라우팅
 ├── services/
-│   ├── persona_engine.py         페르소나 + DeepSeek 호출
-│   └── stock_service.py          yfinance 스냅샷 + 1년치 변동률
+│   ├── i18n.py                   4개 언어 번역 번들 (ko/en/ja/zh)
+│   ├── persona_engine.py         AsyncOpenAI(DeepSeek) + 다국어 페르소나
+│   ├── stock_service.py          yfinance 스냅샷 + 1년 변동률
+│   ├── ticker_lookup.py          다국어 회사명 → 티커 (931 alias / 252 unique ticker)
+│   ├── market_report.py          일일 시황 (S&P/NDX + Top 5) + 페르소나 코멘트
+│   └── user_profile.py           SQLite UserProfileRepo (anon SHA-256)
+├── data/
+│   ├── ticker_aliases.csv        NASDAQ 200+ / S&P 500 mega-large + 인기 ETF — 영/한/일/중 + 약칭
+│   └── aiinvestor.db             SQLite (자동 생성, .gitignore)
+├── tests/                        pytest 49건 (user_profile / i18n / ticker)
 ├── requirements.txt
+├── requirements.lock             pip-compile 잠금
+├── pytest.ini
 ├── .env.example
 ├── README.md                     (이 파일)
 ├── paper_plan.md                 ★ 아키텍처 / 로드맵 / 코드 리뷰 / 학술 계획

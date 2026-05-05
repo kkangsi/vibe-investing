@@ -1,0 +1,968 @@
+alias,ticker
+# === Mega-cap tech (FAANG+ + AI 반도체) ===
+apple,AAPL
+aapl,AAPL
+애플,AAPL
+사과,AAPL
+アップル,AAPL
+苹果,AAPL
+苹果公司,AAPL
+microsoft,MSFT
+msft,MSFT
+ms,MSFT
+마이크로소프트,MSFT
+마소,MSFT
+マイクロソフト,MSFT
+微软,MSFT
+google,GOOGL
+googl,GOOGL
+alphabet,GOOGL
+구글,GOOGL
+알파벳,GOOGL
+グーグル,GOOGL
+アルファベット,GOOGL
+谷歌,GOOGL
+goog,GOOG
+amazon,AMZN
+amzn,AMZN
+아마존,AMZN
+아마,AMZN
+アマゾン,AMZN
+亚马逊,AMZN
+meta,META
+페이스북,META
+메타,META
+페북,META
+facebook,META
+fb,META
+フェイスブック,META
+メタ,META
+脸书,META
+nvidia,NVDA
+nvda,NVDA
+엔비디아,NVDA
+엔비,NVDA
+エヌビディア,NVDA
+英伟达,NVDA
+英伟达公司,NVDA
+tesla,TSLA
+tsla,TSLA
+테슬라,TSLA
+테슬,TSLA
+テスラ,TSLA
+特斯拉,TSLA
+broadcom,AVGO
+avgo,AVGO
+브로드컴,AVGO
+ブロードコム,AVGO
+博通,AVGO
+# === Semiconductor ===
+amd,AMD
+어드밴스드 마이크로 디바이시스,AMD
+ＡＭＤ,AMD
+超微,AMD
+超威半导体,AMD
+intel,INTC
+intc,INTC
+인텔,INTC
+インテル,INTC
+英特尔,INTC
+qualcomm,QCOM
+qcom,QCOM
+퀄컴,QCOM
+クアルコム,QCOM
+高通,QCOM
+texas instruments,TXN
+txn,TXN
+텍사스 인스트루먼트,TXN
+ti,TXN
+德州仪器,TXN
+asml,ASML
+에이에스엠엘,ASML
+阿斯麦,ASML
+アエスエムエル,ASML
+tsm,TSM
+tsmc,TSM
+대만 반도체,TSM
+台积电,TSM
+台湾積体電路,TSM
+台積電,TSM
+micron,MU
+mu,MU
+마이크론,MU
+マイクロン,MU
+美光,MU
+marvell,MRVL
+mrvl,MRVL
+마벨,MRVL
+applied materials,AMAT
+amat,AMAT
+어플라이드 머티리얼즈,AMAT
+应用材料,AMAT
+lam research,LRCX
+lrcx,LRCX
+램리서치,LRCX
+泛林集团,LRCX
+klac,KLAC
+kla,KLAC
+케이엘에이,KLAC
+analog devices,ADI
+adi,ADI
+아날로그 디바이시스,ADI
+亚德诺,ADI
+nxp,NXPI
+nxpi,NXPI
+엔엑스피,NXPI
+恩智浦,NXPI
+microchip,MCHP
+mchp,MCHP
+마이크로칩,MCHP
+on semiconductor,ON
+온세미컨덕터,ON
+온세미,ON
+gfs,GFS
+globalfoundries,GFS
+글로벌파운드리,GFS
+arm,ARM
+ARM,ARM
+암,ARM
+アーム,ARM
+arm holdings,ARM
+# === Software / Cloud / Cyber ===
+oracle,ORCL
+orcl,ORCL
+오라클,ORCL
+オラクル,ORCL
+甲骨文,ORCL
+salesforce,CRM
+crm,CRM
+세일즈포스,CRM
+セールスフォース,CRM
+赛富时,CRM
+adobe,ADBE
+adbe,ADBE
+어도비,ADBE
+アドビ,ADBE
+奥多比,ADBE
+servicenow,NOW
+now,NOW
+서비스나우,NOW
+snowflake,SNOW
+snow,SNOW
+스노우플레이크,SNOW
+스노우,SNOW
+雪花,SNOW
+datadog,DDOG
+ddog,DDOG
+데이터독,DDOG
+mongodb,MDB
+mdb,MDB
+몽고디비,MDB
+cloudflare,NET
+net,NET
+클라우드플레어,NET
+okta,OKTA
+옥타,OKTA
+zscaler,ZS
+zs,ZS
+지스케일러,ZS
+crowdstrike,CRWD
+crwd,CRWD
+크라우드스트라이크,CRWD
+크라우드,CRWD
+palo alto,PANW
+palo alto networks,PANW
+panw,PANW
+팔로알토,PANW
+fortinet,FTNT
+ftnt,FTNT
+포티넷,FTNT
+cisco,CSCO
+csco,CSCO
+시스코,CSCO
+シスコ,CSCO
+思科,CSCO
+ibm,IBM
+아이비엠,IBM
+アイビーエム,IBM
+intuit,INTU
+intu,INTU
+인튜이트,INTU
+atlassian,TEAM
+team,TEAM
+아틀라시안,TEAM
+workday,WDAY
+wday,WDAY
+워크데이,WDAY
+ansys,ANSS
+anss,ANSS
+앤시스,ANSS
+synopsys,SNPS
+snps,SNPS
+시놉시스,SNPS
+cadence,CDNS
+cdns,CDNS
+케이던스,CDNS
+autodesk,ADSK
+adsk,ADSK
+오토데스크,ADSK
+# === Consumer Internet / E-commerce ===
+netflix,NFLX
+nflx,NFLX
+넷플릭스,NFLX
+넷플,NFLX
+ネットフリックス,NFLX
+奈飞,NFLX
+booking,BKNG
+bkng,BKNG
+부킹,BKNG
+booking holdings,BKNG
+缤客,BKNG
+airbnb,ABNB
+abnb,ABNB
+에어비앤비,ABNB
+에어비앤,ABNB
+エアビーアンドビー,ABNB
+爱彼迎,ABNB
+uber,UBER
+우버,UBER
+ウーバー,UBER
+优步,UBER
+lyft,LYFT
+리프트,LYFT
+doordash,DASH
+dash,DASH
+도어대시,DASH
+shopify,SHOP
+shop,SHOP
+쇼피파이,SHOP
+mercadolibre,MELI
+meli,MELI
+메르카도리브레,MELI
+pinduoduo,PDD
+pdd,PDD
+핀둬둬,PDD
+拼多多,PDD
+alibaba,BABA
+baba,BABA
+알리바바,BABA
+アリババ,BABA
+阿里巴巴,BABA
+阿里,BABA
+jd,JD
+jd.com,JD
+징둥,JD
+京东,JD
+sea,SE
+씨,SE
+씨리미티드,SE
+冬海,SE
+# === Social / Communication ===
+snap,SNAP
+스냅,SNAP
+스냅챗,SNAP
+snapchat,SNAP
+pinterest,PINS
+pins,PINS
+핀터레스트,PINS
+spotify,SPOT
+spot,SPOT
+스포티파이,SPOT
+スポティファイ,SPOT
+声田,SPOT
+roblox,RBLX
+rblx,RBLX
+로블록스,RBLX
+# === Streaming / Media ===
+disney,DIS
+dis,DIS
+디즈니,DIS
+ディズニー,DIS
+迪士尼,DIS
+comcast,CMCSA
+cmcsa,CMCSA
+컴캐스트,CMCSA
+charter,CHTR
+chtr,CHTR
+차터,CHTR
+roku,ROKU
+로쿠,ROKU
+warner bros,WBD
+wbd,WBD
+워너브라더스,WBD
+华纳,WBD
+# === EV / Auto ===
+ford,F
+포드,F
+フォード,F
+福特,F
+gm,GM
+general motors,GM
+지엠,GM
+제너럴모터스,GM
+ゼネラルモーターズ,GM
+通用,GM
+通用汽车,GM
+rivian,RIVN
+rivn,RIVN
+리비안,RIVN
+lucid,LCID
+lcid,LCID
+루시드,LCID
+nio,NIO
+니오,NIO
+蔚来,NIO
+xpeng,XPEV
+xpev,XPEV
+샤오펑,XPEV
+小鹏,XPEV
+li auto,LI
+li,LI
+리오토,LI
+理想,LI
+理想汽车,LI
+# === Banks / Financials / Payments ===
+jpmorgan,JPM
+jp morgan,JPM
+jpm,JPM
+제이피모건,JPM
+JP모건,JPM
+ジェーピーモルガン,JPM
+摩根大通,JPM
+bank of america,BAC
+bac,BAC
+뱅크오브아메리카,BAC
+뱅오아,BAC
+美国银行,BAC
+wells fargo,WFC
+wfc,WFC
+웰스파고,WFC
+富国银行,WFC
+goldman sachs,GS
+goldman,GS
+gs,GS
+골드만삭스,GS
+골드만,GS
+ゴールドマンサックス,GS
+高盛,GS
+morgan stanley,MS
+ms.financial,MS
+모건스탠리,MS
+摩根士丹利,MS
+citigroup,C
+citi,C
+시티그룹,C
+시티,C
+花旗,C
+花旗集团,C
+capital one,COF
+cof,COF
+캐피털원,COF
+american express,AXP
+axp,AXP
+아멕스,AXP
+아메리칸 익스프레스,AXP
+美国运通,AXP
+visa,V
+비자,V
+ビザ,V
+威士,V
+mastercard,MA
+마스터카드,MA
+マスターカード,MA
+万事达,MA
+万事达卡,MA
+paypal,PYPL
+pypl,PYPL
+페이팔,PYPL
+ペイパル,PYPL
+贝宝,PYPL
+block,SQ
+sq,SQ
+스퀘어,SQ
+square,SQ
+robinhood,HOOD
+hood,HOOD
+로빈후드,HOOD
+ロビンフッド,HOOD
+罗宾汉,HOOD
+coinbase,COIN
+coin,COIN
+코인베이스,COIN
+코베,COIN
+コインベース,COIN
+比特币基地,COIN
+microstrategy,MSTR
+mstr,MSTR
+strategy,MSTR
+마이크로스트래티지,MSTR
+마스트,MSTR
+ストラテジー,MSTR
+# === Healthcare / Pharma ===
+johnson,JNJ
+johnson and johnson,JNJ
+jnj,JNJ
+존슨앤드존슨,JNJ
+존슨,JNJ
+ジョンソン・エンド・ジョンソン,JNJ
+强生,JNJ
+pfizer,PFE
+pfe,PFE
+화이자,PFE
+ファイザー,PFE
+辉瑞,PFE
+merck,MRK
+mrk,MRK
+머크,MRK
+メルク,MRK
+默沙东,MRK
+eli lilly,LLY
+lilly,LLY
+lly,LLY
+일라이릴리,LLY
+릴리,LLY
+イーライリリー,LLY
+礼来,LLY
+unitedhealth,UNH
+unh,UNH
+유나이티드헬스,UNH
+联合健康,UNH
+abbvie,ABBV
+abbv,ABBV
+애브비,ABBV
+艾伯维,ABBV
+bristol myers,BMY
+bmy,BMY
+브리스톨마이어스,BMY
+施贵宝,BMY
+gilead,GILD
+gild,GILD
+길리어드,GILD
+吉利德,GILD
+amgen,AMGN
+amgn,AMGN
+암젠,AMGN
+安进,AMGN
+moderna,MRNA
+mrna,MRNA
+모더나,MRNA
+モデルナ,MRNA
+莫德纳,MRNA
+regeneron,REGN
+regn,REGN
+리제네론,REGN
+再生元,REGN
+vertex,VRTX
+vrtx,VRTX
+버텍스,VRTX
+biogen,BIIB
+biib,BIIB
+바이오젠,BIIB
+百健,BIIB
+novo nordisk,NVO
+nvo,NVO
+노보노디스크,NVO
+诺和诺德,NVO
+abbott,ABT
+abt,ABT
+애보트,ABT
+雅培,ABT
+medtronic,MDT
+mdt,MDT
+메드트로닉,MDT
+美敦力,MDT
+thermo fisher,TMO
+tmo,TMO
+써모피셔,TMO
+赛默飞,TMO
+danaher,DHR
+dhr,DHR
+다나허,DHR
+丹纳赫,DHR
+intuitive surgical,ISRG
+isrg,ISRG
+인튜이티브 서지컬,ISRG
+直觉外科,ISRG
+# === Consumer Staples ===
+coca cola,KO
+cocacola,KO
+ko,KO
+코카콜라,KO
+코카,KO
+コカ・コーラ,KO
+可口可乐,KO
+pepsi,PEP
+pepsico,PEP
+pep,PEP
+펩시,PEP
+펩시코,PEP
+百事,PEP
+百事可乐,PEP
+procter gamble,PG
+procter and gamble,PG
+pg,PG
+p&g,PG
+프록터앤드갬블,PG
+P&G,PG
+宝洁,PG
+walmart,WMT
+wmt,WMT
+월마트,WMT
+ウォルマート,WMT
+沃尔玛,WMT
+costco,COST
+cost,COST
+코스트코,COST
+コストコ,COST
+好市多,COST
+mondelez,MDLZ
+mdlz,MDLZ
+몬덜리즈,MDLZ
+亿滋,MDLZ
+kraft heinz,KHC
+khc,KHC
+크래프트하인즈,KHC
+卡夫亨氏,KHC
+philip morris,PM
+pm,PM
+필립모리스,PM
+菲利普莫里斯,PM
+altria,MO
+mo,MO
+알트리아,MO
+奥驰亚,MO
+colgate,CL
+cl,CL
+콜게이트,CL
+高露洁,CL
+keurig,KDP
+kdp,KDP
+큐리그,KDP
+monster,MNST
+mnst,MNST
+몬스터,MNST
+怪兽,MNST
+# === Consumer Discretionary ===
+home depot,HD
+hd,HD
+홈디포,HD
+ホームデポ,HD
+家得宝,HD
+lowes,LOW
+low,LOW
+로우스,LOW
+劳氏,LOW
+mcdonalds,MCD
+mcd,MCD
+맥도날드,MCD
+マクドナルド,MCD
+麦当劳,MCD
+starbucks,SBUX
+sbux,SBUX
+스타벅스,SBUX
+スターバックス,SBUX
+星巴克,SBUX
+nike,NKE
+nke,NKE
+나이키,NKE
+ナイキ,NKE
+耐克,NKE
+target,TGT
+tgt,TGT
+타겟,TGT
+タージェット,TGT
+塔吉特,TGT
+lululemon,LULU
+lulu,LULU
+룰루레몬,LULU
+露露柠檬,LULU
+marriott,MAR
+mar,MAR
+메리어트,MAR
+万豪,MAR
+chipotle,CMG
+cmg,CMG
+치폴레,CMG
+yum,YUM
+yum brands,YUM
+얌브랜즈,YUM
+百胜,YUM
+# === Industrial / Defense / Aerospace ===
+caterpillar,CAT
+cat,CAT
+캐터필러,CAT
+キャタピラー,CAT
+卡特彼勒,CAT
+deere,DE
+john deere,DE
+de,DE
+존디어,DE
+迪尔,DE
+boeing,BA
+ba,BA
+보잉,BA
+ボーイング,BA
+波音,BA
+general electric,GE
+ge,GE
+제너럴 일렉트릭,GE
+ＧＥ,GE
+通用电气,GE
+raytheon,RTX
+rtx,RTX
+레이시온,RTX
+雷神,RTX
+lockheed,LMT
+lockheed martin,LMT
+lmt,LMT
+록히드,LMT
+록히드 마틴,LMT
+洛克希德,LMT
+洛克希德马丁,LMT
+northrop grumman,NOC
+noc,NOC
+노스럽 그루먼,NOC
+诺斯罗普,NOC
+general dynamics,GD
+gd,GD
+제너럴 다이내믹스,GD
+通用动力,GD
+3m,MMM
+mmm,MMM
+스리엠,MMM
+3M,MMM
+honeywell,HON
+hon,HON
+하니웰,HON
+霍尼韦尔,HON
+union pacific,UNP
+unp,UNP
+유니온퍼시픽,UNP
+联合太平洋,UNP
+ups,UPS
+유피에스,UPS
+联合包裹,UPS
+fedex,FDX
+fdx,FDX
+페덱스,FDX
+联邦快递,FDX
+emerson,EMR
+emr,EMR
+에머슨,EMR
+艾默生,EMR
+# === Energy / Utilities ===
+exxon,XOM
+exxon mobil,XOM
+xom,XOM
+엑슨,XOM
+엑슨모빌,XOM
+エクソン,XOM
+埃克森,XOM
+埃克森美孚,XOM
+chevron,CVX
+cvx,CVX
+셰브론,CVX
+シェブロン,CVX
+雪佛龙,CVX
+conocophillips,COP
+cop,COP
+코노코필립스,COP
+康菲,COP
+schlumberger,SLB
+slb,SLB
+슐럼버제,SLB
+斯伦贝谢,SLB
+occidental,OXY
+oxy,OXY
+옥시덴탈,OXY
+西方石油,OXY
+phillips 66,PSX
+psx,PSX
+필립스66,PSX
+菲利普斯66,PSX
+marathon petroleum,MPC
+mpc,MPC
+마라톤페트롤리엄,MPC
+eog,EOG
+eog resources,EOG
+이오지,EOG
+# === Telecom ===
+at&t,T
+at and t,T
+t,T
+에이티앤티,T
+ATT,T
+ＡＴ＆Ｔ,T
+verizon,VZ
+vz,VZ
+버라이즌,VZ
+威瑞森,VZ
+tmobile,TMUS
+t-mobile,TMUS
+tmus,TMUS
+티모바일,TMUS
+T-Mobile,TMUS
+# === Real Estate / REIT ===
+realty income,O
+o,O
+리얼티인컴,O
+american tower,AMT
+amt,AMT
+아메리칸타워,AMT
+prologis,PLD
+pld,PLD
+프로로지스,PLD
+equinix,EQIX
+eqix,EQIX
+이퀴닉스,EQIX
+simon property,SPG
+spg,SPG
+사이먼프로퍼티,SPG
+# === Crypto-linked / Mining ===
+riot,RIOT
+riot platforms,RIOT
+라이엇,RIOT
+marathon digital,MARA
+mara,MARA
+마라톤디지털,MARA
+hut 8,HUT
+hut,HUT
+헛8,HUT
+cleanspark,CLSK
+clsk,CLSK
+클린스파크,CLSK
+# === Other notable ===
+berkshire,BRK-B
+berkshire hathaway,BRK-B
+brk,BRK-B
+buffett,BRK-B
+버크셔,BRK-B
+버크셔 해서웨이,BRK-B
+バークシャー,BRK-B
+伯克希尔,BRK-B
+palantir,PLTR
+pltr,PLTR
+팔란티어,PLTR
+パランティア,PLTR
+帕兰提尔,PLTR
+crowdstrike,CRWD
+duolingo,DUOL
+duol,DUOL
+듀오링고,DUOL
+unity,U
+unity software,U
+유니티,U
+roblox,RBLX
+sirius xm,SIRI
+siri,SIRI
+시리우스 XM,SIRI
+abnb,ABNB
+applovin,APP
+app,APP
+앱러빈,APP
+upstart,UPST
+upst,UPST
+업스타트,UPST
+sofi,SOFI
+소파이,SOFI
+# === Major ETFs — popular among Korean investors ===
+spy,SPY
+스파이,SPY
+S&P500 ETF,SPY
+SPDR S&P 500,SPY
+spdr s&p 500,SPY
+spdr,SPY
+voo,VOO
+뱅가드 S&P 500,VOO
+ivv,IVV
+아이쉐어즈 S&P 500,IVV
+ishares core sp500,IVV
+qqq,QQQ
+큐큐큐,QQQ
+나스닥100 ETF,QQQ
+나스닥 ETF,QQQ
+인베스코 QQQ,QQQ
+invesco qqq,QQQ
+qqqm,QQQM
+큐큐큐엠,QQQM
+vti,VTI
+뱅가드 토탈,VTI
+total market,VTI
+ティーアイ,VTI
+dia,DIA
+다우 ETF,DIA
+다우존스 ETF,DIA
+iwm,IWM
+러셀2000,IWM
+러셀 2000 ETF,IWM
+mdy,MDY
+스파이 미드캡,MDY
+# Sector ETF
+xlk,XLK
+기술 ETF,XLK
+테크 ETF,XLK
+xlf,XLF
+금융 ETF,XLF
+xle,XLE
+에너지 ETF,XLE
+xlv,XLV
+헬스케어 ETF,XLV
+xli,XLI
+산업 ETF,XLI
+xly,XLY
+임의소비재 ETF,XLY
+xlp,XLP
+필수소비재 ETF,XLP
+xlu,XLU
+유틸리티 ETF,XLU
+xlb,XLB
+소재 ETF,XLB
+xlre,XLRE
+부동산 ETF,XLRE
+xlc,XLC
+커뮤니케이션 ETF,XLC
+# Tech / Semi
+smh,SMH
+반도체 ETF,SMH
+반도체 ETF SMH,SMH
+soxx,SOXX
+반도체 ETF SOXX,SOXX
+# Leveraged
+tqqq,TQQQ
+타큐,TQQQ
+3배 QQQ,TQQQ
+프로쉐어즈 울트라프로 QQQ,TQQQ
+sqqq,SQQQ
+3배 인버스 QQQ,SQQQ
+QQQ 인버스,SQQQ
+upro,UPRO
+3배 SP500,UPRO
+spxu,SPXU
+3배 인버스 SP500,SPXU
+soxl,SOXL
+반도체 3배,SOXL
+3배 반도체,SOXL
+soxs,SOXS
+반도체 인버스,SOXS
+fngu,FNGU
+빅테크 3배,FNGU
+fngd,FNGD
+빅테크 인버스,FNGD
+tmf,TMF
+20년 국채 3배,TMF
+국채 3배,TMF
+tlt,TLT
+20년 국채,TLT
+20년 국채 ETF,TLT
+미국 장기국채,TLT
+tbt,TBT
+국채 인버스,TBT
+ief,IEF
+중기국채,IEF
+shy,SHY
+단기국채,SHY
+agg,AGG
+종합채권,AGG
+bnd,BND
+뱅가드 채권,BND
+lqd,LQD
+회사채,LQD
+hyg,HYG
+하이일드,HYG
+mub,MUB
+지방채,MUB
+# Income / Dividend
+schd,SCHD
+슈드,SCHD
+배당 ETF,SCHD
+schwab us dividend,SCHD
+jepi,JEPI
+제피,JEPI
+JP모건 인컴,JEPI
+jpmorgan equity premium income,JEPI
+jepq,JEPQ
+제프큐,JEPQ
+JP모건 나스닥 인컴,JEPQ
+vym,VYM
+뱅가드 고배당,VYM
+hdv,HDV
+아이쉐어즈 고배당,HDV
+dvy,DVY
+다우 배당,DVY
+# ARK
+arkk,ARKK
+아크 이노베이션,ARKK
+arkq,ARKQ
+아크 자율주행,ARKQ
+arkg,ARKG
+아크 유전공학,ARKG
+arkw,ARKW
+아크 차세대 인터넷,ARKW
+arkf,ARKF
+아크 핀테크,ARKF
+# Bitcoin / Crypto ETF
+ibit,IBIT
+블랙록 비트코인,IBIT
+블랙록 BTC,IBIT
+fbtc,FBTC
+피델리티 비트코인,FBTC
+gbtc,GBTC
+그레이스케일 비트코인,GBTC
+bito,BITO
+비트코인 선물 ETF,BITO
+bitx,BITX
+2배 비트코인,BITX
+arkb,ARKB
+아크 비트코인,ARKB
+# Commodity
+gld,GLD
+금 ETF,GLD
+골드 ETF,GLD
+iau,IAU
+금 ETF IAU,IAU
+slv,SLV
+은 ETF,SLV
+실버 ETF,SLV
+uso,USO
+원유 ETF,USO
+crude oil,USO
+dbc,DBC
+원자재 ETF,DBC
+# International
+vxus,VXUS
+이외 글로벌,VXUS
+fxi,FXI
+중국 ETF,FXI
+mchi,MCHI
+중국 MSCI,MCHI
+ewj,EWJ
+일본 ETF,EWJ
+ewy,EWY
+한국 ETF,EWY
+한국 MSCI,EWY
+ewz,EWZ
+브라질 ETF,EWZ
+inda,INDA
+인도 ETF,INDA
+efa,EFA
+선진국 ETF,EFA
+eem,EEM
+신흥국 ETF,EEM
+# Innovation / Theme
+botz,BOTZ
+로봇 ETF,BOTZ
+robo,ROBO
+로봇 ETF ROBO,ROBO
+icln,ICLN
+청정에너지,ICLN
+tan,TAN
+태양광 ETF,TAN
+solar,TAN
+lit,LIT
+리튬 ETF,LIT
+드라이버,LIT
+# Volatility
+vxx,VXX
+변동성,VXX
+uvxy,UVXY
+변동성 2배,UVXY

@@ -6,6 +6,7 @@ import logging
 
 from bot.telegram_handler import BotDependencies, build_application
 from config import Config, configure_logging
+from services.market_report import MarketReportService
 from services.persona_engine import PersonaEngine, get_persona
 from services.stock_service import StockService
 from services.user_profile import UserProfileRepo
@@ -24,11 +25,13 @@ def main() -> None:
     )
     stock_service = StockService()
     profile_repo = UserProfileRepo(db_path=config.sqlite_path, salt=config.user_id_salt)
+    market_report_service = MarketReportService(persona_engine=persona_engine)
 
     deps = BotDependencies(
         persona_engine=persona_engine,
         stock_service=stock_service,
         profile_repo=profile_repo,
+        market_report_service=market_report_service,
         default_persona_key=get_persona(config.default_persona).key,
     )
 
