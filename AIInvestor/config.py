@@ -18,6 +18,8 @@ class Config:
     deepseek_base_url: str
     deepseek_model: str
     default_persona: str
+    user_id_salt: str
+    sqlite_path: str
     log_level: str
 
     @staticmethod
@@ -36,6 +38,8 @@ class Config:
             deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com").strip(),
             deepseek_model=os.getenv("DEEPSEEK_MODEL", "deepseek-chat").strip(),
             default_persona=os.getenv("DEFAULT_PERSONA", "buffett").lower(),
+            user_id_salt=os.getenv("USER_ID_SALT", "ai-investor-default-salt-change-me"),
+            sqlite_path=os.getenv("SQLITE_PATH", "./data/aiinvestor.db"),
             log_level=os.getenv("LOG_LEVEL", "INFO").upper(),
         )
 

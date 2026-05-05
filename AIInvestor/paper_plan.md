@@ -417,11 +417,14 @@ INTEREST_PRESETS = ["AI 반도체", "빅테크", "배당주", "ETF",
                     │                                │              │
                     │           ┌────────────────────┼────────┐    │
                     │           ▼                    ▼        ▼    │
-                    │  ┌──────────────┐  ┌──────────────┐  ┌────┐ │
-                    │  │ Cosmos DB    │  │ Blob Storage │  │ KV │ │
-                    │  │ (users,      │  │ (daily       │  │    │ │
-                    │  │  reports)    │  │  reports)    │  │    │ │
-                    │  └──────────────┘  └──────┬───────┘  └────┘ │
+                    │  ┌──────────────────────────────┐  ┌────┐ │
+                    │  │ Blob Storage (단일 저장 계층) │  │ KV │ │
+                    │  │  • users/<anon>.json          │  │    │ │
+                    │  │  • reports/<date>/<persona>   │  │    │ │
+                    │  │  • logs/yyyy/mm/dd/HH.ndjson  │  │    │ │
+                    │  └──────────────┬───────────────┘  └────┘ │
+                    │                 │                          │
+                    │  Functions 인스턴스 메모리 캐시 (TTL 5분)   │
                     │                           │                  │
                     │                           ▼                  │
                     │                    ┌─────────────┐           │
@@ -444,9 +447,150 @@ INTEREST_PRESETS = ["AI 반도체", "빅테크", "배당주", "ETF",
 | 봇 비즈니스 로직 | Azure Functions (Python 3.11 isolated worker) | 현재 코드의 `bot/`, `services/` 그대로 이전 |
 | 일일 리포트 사전 생성 | Azure Functions Timer Trigger (`0 30 6 * * *` KST = 21:30 UTC, 미국 시장 마감 30분 후) | 결과를 Blob에 JSON 업로드 |
 | 사전 생성된 리포트 서빙 | Azure Blob → Azure CDN (Standard Microsoft tier) | TTL 1시간, 동일 KST 일자 동안 재사용 |
-| 사용자 상태 (페르소나, 동의 기록) | Azure Cosmos DB (Serverless) | 컨테이너 `users`, 파티션 `/anon_user_id` |
+| **사용자 페르소나/관심사 상태** | **Azure Blob Storage** (`users/<anon_user_id>.json`) | Functions가 Blob을 직접 읽고 **인스턴스 메모리에 TTL 5분 캐싱**. Cosmos DB는 도입하지 않음 (§7.5) |
+| **사용 로그 (분석용)** | Azure Blob Storage append-only logs | 시간대/페르소나/티커/지연/캐시적중 등 익명 텔레메트리. **배치 분석으로 LLM 호출 특이점·시간대별 군집성 추출** (§7.6) |
 | 시크릿 관리 | Azure Key Vault | Functions가 Managed Identity로 참조 |
 | 관측 | Application Insights | 자동 통합, 비용 최저 티어 |
+
+### 7.3 사용자 데이터 저장 — Blob 직접 읽기 + 메모리 캐시 (TTL 5분)
+
+**의도적 설계 결정**: 2차 작업에서는 **Cosmos DB를 도입하지 않습니다**. 사용자 페르소나·관심사·언어 같은 가벼운 키-값 데이터는 **Blob Storage 객체 한 개씩** 으로 충분하며, 비용 / 운영 복잡도 / 콜드 스타트 측면에서 우월합니다.
+
+#### 저장 레이아웃
+
+```
+container "users" (private, RA-GRS)
+└─ users/<anon_user_id>.json
+   {
+     "user_key_hash": "82ec62f2f6549864",
+     "persona_key": "buffett",
+     "language": "ko",
+     "intro_seen": true,
+     "interest_tags": ["AI 반도체", "ETF"],
+     "watchlist_tickers": ["NVDA", "TSLA"],
+     "created_at": "2026-05-05T22:21:18Z",
+     "updated_at": "2026-05-06T07:14:02Z"
+   }
+```
+
+- partition: `anon_user_id` 의 첫 2자로 prefix 분산 (`users/82/82ec62f2f6549864.json`) — 핫스팟 방지
+- ETag 기반 optimistic concurrency — 메모리 캐시 stale 시 충돌 감지
+
+#### 인스턴스 메모리 캐시 (TTL 5분)
+
+```python
+# services/user_profile_blob.py (2차 작업)
+class BlobUserProfileRepo(UserProfileRepo):
+    def __init__(self, blob_client, ttl_seconds: int = 300):
+        self._client = blob_client
+        self._ttl = ttl_seconds
+        self._cache: dict[str, tuple[float, UserProfile, str]] = {}  # key -> (expires_at, profile, etag)
+        self._lock = asyncio.Lock()
+
+    async def get_or_create(self, user_key, default_language, default_persona):
+        cached = self._cache.get(user_key)
+        now = time.monotonic()
+        if cached and cached[0] > now:
+            return cached[1]                    # 캐시 적중
+
+        # 캐시 미스 → Blob 직접 읽기
+        blob_path = f"users/{anon[:2]}/{anon}.json"
+        try:
+            data = await self._client.download_blob(blob_path)
+            profile, etag = parse(data)
+        except ResourceNotFoundError:
+            profile = create_default(...)
+            etag = await self._client.upload_blob(blob_path, profile)
+
+        self._cache[user_key] = (now + self._ttl, profile, etag)
+        return profile
+```
+
+#### 캐시 동작 시나리오
+
+| 상황 | 동작 |
+|---|---|
+| 사용자가 5분 내 재요청 (같은 인스턴스) | 메모리 적중, Blob 호출 없음 |
+| 사용자가 5분 내 재요청 (다른 인스턴스) | Blob 1회 read (ETag 비교 후 본문 다운로드) |
+| 사용자가 5분 후 재요청 | TTL 만료 → Blob 재읽기 |
+| 사용자가 페르소나/관심사 변경 | Blob write + 캐시 즉시 갱신, ETag 새로고침 |
+| Functions 콜드 스타트 | 캐시 dict 비어 있음 → 첫 요청 1회 Blob read |
+
+#### 왜 Cosmos DB를 안 쓰는가
+
+| 차원 | Blob Storage (선택) | Cosmos DB Serverless (탈락) |
+|---|---|---|
+| DAU 100 기준 월 비용 | < $0.10 (스토리지) + < $0.05 (트랜잭션) | $1–3 (RU 기반) |
+| 엔티티 1건 read 지연 | ~30–80ms (Blob) | ~5–15ms (Cosmos) |
+| **5분 메모리 캐시 적용 후 평균 read** | **~2–5ms** (대부분 적중) | ~5–15ms |
+| 운영 복잡도 | 매우 낮음 (객체 한 개) | 컨테이너 / partition / RU 관리 |
+| 백업 / 마이그레이션 | `azcopy` 한 줄 | 별도 도구 |
+| 일관성 모델 | ETag optimistic | 다양함 |
+| 쓰기 빈도 | 사용자당 분당 1회 미만 | — |
+
+**핵심 trade-off**: 각 사용자의 쓰기 빈도가 매우 낮고(페르소나 선택·관심사 입력 정도) 읽기는 5분 캐시로 흡수되므로, Blob의 read 지연(~50ms) 이 인터랙티브 봇 응답(p50 3–6초) 대비 무시할 수준. Cosmos DB의 ms-단위 지연 이점이 사라집니다.
+
+---
+
+### 7.6 사용 로그 — Blob 적재 + 배치 분석
+
+#### 적재 형식
+
+Functions의 모든 사용자 요청에서 **익명 텔레메트리** 한 줄을 NDJSON 으로 Blob에 append:
+
+```
+container "logs" (private)
+└─ logs/2026/05/05/22.ndjson      (시간대별 분리, UTC)
+```
+
+```json
+{"ts":"2026-05-05T22:31:14Z","anon":"82ec62f2f6549864","lang":"ko",
+ "channel":"telegram","persona":"buffett","action":"ticker_query",
+ "ticker":"NVDA","query_len":4,"latency_ms":4123,
+ "llm_in_tokens":820,"llm_out_tokens":580,"cache_hit":false,
+ "kst_hour":7,"kst_weekday":"Tue"}
+```
+
+기록되지 않는 항목: 원시 텔레그램 ID, 사용자명, IP, 자유 질의 본문(연구 동의 시에만). §13.4의 익명화 원칙 준수.
+
+#### 작성 패턴
+
+- 단일 라이트는 비용·지연 증가 → **인스턴스 내부 버퍼**(`list[dict]`) 에 모아 60초 또는 100건마다 append-blob 쓰기
+- Function 인스턴스 종료 시그널 (`shutdown`) 에서 잔여 버퍼 flush
+- Append Blob 사용으로 동시 인스턴스의 동일 시간대 파일 동시 쓰기 안전
+
+#### 배치 분석 — LLM 호출 특이점 + 시간대별 군집성
+
+매일 KST 07:00 (UTC 22:00, US 마감 1시간 후) 실행되는 **`analyze_logs` Timer Trigger**:
+
+```
+1. 전일 24개 시간대 *.ndjson 다운로드 → pandas DataFrame
+2. 시간대별 집계:
+   - 시간대 × 페르소나 매트릭스
+   - 시간대 × 티커 Top-20 매트릭스
+   - 시간대 × 평균 지연 / LLM 토큰 사용량
+3. 특이점 탐지:
+   - 7일 이동 평균 대비 ±2σ 벗어난 시간대 (호출 급증/급감)
+   - 평소 안 등장하던 티커가 Top-10 진입 (신규 모멘텀)
+   - LLM 출력 토큰이 평균 대비 +50% (장문 응답 — 환각 의심)
+4. 군집성 패턴 추출:
+   - K-means(K=24) on (hour-of-day) feature → 군집 일치도
+   - DBSCAN on (ticker, hour) → 시간대 + 종목의 핫존
+   - "미국 시장 개장 22:30 KST 직후 NVDA 질의 30배 증가" 같은
+     자연스러운 시간대×테마 군집 자동 라벨링
+5. 결과 요약을 Blob `analysis/yyyy-mm-dd.json` 에 저장
+6. 임계 초과 시 텔레그램으로 운영자에게 알림
+```
+
+이 분석 결과 자체가 §13 학술 동반 자료의 §7 (Predictive Cache Warming) 와 §11 (Cache Hit Rate) 의 **선행 검증 데이터**로 활용됩니다 — 즉 3차 작업에서 의미적 캐싱을 도입하기 전에, 2차 작업의 로그만으로도 Zipf 분포 / 시간 군집성 / 캐시 잠재 적중률을 추정할 수 있습니다.
+
+#### 보존 정책
+
+- `logs/` 컨테이너: lifecycle policy로 90일 후 자동 삭제 (개인정보 잔존 최소화)
+- `analysis/` 컨테이너: 365일 보존 (집계 결과만)
+- `users/` 컨테이너: 사용자가 `/forget` 명령 시 즉시 삭제, 비활성 사용자는 1년 후 정리 잡
+
+---
 
 ### 7.3 Telegram Webhook 모드로 전환
 
@@ -507,7 +651,7 @@ KST 06:30 (UTC 21:30 — 미장 마감 직후)
 
 이 캐싱 효과 자체가 §13 학술 동반 자료의 검증 대상.
 
-### 7.5 Functions 콜드 스타트 대응
+### 7.7 Functions 콜드 스타트 대응
 
 Flex Consumption은 콜드 스타트 1–3초. 봇 응답에 치명적이므로:
 
@@ -515,7 +659,7 @@ Flex Consumption은 콜드 스타트 1–3초. 봇 응답에 치명적이므로:
 2. 또는 5분마다 셀프-핑하는 Timer Trigger
 3. 일일 리포트는 콜드 스타트 영향 없음 (timer 자체가 콜드)
 
-### 7.6 환경 분리
+### 7.8 환경 분리
 
 | 환경 | Function App | Bot Token | DeepSeek Key |
 |---|---|---|---|
@@ -534,29 +678,35 @@ GitHub Actions가 `main` 브랜치는 prod로, `dev` 브랜치는 dev로 배포.
 rg-aiinvestor-prod
 ├── func-aiinvestor-prod              Function App (Flex Consumption, Linux)
 ├── plan-aiinvestor-prod              App Service Plan (Flex)
-├── st-aiinvestor-prod                Storage Account (Functions runtime + reports blob)
-├── cdn-aiinvestor-prod               CDN Profile + endpoint
-├── cosmos-aiinvestor-prod            Cosmos DB (Serverless, NoSQL API)
+├── st-aiinvestor-prod                Storage Account
+│                                       containers:
+│                                         users/   사용자 페르소나 JSON
+│                                         reports/ 일일 리포트 (CDN origin)
+│                                         logs/    NDJSON 사용 로그
+│                                         analysis/ 배치 분석 결과
+├── cdn-aiinvestor-prod               CDN Profile + endpoint (reports/ origin)
 ├── kv-aiinvestor-prod                Key Vault
 └── appi-aiinvestor-prod              Application Insights
 ```
+
+> **Cosmos DB 없음**. 모든 영속 데이터는 Blob Storage 단일 계층 (§7.5).
 
 ### 8.2 월간 비용 추정 (DAU 100 기준)
 
 | 항목 | 사용량 추정 | 월 비용 |
 |---|---|---|
-| Functions Flex (always-ready 1) | ~$13 |
+| Functions Flex (always-ready 1) | | ~$13 |
 | Functions per-execution | 100 DAU × 5건/일 × 30일 = 15,000 호출 | ~$0.50 |
-| Cosmos DB Serverless | 100 사용자 × 5 RU/req × 15K req | ~$1 |
-| Blob Storage | 90일 × 3 페르소나 × 50KB JSON ≈ 13.5 MB | ~$0.01 |
+| Blob Storage 용량 | users 100×2KB + reports 90일×3×50KB + logs 90일×NDJSON ≈ 200MB | ~$0.01 |
+| Blob Storage 트랜잭션 | 5분 캐시 적용 후 사용자당 평균 read 0.2회/건 + write 0.05회/건 | ~$0.10 |
 | Azure CDN Standard Microsoft | 5 GB egress | ~$0.40 |
 | Application Insights | 1 GB ingestion | $0 (free tier) |
 | Key Vault | 키 5개, 호출 1만회 | ~$0.30 |
-| **합계** | | **~$15/월** |
+| **Azure 합계** | | **~$14.30/월** |
 | DeepSeek API | 사전 생성 일 3회 + 사용자 질의 100×5×30 | ~$2/월 |
-| **총합** | | **~$17/월** |
+| **총합** | | **~$16/월** |
 
-DAU 1,000 까지 확장 시 LLM 비용이 가장 빠르게 늘어나므로 §13의 의미적 캐싱이 비용 곡선 평탄화의 핵심.
+Cosmos DB 제거로 월 ~$1 절감 + 운영 단순화. DAU 1,000 까지 확장 시 LLM 비용이 가장 빠르게 늘어나므로 §13의 의미적 캐싱이 비용 곡선 평탄화의 핵심.
 
 ---
 
@@ -602,14 +752,57 @@ jobs:
 Azure Key Vault
 ├── telegram-bot-token
 ├── deepseek-api-key
-└── telegram-webhook-secret
+├── telegram-webhook-secret
+└── user-id-salt              # SHA-256 익명화 솔트 (90일 rotation)
 
 Function App
 ├── Managed Identity 활성화
 ├── Key Vault에 RBAC: Key Vault Secrets User
+├── Storage Account에 RBAC: Storage Blob Data Contributor
 └── App Settings에 Key Vault reference
     예: TELEGRAM_BOT_TOKEN=@Microsoft.KeyVault(SecretUri=https://kv-aiinvestor-prod.vault.azure.net/secrets/telegram-bot-token/)
 ```
+
+### 9.4 Azure 계정 연결 방식 — 어떻게 알려주실지
+
+Azure 배포를 진행하실 준비가 되면 다음 중 **하나** 만 알려주시면 됩니다 (보안상 권장 순):
+
+#### 방법 A — Service Principal (가장 안전, 권장)
+
+GitHub Actions 자동 배포에 가장 적합합니다.
+
+```bash
+# 본인의 로컬에서 1회 실행
+az login
+az account show --query id -o tsv          # subscription_id 확인
+
+# 배포 권한만 갖는 SP 생성 (Owner 아님)
+az ad sp create-for-rbac \
+  --name "github-aiinvestor-deploy" \
+  --role contributor \
+  --scopes /subscriptions/<sub-id>/resourceGroups/rg-aiinvestor-prod \
+  --sdk-auth
+```
+
+출력된 JSON 한 덩어리만 알려주시면 됩니다 (`clientId`, `clientSecret`, `subscriptionId`, `tenantId`). GitHub Secret `AZURE_CREDENTIALS` 로 등록 후 워크플로가 사용합니다.
+
+#### 방법 B — OIDC Federated Credential (시크릿 없음, 더 안전)
+
+비밀값 자체를 GitHub에 저장하지 않습니다. 본인이 Azure 포털에서 federated credential 등록 후, 다음 4개 값만 알려주시면 됩니다:
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
+- 등록된 GitHub repo / branch / environment
+
+#### 방법 C — 본인이 직접 `azd up` 실행
+
+CI 자동 배포가 아직 부담스러우시면, 본인 로컬에서 `azd auth login` 후 `azd up` 한 번 실행하시면 됩니다. 이 경우 제게 알려주실 정보는 **없습니다** (시크릿이 본인 로컬을 떠나지 않음).
+
+#### 어떤 정보든 알려주실 때 주의
+
+- **API key 본문은 GitHub repo / Slack / 메일에 절대 평문으로 보내지 말 것** — 비밀번호 관리자, 1Password Secure Note, 또는 Azure Key Vault의 `Get Secret URI` 만 공유
+- Service Principal credential 은 90일마다 회전 권장 (`az ad sp credential reset`)
+- 배포 후에는 GitHub Actions 워크플로 로그에 시크릿이 마스킹되는지 1회 확인
 
 ---
 
@@ -712,12 +905,18 @@ Function App
 - [ ] `setWebhook` 자동화 — 배포 직후 GitHub Actions가 `secret_token` 까지 함께 등록
 - [ ] Webhook secret 검증 — `X-Telegram-Bot-Api-Secret-Token` 헤더 매칭 실패 시 401
 
-#### 2차-B: 영속 저장소 SQLite → Cosmos DB
+#### 2차-B: 영속 저장소 SQLite → Blob Storage (TTL 5분 캐시)
 
-- [ ] `services/user_profile_cosmos.py` — Cosmos SDK 구현체 (1차의 `UserProfileRepo` 인터페이스 그대로)
-- [ ] `STORAGE_BACKEND=cosmos` 환경변수로 자동 선택
-- [ ] 일회성 마이그레이션 스크립트 — dev 단계 SQLite 데이터 → Cosmos
-- [ ] **M1 해결 검증** — 콜드 스타트 후에도 페르소나/관심사 정확 회상 (통합 테스트)
+> §7.5 의 결정에 따라 Cosmos DB는 도입하지 않습니다. Blob 한 객체 = 사용자 한 명.
+
+- [ ] `services/user_profile_blob.py` — `BlobUserProfileRepo` (1차의 `UserProfileRepo` 인터페이스 그대로 구현)
+- [ ] **인스턴스 메모리 캐시** (`dict`, TTL 5분, asyncio lock 보호)
+- [ ] **ETag 기반 optimistic concurrency** — 다른 인스턴스가 먼저 쓴 변경 감지 시 재읽기 후 머지
+- [ ] partition 분산 — `users/<anon[:2]>/<anon>.json`
+- [ ] `STORAGE_BACKEND=blob` 환경변수로 자동 선택
+- [ ] 일회성 마이그레이션 — dev SQLite → Blob (Python 한 줄 스크립트)
+- [ ] **/forget 명령** — 사용자가 자기 Blob을 즉시 삭제할 수 있는 명령 (§7.6 보존 정책 충족)
+- [ ] 통합 테스트 — 콜드 스타트 후에도 페르소나/관심사 정확 회상 + 5분 캐시 적중 확인
 
 #### 2차-C: Timer Trigger + Blob + CDN
 
@@ -748,6 +947,19 @@ Function App
 - [ ] **Always Ready instances = 1**
 - [ ] `keepalive` Timer (5분)
 - [ ] k6 또는 locust 부하 테스트 — 동시 50 사용자, p95 < 4초
+
+#### 2차-G: 사용 로그 적재 + 배치 분석 (§7.6)
+
+- [ ] `services/usage_logger.py` — NDJSON append-blob, 인스턴스 내 60초/100건 버퍼링, shutdown flush
+- [ ] `logs/<yyyy>/<mm>/<dd>/<HH>.ndjson` 시간대별 분리 적재
+- [ ] **`analyze_logs` Timer Trigger** (`0 0 22 * * *` UTC = KST 07:00)
+  - [ ] 전일 24시간 분 NDJSON → pandas DataFrame
+  - [ ] 시간대 × 페르소나 / 시간대 × Top-20 티커 매트릭스
+  - [ ] 7일 이동평균 ±2σ 특이점 탐지 (호출 급증, 신규 티커, 장문 응답)
+  - [ ] K-means(K=24) on hour-of-day, DBSCAN on (ticker, hour) — 시간대 군집 자동 라벨
+  - [ ] 결과 → `analysis/<date>.json` Blob 저장
+  - [ ] 특이점 발생 시 운영자 텔레그램 푸시 알림
+- [ ] Lifecycle policy — `logs/` 90일, `analysis/` 365일 자동 정리
 
 ---
 
