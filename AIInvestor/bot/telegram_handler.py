@@ -215,9 +215,13 @@ async def _cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     # §T2E-C — parse `/start ref_<code>` referral parameter, if present.
     # context.args holds tokens after /start — Telegram delivers payload as args[0].
+    # Composite payload supported: ref_ABCD1234_q_NVDA_p_wood (§T2E-N one-click value).
+    preview_query: str | None = None
+    preview_persona: str | None = None
     if context.args:
         payload = (context.args[0] or "").strip()
         await _maybe_apply_referral(update, context, profile, payload)
+        preview_query, preview_persona = _parse_question_persona(payload)
 
     # [1] Greeting + language hint
     await update.message.reply_text(f"{s.greeting}\n\n{s.language_switch_hint}")
@@ -230,6 +234,48 @@ async def _cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     # [3] Persona keyboard
     await deps.profile_repo.update(profile.user_key, onboarding_step=STEP_PERSONA)
     await update.message.reply_text(s.persona_prompt, reply_markup=_persona_keyboard(lang))
+
+    # §T2E-N — one-click value experience: if the inviter shared a /start
+    # link with q_<TICKER>_p_<persona>, immediately surface that ticker
+    # analysis (using the cached commentary blob if available — zero LLM cost).
+    if preview_query:
+        await _show_inviter_preview(update, context, profile, preview_query, preview_persona)
+
+
+def _parse_question_persona(payload: str) -> tuple[str | None, str | None]:
+    """Parse '/start ref_ABCD1234_q_NVDA_p_wood' → ('NVDA', 'wood')."""
+    if not payload:
+        return None, None
+    parts = payload.split("_")
+    q_idx = parts.index("q") if "q" in parts else -1
+    p_idx = parts.index("p") if "p" in parts else -1
+    q = parts[q_idx + 1] if q_idx >= 0 and q_idx + 1 < len(parts) else None
+    p = parts[p_idx + 1] if p_idx >= 0 and p_idx + 1 < len(parts) else None
+    if p and p not in {"buffett", "dalio", "wood"}:
+        p = None
+    if q and (len(q) > 12 or not q.replace(".", "").replace("-", "").isalnum()):
+        q = None
+    return q, p
+
+
+async def _show_inviter_preview(
+    update: Update, context: ContextTypes.DEFAULT_TYPE,
+    profile, ticker: str, persona_key: str | None,
+) -> None:
+    """Show the inviter's pre-cached AI analysis as the very first interaction.
+    Cache hit = zero LLM cost; cache miss = fall back to a hint message."""
+    persona_key = persona_key or profile.persona_key
+    persona = get_persona(persona_key)
+    cached = await _try_prewarmed_commentary(ticker.upper(), persona_key, profile.language)
+    if not cached:
+        # Cache miss — defer to standard handler (no preview)
+        return
+
+    if profile.language == "ko":
+        intro = f"🎁 친구가 보낸 분석 — {ticker.upper()} ({persona.name(profile.language)})"
+    else:
+        intro = f"🎁 Friend's pick — {ticker.upper()} ({persona.name(profile.language)})"
+    await update.message.reply_text(f"{intro}\n\n{_strip_md(cached)}")
 
 
 async def _maybe_apply_referral(
@@ -270,11 +316,7 @@ async def _maybe_apply_referral(
         return
 
     # Inviter immediate reward (+30 P, daily-capped at 10)
-    try:
-        from services.config import _config_global as _cfg  # not always present
-        account = None
-    except ImportError:
-        account = os.getenv("STORAGE_ACCOUNT_NAME", "").strip() or None
+    account = os.getenv("STORAGE_ACCOUNT_NAME", "").strip() or None
     try:
         await reward_inviter_immediate(
             deps.profile_repo, inviter.user_key, profile.anon_user_id,
@@ -282,6 +324,43 @@ async def _maybe_apply_referral(
         )
     except Exception:
         logger.exception("inviter immediate reward failed")
+
+    # §T2E-N — fire welcome BTC mini-event (idempotent: only one per user lifetime)
+    if account:
+        try:
+            from services.welcome_event import trigger_welcome_event
+            # Get current BTC price for the event seed
+            import asyncio as _asyncio
+            import yfinance as yf
+            try:
+                info = await _asyncio.to_thread(lambda: yf.Ticker("BTC-USD").fast_info)
+                btc_now = float(info.last_price) if info and info.last_price else 0.0
+            except Exception:
+                btc_now = 0.0
+            if btc_now > 0:
+                event_id = await trigger_welcome_event(
+                    account, profile.user_key, profile.anon_user_id,
+                    inviter.anon_user_id, btc_now,
+                )
+                if event_id:
+                    # Send the welcome event invitation message
+                    if profile.language == "ko":
+                        msg = (
+                            f"🎁 가입 환영 미니 이벤트\n\n"
+                            f"30분 뒤 BTC 가격이 ${btc_now:,.2f}에서 어디로 갈까요?\n"
+                            f"±0.3% 안에 맞히면 +500 P!\n"
+                            f"참여만 해도 +50 P 즉시 지급.\n\n"
+                            f"미니앱 [Predict] 탭에서 가격을 입력하세요."
+                        )
+                    else:
+                        msg = (
+                            f"🎁 Welcome mini-event\n\n"
+                            f"Where will BTC be 30 min from now? (current: ${btc_now:,.2f})\n"
+                            f"Get within ±0.3% → +500 P. Participate → +50 P."
+                        )
+                    await update.message.reply_text(msg)
+        except Exception:
+            logger.exception("welcome event trigger failed (non-fatal)")
 
 
 async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -577,6 +577,59 @@ async def gamification_profile(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
+@app.route(route="gamification/welcome_event/predict", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def gamification_welcome_event_predict(req: func.HttpRequest) -> func.HttpResponse:
+    """§T2E-N — Submit BTC price guess for the welcome mini-event."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    if not _config or not _config.storage_account_name:
+        return func.HttpResponse(json.dumps({"error": "not configured"}),
+            status_code=500, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    try:
+        body = req.get_json()
+        price = float(body.get("predicted_price", 0))
+    except (ValueError, TypeError):
+        return func.HttpResponse(json.dumps({"error": "bad input"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    from services.welcome_event import submit_welcome_prediction
+    ok, err, payload = await submit_welcome_prediction(
+        _config.storage_account_name, user_key, price,
+        repo=_profile_repo, usage_logger=_usage_logger,
+    )
+    if not ok:
+        return func.HttpResponse(json.dumps({"error": err}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    return func.HttpResponse(json.dumps({"success": True, **(payload or {})}, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+
+@app.timer_trigger(
+    schedule="0 */1 * * * *",   # every 1 minute
+    arg_name="timer", run_on_startup=False, use_monitor=False,
+)
+async def settle_welcome_events(timer: func.TimerRequest) -> None:
+    """§T2E-N — Resolve any welcome mini-events whose 30min target has passed."""
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return
+    from services.welcome_event import settle_pending_welcome_events
+    try:
+        awarded = await settle_pending_welcome_events(
+            _config.storage_account_name, repo=_profile_repo, usage_logger=_usage_logger,
+        )
+        if awarded:
+            logger.info("welcome event settle: %d awarded", len(awarded))
+    except Exception:
+        logger.exception("settle_welcome_events failed")
+
+
 @app.route(route="gamification/predict", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
 async def gamification_predict(req: func.HttpRequest) -> func.HttpResponse:
     """§T2E-B — Submit a daily prediction. Body:
