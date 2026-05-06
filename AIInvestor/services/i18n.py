@@ -139,7 +139,7 @@ _KO = _Bundle(
         "• /persona 로 페르소나를 변경해도 관심사는 보존됩니다."
     ),
     feedback_usage="피드백을 함께 보내주세요.\n예시: /feedback 응답이 너무 길어요 / 피드백 좋네요!",
-    feedback_thanks="감사합니다. 의견이 운영자에게 전달되었습니다. 🙏",
+    feedback_thanks="증권당주에게 피드백했습니다. 감사합니다 🙏",
     feedback_error="죄송합니다. 의견 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     ticker_not_found="'{q}' 종목을 찾지 못했어요. 정확한 티커(예: AAPL) 또는 회사명(예: 애플)을 보내주세요.",
     intent_unrecognized="어떤 종목이나 ETF가 궁금하신가요? 예: NVDA, 테슬라, QQQ\n‘추천/비교/포트폴리오’ 같은 자연어 요청은 곧 지원될 예정입니다.",
@@ -232,7 +232,7 @@ _EN = _Bundle(
         "• /persona — change persona; interests are preserved"
     ),
     feedback_usage="Please include your feedback in the same message.\nExample: /feedback The replies are too long",
-    feedback_thanks="Thanks! Your feedback was forwarded to the operator. 🙏",
+    feedback_thanks="Sent feedback to the operator. Thank you 🙏",
     feedback_error="Sorry, we couldn't deliver your feedback right now. Please try again shortly.",
     ticker_not_found="I couldn't find '{q}'. Please send a valid ticker (e.g. AAPL) or company name (e.g. Apple).",
     intent_unrecognized="Which stock or ETF would you like to discuss? e.g. NVDA, Tesla, QQQ\nNatural-language asks like 'recommend / compare / portfolio' are coming soon.",
@@ -325,7 +325,7 @@ _JA = _Bundle(
         "• /persona — ペルソナ変更時も関心分野は保持"
     ),
     feedback_usage="フィードバックを同じメッセージに含めてください。\n例: /feedback 応答が長すぎます",
-    feedback_thanks="ありがとうございます。ご意見を運営者に転送しました。 🙏",
+    feedback_thanks="運営者にフィードバックを送信しました。ありがとうございます 🙏",
     feedback_error="申し訳ありません。フィードバックを送信できませんでした。しばらくしてから再度お試しください。",
     ticker_not_found="'{q}' を見つけられませんでした。正しいティッカー(例: AAPL)または銘柄名(例: アップル)を送信してください。",
     intent_unrecognized="どの銘柄やETFを分析しましょうか? 例: NVDA, テスラ, QQQ\n「推薦/比較/ポートフォリオ」など自然言語は近日対応予定です。",
@@ -418,7 +418,7 @@ _ZH = _Bundle(
         "• /persona — 切换人设时关注领域将保留"
     ),
     feedback_usage="请将反馈与命令一起发送。\n示例: /feedback 回复太长了",
-    feedback_thanks="感谢!您的反馈已转发给运营者。🙏",
+    feedback_thanks="已向运营者发送反馈。感谢 🙏",
     feedback_error="抱歉,反馈发送失败。请稍后再试。",
     ticker_not_found="未找到 '{q}'。请发送正确的代码(例如 AAPL)或公司名(例如 苹果)。",
     intent_unrecognized="您想分析哪只股票或ETF? 例如:NVDA、特斯拉、QQQ\n'推荐/比较/投资组合' 等自然语言查询将很快支持。",

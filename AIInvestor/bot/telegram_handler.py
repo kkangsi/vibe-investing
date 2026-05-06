@@ -300,8 +300,18 @@ async def _forward_feedback(update, context, profile, body: str, s) -> None:
         await update.message.reply_text(s.feedback_thanks)
         return
 
+    # If the operator is sending feedback to themselves, skip the forward —
+    # otherwise they get a confusing duplicate of their own message.
     try:
-        await context.bot.send_message(chat_id=int(owner_id), text=forwarded)
+        owner_id_int = int(owner_id)
+    except ValueError:
+        owner_id_int = 0
+    if owner_id_int == user.id:
+        await update.message.reply_text(s.feedback_thanks)
+        return
+
+    try:
+        await context.bot.send_message(chat_id=owner_id_int, text=forwarded)
         await update.message.reply_text(s.feedback_thanks)
     except Exception as exc:
         logger.exception("Failed to forward feedback to owner_id=%s err=%s",
