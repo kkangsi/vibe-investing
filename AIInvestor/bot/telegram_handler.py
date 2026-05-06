@@ -242,15 +242,20 @@ async def _cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """Reveal the caller's Telegram chat_id (so the operator can set TELEGRAM_OWNER_CHAT_ID)."""
     user = update.effective_user
     chat = update.effective_chat
+    # Plain text only — earlier HTML version broke because the literal phrase
+    # "TELEGRAM_OWNER_CHAT_ID=<chat_id>" was parsed as an unknown HTML tag.
     text = (
-        f"👤 Your Telegram identity\n\n"
-        f"chat_id: <code>{chat.id}</code>\n"
-        f"user_id: <code>{user.id}</code>\n"
+        f"👤 Your Telegram identity\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"chat_id : {chat.id}\n"
+        f"user_id : {user.id}\n"
         f"username: @{user.username or '(none)'}\n"
-        f"language: {user.language_code or '(none)'}\n\n"
-        f"Operators set TELEGRAM_OWNER_CHAT_ID=<chat_id> on the Function App."
+        f"language: {user.language_code or '(none)'}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Operators: copy chat_id above into the App Setting "
+        f"TELEGRAM_OWNER_CHAT_ID on func-aiinvestor-prod."
     )
-    await update.message.reply_text(text, parse_mode="HTML")
+    await update.message.reply_text(text)
 
 
 async def _cmd_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
