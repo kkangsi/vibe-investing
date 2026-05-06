@@ -315,9 +315,46 @@ def _check_dashboard_key(req: func.HttpRequest) -> bool:
     return provided == expected
 
 
-# (HTML dashboard moved to Static Web App — see static_web/. Function App
-# now only serves the CSV export endpoint, since CSV streaming benefits
-# from server-side blob iteration.)
+# HTML dashboard moved to Static Web App — see static_web/.
+# This Function App still serves:
+#   /api/dashboard_stats?key=...&window=24h|7d  → JSON (consumed by SWA dashboard.html)
+#   /api/dashboard_export?key=...&window=24h|7d → streaming CSV download
+
+_CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+}
+
+
+@app.route(route="dashboard_stats", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def dashboard_stats(req: func.HttpRequest) -> func.HttpResponse:
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    if not _check_dashboard_key(req):
+        return func.HttpResponse(
+            json.dumps({"error": "forbidden"}),
+            status_code=403, mimetype="application/json", headers=_CORS_HEADERS,
+        )
+    window = (req.params.get("window") or "24h").strip()
+    if window not in ("24h", "7d"):
+        return func.HttpResponse(
+            json.dumps({"error": "bad window"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS,
+        )
+    if not _config or not _config.storage_account_name:
+        return func.HttpResponse(
+            json.dumps({"error": "not configured"}),
+            status_code=500, mimetype="application/json", headers=_CORS_HEADERS,
+        )
+
+    from services.dashboard_aggregator import fetch_dashboard_json
+    stats = await fetch_dashboard_json(_config.storage_account_name, window)
+    body = json.dumps(stats or {}, ensure_ascii=False)
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "public, max-age=1800"  # 30 min browser cache
+    return func.HttpResponse(body, status_code=200, mimetype="application/json", headers=headers)
 
 
 @app.route(route="dashboard_export", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET"])

@@ -38,8 +38,10 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   kind: 'StorageV2'
   properties: {
     minimumTlsVersion: 'TLS1_2'
-    // dashboard/ 컨테이너만 public-read 로 노출 (anonymized stats)
-    allowBlobPublicAccess: true
+    // Free Trial / org policy can block public blob access. Keep storage
+    // account locked down — dashboard JSON is served via Function App API
+    // (which authenticates via DASHBOARD_ACCESS_KEY query param).
+    allowBlobPublicAccess: false
     supportsHttpsTrafficOnly: true
   }
 }
@@ -49,41 +51,17 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01'
   name: 'default'
   properties: {
     deleteRetentionPolicy: { enabled: true, days: 7 }
-    cors: {
-      corsRules: [
-        {
-          allowedOrigins: [
-            '*'
-          ]
-          allowedMethods: [ 'GET', 'HEAD', 'OPTIONS' ]
-          allowedHeaders: [ '*' ]
-          exposedHeaders: [ '*' ]
-          maxAgeInSeconds: 3600
-        }
-      ]
-    }
   }
 }
 
-var privateContainerNames = ['users', 'reports', 'logs', 'analysis', 'deployment', 'prewarm']
-resource privateContainers 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = [for name in privateContainerNames: {
+var containerNames = ['users', 'reports', 'logs', 'analysis', 'deployment', 'prewarm', 'dashboard']
+resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = [for name in containerNames: {
   parent: blobService
   name: name
   properties: {
     publicAccess: 'None'
   }
 }]
-
-// dashboard/ holds anonymized aggregated JSON consumed by the public Static
-// Web App. publicAccess: Blob = anyone can GET individual blobs but cannot
-// list the container.
-resource dashboardContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
-  parent: blobService
-  name: 'dashboard'
-  properties: {
-    publicAccess: 'Blob'
-  }
-}
 
 // Lifecycle policy — logs/ 90d, analysis/ 365d
 resource lifecycle 'Microsoft.Storage/storageAccounts/managementPolicies@2023-05-01' = {

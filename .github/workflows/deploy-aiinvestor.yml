@@ -122,8 +122,7 @@ jobs:
           else
             echo "DASHBOARD_ACCESS_KEY not set; dashboard.html will keep placeholder hash (page will lock)"
           fi
-          # Substitute storage account name into the static page (for blob fetch URL)
-          sed -i "s|staiinvestorprod|${STORAGEACCOUNT}|g" static_web/dashboard.html
+          # Substitute Function App host into static page (only API base needed now)
           sed -i "s|func-aiinvestor-prod|${FUNCTIONAPPNAME}|g" static_web/dashboard.html
 
       - name: Get Static Web App deployment token

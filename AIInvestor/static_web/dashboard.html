@@ -76,11 +76,8 @@
 // Build-time-injected SHA-256 hash of the operator key.
 const KEY_HASH = "__KEY_HASH__";
 
-// Storage account for fetching pre-aggregated dashboard JSON.
-// 'dashboard' container is public-read; data is anonymized stats only.
-const BLOB_BASE = "https://staiinvestorprod.blob.core.windows.net/dashboard";
-
-// Function App URL for CSV export (still server-rendered, key checked there too).
+// Function App API base. Dashboard JSON + CSV both served here so the
+// Storage Account can stay fully private.
 const FUNC_BASE = "https://func-aiinvestor-prod.azurewebsites.net/api";
 
 async function sha256Hex(text) {
@@ -105,13 +102,14 @@ async function gateOrRender() {
 }
 
 async function loadStats(key) {
+  const k = encodeURIComponent(key);
   let stats24, stats7;
   try {
-    const r24 = await fetch(`${BLOB_BASE}/24h.json`, { mode: 'cors' });
+    const r24 = await fetch(`${FUNC_BASE}/dashboard_stats?key=${k}&window=24h`, { mode: 'cors' });
     stats24 = r24.ok ? await r24.json() : {};
   } catch (e) { stats24 = {}; }
   try {
-    const r7 = await fetch(`${BLOB_BASE}/7d.json`, { mode: 'cors' });
+    const r7 = await fetch(`${FUNC_BASE}/dashboard_stats?key=${k}&window=7d`, { mode: 'cors' });
     stats7 = r7.ok ? await r7.json() : {};
   } catch (e) { stats7 = {}; }
 
