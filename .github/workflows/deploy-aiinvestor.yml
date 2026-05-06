@@ -89,6 +89,19 @@ jobs:
             echo "DASHBOARD_ACCESS_KEY GitHub secret not set; skipping KV sync (operator can run 'gh secret set DASHBOARD_ACCESS_KEY' later)"
           fi
 
+      - name: Sync TELEGRAM_OWNER_CHAT_ID app setting (plain — chat_id is not sensitive)
+        run: |
+          if [ -n "${{ secrets.TELEGRAM_OWNER_CHAT_ID }}" ]; then
+            az functionapp config appsettings set \
+              --name "$FUNCTIONAPPNAME" \
+              --resource-group "$RG" \
+              --settings TELEGRAM_OWNER_CHAT_ID=${{ secrets.TELEGRAM_OWNER_CHAT_ID }} \
+              --output none
+            echo "✓ TELEGRAM_OWNER_CHAT_ID synced"
+          else
+            echo "TELEGRAM_OWNER_CHAT_ID GitHub secret not set; /feedback DM will be silently dropped (logged to App Insights only)"
+          fi
+
       - name: Build Functions package
         run: |
           pip install --quiet -r requirements.txt --target .python_packages/lib/site-packages
