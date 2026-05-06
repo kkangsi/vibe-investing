@@ -4,7 +4,9 @@
     { "route": "/dashboard", "rewrite": "/dashboard.html" },
     { "route": "/dashboard-persona", "rewrite": "/dashboard-persona.html" },
     { "route": "/페르소나", "rewrite": "/dashboard-persona.html" },
-    { "route": "/ticker", "rewrite": "/ticker.html" }
+    { "route": "/ticker", "rewrite": "/ticker.html" },
+    { "route": "/miniapp", "rewrite": "/miniapp/index.html" },
+    { "route": "/miniapp/", "rewrite": "/miniapp/index.html" }
   ],
   "responseOverrides": {
     "404": { "rewrite": "/index.html", "statusCode": 200 }
@@ -15,7 +17,7 @@
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
     "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://func-aiinvestor-prod.azurewebsites.net; frame-ancestors 'none'"
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://telegram.org; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://func-aiinvestor-prod.azurewebsites.net; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org"
   },
   "mimeTypes": {
     ".json": "application/json"

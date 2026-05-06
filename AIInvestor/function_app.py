@@ -106,6 +106,7 @@ async def _bootstrap() -> None:
             BotCommand("tier",      "Show your tier + progress"),
             BotCommand("attend",    "Daily attendance check-in"),
             BotCommand("invite",    "Show your referral link + stats"),
+            BotCommand("miniapp",   "Open the mini app"),
             BotCommand("feedback",  "Send feedback to the dev"),
             BotCommand("policy",    "Data handling & disclaimer"),
             BotCommand("forget",    "Delete all my data"),

@@ -84,6 +84,8 @@ def build_application(token: str, deps: BotDependencies) -> Application:
     app.add_handler(CommandHandler("attend", _cmd_attend))
     # §T2E-C — invite / referral
     app.add_handler(CommandHandler("invite", _cmd_invite))
+    # §T2E-E — Mini App launcher
+    app.add_handler(CommandHandler("miniapp", _cmd_miniapp))
     # Owner-only operator commands (gated by TELEGRAM_OWNER_CHAT_ID)
     app.add_handler(CommandHandler("total_user", _cmd_total_user))
     app.add_handler(CommandHandler("today_user", _cmd_today_user))
@@ -377,6 +379,7 @@ async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/tier — show your tier + stage + points to next tier\n"
         "/attend — daily attendance check-in (+10 P, +streak bonus)\n"
         "/invite — show your referral link + stats (+30/+470 P split reward)\n"
+        "/miniapp — open the gamification mini app (Telegram WebApp)\n"
         "/feedback <message> — send feedback to dev (피드백 alias works too)\n"
         "/policy — data handling & disclaimer\n"
         "/forget — delete all my stored data\n"
@@ -932,6 +935,38 @@ async def _cmd_attend(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
                 )
         except (ValueError, AttributeError):
             pass
+
+
+async def _cmd_miniapp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """§T2E-E — Open the Telegram Mini App."""
+    profile = await _profile(update, context)
+    lang = profile.language
+    miniapp_url = os.getenv(
+        "MINIAPP_URL",
+        "https://black-plant-0f73c5e00.7.azurestaticapps.net/miniapp/",
+    )
+    msgs = {
+        "ko": "🎮 미니앱에서 출석 체크 / 예측 / 초대를 한 번에!",
+        "en": "🎮 Daily check-in, predictions, invites — all in the mini app.",
+        "ja": "🎮 ミニアプリで出席・予測・招待を一括で。",
+        "zh": "🎮 签到、预测、邀请 — 全在迷你应用中。",
+    }
+    button_text = {
+        "ko": "🚀 미니앱 열기",
+        "en": "🚀 Open mini app",
+        "ja": "🚀 ミニアプリを開く",
+        "zh": "🚀 打开迷你应用",
+    }
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            button_text.get(lang, button_text["en"]),
+            web_app={"url": miniapp_url},
+        ),
+    ]])
+    await update.message.reply_text(
+        msgs.get(lang, msgs["en"]),
+        reply_markup=keyboard,
+    )
 
 
 async def _cmd_invite(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
