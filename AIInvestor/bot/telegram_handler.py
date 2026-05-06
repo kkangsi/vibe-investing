@@ -391,6 +391,42 @@ async def _on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         if choice == "no":
             await query.message.reply_text(s.short_disclaimer)
             return
+
+        # §17.2 — daily limit check on deep analyses
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        # KST midnight = UTC 15:00. Build the next reset boundary.
+        kst_offset = timedelta(hours=9)
+        kst_now = now + kst_offset
+        next_midnight_kst = (kst_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)) - kst_offset
+
+        reset_at = profile.daily_deep_reset_at
+        try:
+            reset_dt = datetime.fromisoformat(reset_at.replace("Z", "+00:00")) if reset_at else None
+        except Exception:
+            reset_dt = None
+
+        if reset_dt is None or now >= reset_dt:
+            # Window expired — start fresh
+            profile = await deps.profile_repo.update(
+                user_key,
+                daily_deep_count=0,
+                daily_deep_reset_at=next_midnight_kst.isoformat(timespec="seconds"),
+            )
+
+        if profile.daily_deep_count >= 5:
+            keyboard = InlineKeyboardMarkup([[
+                InlineKeyboardButton(s.subscribe_offer_yes, callback_data="subscribe:start"),
+                InlineKeyboardButton(s.subscribe_offer_no,  callback_data="subscribe:later"),
+            ]])
+            await query.message.reply_text(s.daily_limit_reached, reply_markup=keyboard)
+            return
+
+        # consume one quota unit
+        profile = await deps.profile_repo.update(
+            user_key, daily_deep_count=profile.daily_deep_count + 1,
+        )
+
         # choice == ticker symbol — run live LLM with full unbounded prompt
         ticker = choice.upper()
         await context.bot.send_chat_action(
@@ -426,6 +462,73 @@ async def _on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         except Exception:
             logger.exception("Deeper analysis failed ticker=%s", ticker)
             await query.message.reply_text(s.error_llm)
+        return
+
+    if data.startswith("sector:"):
+        choice = data.split(":", 1)[1]
+        lang = profile.language
+        s = t(lang)
+        if choice == "no":
+            await query.message.reply_text(s.short_disclaimer)
+            return
+        # User said yes — fetch a quick comparison from cache for the relevant sector.
+        # This is the "간단 비교" stage. We list ETFs + peers with key metrics from the
+        # snapshot cache (no LLM call — pure data lookup).
+        sector_name = choice
+        from services.sector_tracker import SECTOR_RELATED
+        related = SECTOR_RELATED.get(sector_name)
+        if not related:
+            await query.message.reply_text(s.short_disclaimer)
+            return
+
+        lines = [
+            (f"📊 {sector_name} 비교" if lang == "ko"
+             else f"📊 {sector_name} comparison" if lang == "en"
+             else f"📊 {sector_name} 比較" if lang == "ja"
+             else f"📊 {sector_name} 对比"),
+            "",
+        ]
+        items = (related.get("etfs", []) + related.get("peers", []))[:8]
+        for tkr in items:
+            try:
+                snap = deps.stock_service.get_snapshot(tkr)
+                price = f"{snap.price:,.2f}" if snap.price else "—"
+                m1 = f"{snap.price_change_1m_pct:+.1f}%" if snap.price_change_1m_pct is not None else "—"
+                pe = f"{snap.pe_ratio:.1f}" if snap.pe_ratio else "—"
+                lines.append(f"• {tkr}: {price}  1M {m1}  PE {pe}")
+            except Exception:
+                lines.append(f"• {tkr}: —")
+        lines.append("")
+        # Offer further depth — explicitly mention 5–10s wait.
+        followup = (
+            "추가로 세부 분석이 필요하세요?\n⏱ 예 선택 시 5~10초 소요됩니다." if lang == "ko"
+            else "Want a deeper drill-down?\n⏱ Yes takes 5–10 seconds." if lang == "en"
+            else "さらに詳しい分析が必要ですか?\n⏱ はい選択で5〜10秒かかります。" if lang == "ja"
+            else "需要进一步深度分析吗?\n⏱ 选择「是」需要 5–10 秒。"
+        )
+        lines.append(followup)
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(s.deeper_analysis_yes, callback_data=f"deeper:{items[0] if items else 'NVDA'}"),
+            InlineKeyboardButton(s.deeper_analysis_no,  callback_data="deeper:no"),
+        ]])
+        await query.message.reply_text("\n".join(lines), reply_markup=keyboard)
+        return
+
+    if data.startswith("subscribe:"):
+        # §17.2 stub — full email-verify flow lands in next sub-task.
+        choice = data.split(":", 1)[1]
+        lang = profile.language
+        s = t(lang)
+        if choice == "later":
+            await query.message.reply_text(s.short_disclaimer)
+            return
+        msg = (
+            "구독 예약 기능은 곧 오픈됩니다. 베타 알림을 원하시면 /feedback 으로 이메일을 남겨주세요." if lang == "ko"
+            else "Subscription reservation is coming soon. Drop an email via /feedback for beta notifications." if lang == "en"
+            else "サブスク予約機能は近日公開。/feedback からメールアドレスを送ってください。" if lang == "ja"
+            else "订阅预约即将开放。请通过 /feedback 留下邮箱以接收 beta 通知。"
+        )
+        await query.message.reply_text(msg)
         return
 
     if data.startswith("forget:"):
@@ -617,6 +720,12 @@ async def _handle_ticker_query(
             logger.info("prewarm.cache_hit ticker=%s persona=%s lang=%s",
                         ticker_key, persona.key, lang)
             await update.message.reply_text(_strip_md(cached))
+            # Snapshot lookup for sector recording is cheap (in-memory cache hit)
+            try:
+                snap = deps.stock_service.get_snapshot(ticker_key)
+                await _record_and_maybe_offer_sector(update, context, profile, ticker_key, snap)
+            except Exception:
+                logger.exception("sector tracking failed (non-fatal)")
             await _offer_deeper(update, context, ticker_key, persona, lang)
             return
 
@@ -660,6 +769,10 @@ async def _handle_ticker_query(
 
     header = f"[{persona.name(lang)} · {snapshot.ticker}]"
     await update.message.reply_text(f"{header}\n\n{_strip_md(reply)}")
+    try:
+        await _record_and_maybe_offer_sector(update, context, profile, snapshot.ticker, snapshot)
+    except Exception:
+        logger.exception("sector tracking failed (non-fatal)")
     await _offer_deeper(update, context, snapshot.ticker, persona, lang)
 
 
@@ -672,6 +785,52 @@ async def _offer_deeper(update, context, ticker: str, persona, lang: str) -> Non
     ]])
     body = f"{s.deeper_analysis_offer.format(persona=persona.name(lang))}\n\n{s.risk_notice}"
     await update.message.reply_text(body, reply_markup=keyboard)
+
+
+async def _record_and_maybe_offer_sector(
+    update, context, profile: UserProfile, ticker: str, snapshot,
+) -> None:
+    """Record the recent ticker + sector. If user has been hitting the same
+    sector ≥ 3 of last 5 queries (and last offer > 60 min ago), surface a
+    follow-up button to compare ETFs / peers in that sector.
+    """
+    from datetime import datetime, timezone
+    from services.sector_tracker import update_recent, maybe_offer_followup
+
+    deps = _deps(context)
+    sector = getattr(snapshot, "sector", None)
+    fields = update_recent(profile, ticker, sector)
+    profile = await deps.profile_repo.update(profile.user_key, **fields)
+
+    # Resolver looks up sector for each previously-seen ticker via cached snapshot.
+    # We use stock_service which has its own 5-min cache, so this is cheap.
+    def resolver(t_key: str) -> str | None:
+        try:
+            snap = deps.stock_service.get_snapshot(t_key)
+            return getattr(snap, "sector", None)
+        except Exception:
+            return None
+
+    offer = maybe_offer_followup(profile, resolver)
+    if offer is None:
+        return
+
+    sector_name, etfs, peers = offer
+    lang = profile.language
+    s = t(lang)
+    body = s.sector_followup_offer.format(
+        sector=sector_name,
+        etfs=", ".join(etfs[:4]),
+        peers=", ".join(peers[:5]),
+    )
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(s.sector_compare_yes, callback_data=f"sector:{sector_name[:30]}"),
+        InlineKeyboardButton(s.sector_compare_no,  callback_data="sector:no"),
+    ]])
+    await update.message.reply_text(body, reply_markup=keyboard)
+    await deps.profile_repo.update(
+        profile.user_key, last_followup_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    )
 
 
 async def _try_prewarmed_commentary(ticker: str, persona_key: str, language: str) -> str | None:

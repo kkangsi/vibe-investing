@@ -64,6 +64,12 @@ class _Bundle:
     deeper_analysis_no: str
     short_disclaimer: str
     risk_notice: str
+    sector_followup_offer: str
+    sector_compare_yes: str
+    sector_compare_no: str
+    daily_limit_reached: str
+    subscribe_offer_yes: str
+    subscribe_offer_no: str
 
 
 _KO = _Bundle(
@@ -145,6 +151,18 @@ _KO = _Bundle(
         "⚠ 이 서비스는 주식 매매를 권장하지 않으며, 실제 투자는 전문가의 상담이 필요합니다.\n"
         "AI는 환각 및 오류가 있을 수 있으며, 모든 투자 판단의 책임은 본인에게 있습니다."
     ),
+    sector_followup_offer=(
+        "📊 {sector} 섹터에 관심이 많으시네요.\n"
+        "관련 ETF ({etfs}) 와 유사 종목 ({peers}) 을 비교해 드려도 될까요?"
+    ),
+    sector_compare_yes="✅ 비교해 줘",
+    sector_compare_no="아니요",
+    daily_limit_reached=(
+        "오늘의 세부 분석 5회를 모두 사용하셨어요.\n"
+        "무제한 구독을 예약하시면 출시 시 알림 + 베타 우선 제공 받으실 수 있어요."
+    ),
+    subscribe_offer_yes="✅ 구독 예약하기",
+    subscribe_offer_no="나중에",
 )
 
 _EN = _Bundle(
@@ -226,6 +244,18 @@ _EN = _Bundle(
         "⚠ This service does not recommend buying or selling. Real investment decisions need professional advice.\n"
         "AI may hallucinate or err. You alone bear responsibility for your investment outcomes."
     ),
+    sector_followup_offer=(
+        "📊 You seem to be interested in the {sector} sector.\n"
+        "Want me to compare related ETFs ({etfs}) and peers ({peers})?"
+    ),
+    sector_compare_yes="✅ Compare them",
+    sector_compare_no="No thanks",
+    daily_limit_reached=(
+        "You've used all 5 deep analyses for today.\n"
+        "Reserve a subscription and get launch alerts + beta priority."
+    ),
+    subscribe_offer_yes="✅ Reserve subscription",
+    subscribe_offer_no="Maybe later",
 )
 
 _JA = _Bundle(
@@ -307,6 +337,18 @@ _JA = _Bundle(
         "⚠ 本サービスは株式の売買を推奨しません。実際の投資判断には専門家への相談が必要です。\n"
         "AIには誤りや幻覚が含まれる可能性があり、投資の責任はすべてご自身にあります。"
     ),
+    sector_followup_offer=(
+        "📊 {sector} セクターにご関心がありそうですね。\n"
+        "関連ETF ({etfs}) と類似銘柄 ({peers}) の比較をしましょうか?"
+    ),
+    sector_compare_yes="✅ 比較する",
+    sector_compare_no="いいえ",
+    daily_limit_reached=(
+        "本日の詳細分析5回を使い切りました。\n"
+        "無制限プラン予約で、リリース通知とベータ優先案内を受け取れます。"
+    ),
+    subscribe_offer_yes="✅ サブスク予約",
+    subscribe_offer_no="あとで",
 )
 
 _ZH = _Bundle(
@@ -388,6 +430,18 @@ _ZH = _Bundle(
         "⚠ 本服务不推荐买卖股票,实际投资决策请咨询专业人士。\n"
         "AI 可能出错或产生幻觉,所有投资后果由您本人承担。"
     ),
+    sector_followup_offer=(
+        "📊 您似乎对 {sector} 板块很感兴趣。\n"
+        "需要比较相关 ETF ({etfs}) 和同类个股 ({peers}) 吗?"
+    ),
+    sector_compare_yes="✅ 比较一下",
+    sector_compare_no="不用了",
+    daily_limit_reached=(
+        "今日 5 次深度分析已用完。\n"
+        "预约订阅以在发布时获得通知和优先 Beta 体验。"
+    ),
+    subscribe_offer_yes="✅ 预约订阅",
+    subscribe_offer_no="稍后",
 )
 
 _BUNDLES: dict[str, _Bundle] = {"ko": _KO, "en": _EN, "ja": _JA, "zh": _ZH}
