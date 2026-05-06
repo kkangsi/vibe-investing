@@ -9,9 +9,8 @@
       "rewrite": "/dashboard.html"
     },
     {
-      "route": "/data/*",
-      "redirect": "https://func-aiinvestor-prod.azurewebsites.net/api/data/{*path}",
-      "statusCode": 302
+      "route": "/ticker",
+      "rewrite": "/ticker.html"
     }
   ],
   "responseOverrides": {
