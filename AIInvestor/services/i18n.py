@@ -54,6 +54,9 @@ class _Bundle:
     forget_done: str
     forget_cancelled: str
     policy: str
+    feedback_usage: str
+    feedback_thanks: str
+    feedback_error: str
 
 
 _KO = _Bundle(
@@ -122,6 +125,9 @@ _KO = _Bundle(
         "• /lang 으로 언제든 언어를 변경할 수 있습니다.\n"
         "• /persona 로 페르소나를 변경해도 관심사는 보존됩니다."
     ),
+    feedback_usage="피드백을 함께 보내주세요.\n예시: /feedback 응답이 너무 길어요 / 피드백 좋네요!",
+    feedback_thanks="감사합니다. 의견이 운영자에게 전달되었습니다. 🙏",
+    feedback_error="죄송합니다. 의견 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.",
 )
 
 _EN = _Bundle(
@@ -190,6 +196,9 @@ _EN = _Bundle(
         "• /lang — switch language at any time\n"
         "• /persona — change persona; interests are preserved"
     ),
+    feedback_usage="Please include your feedback in the same message.\nExample: /feedback The replies are too long",
+    feedback_thanks="Thanks! Your feedback was forwarded to the operator. 🙏",
+    feedback_error="Sorry, we couldn't deliver your feedback right now. Please try again shortly.",
 )
 
 _JA = _Bundle(
@@ -258,6 +267,9 @@ _JA = _Bundle(
         "• /lang — いつでも言語を切替可能\n"
         "• /persona — ペルソナ変更時も関心分野は保持"
     ),
+    feedback_usage="フィードバックを同じメッセージに含めてください。\n例: /feedback 応答が長すぎます",
+    feedback_thanks="ありがとうございます。ご意見を運営者に転送しました。 🙏",
+    feedback_error="申し訳ありません。フィードバックを送信できませんでした。しばらくしてから再度お試しください。",
 )
 
 _ZH = _Bundle(
@@ -326,6 +338,9 @@ _ZH = _Bundle(
         "• /lang — 随时切换语言\n"
         "• /persona — 切换人设时关注领域将保留"
     ),
+    feedback_usage="请将反馈与命令一起发送。\n示例: /feedback 回复太长了",
+    feedback_thanks="感谢!您的反馈已转发给运营者。🙏",
+    feedback_error="抱歉,反馈发送失败。请稍后再试。",
 )
 
 _BUNDLES: dict[str, _Bundle] = {"ko": _KO, "en": _EN, "ja": _JA, "zh": _ZH}

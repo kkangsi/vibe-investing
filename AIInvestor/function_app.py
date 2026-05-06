@@ -84,6 +84,23 @@ async def _bootstrap() -> None:
     )
     _ptb_app = build_application(_config.telegram_token, deps)
     await _ptb_app.initialize()  # one getMe call — never repeated per request
+
+    # Publish the slash-command menu so /feedback etc. show in autocomplete.
+    try:
+        from telegram import BotCommand
+        await _ptb_app.bot.set_my_commands([
+            BotCommand("start",    "Start onboarding"),
+            BotCommand("persona",  "Switch investor persona"),
+            BotCommand("personas", "List personas"),
+            BotCommand("lang",     "Switch language (ko/en/ja/zh)"),
+            BotCommand("feedback", "Send feedback to the dev"),
+            BotCommand("policy",   "Data handling & disclaimer"),
+            BotCommand("forget",   "Delete all my data"),
+            BotCommand("help",     "Show command list"),
+        ])
+    except Exception:
+        logger.exception("set_my_commands failed (non-fatal)")
+
     logger.info("AI Investor bootstrapped (model=%s)", _config.deepseek_model)
 
 

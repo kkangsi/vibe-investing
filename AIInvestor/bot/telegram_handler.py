@@ -72,6 +72,8 @@ def build_application(token: str, deps: BotDependencies) -> Application:
     app.add_handler(CommandHandler("lang", _cmd_lang))
     app.add_handler(CommandHandler("forget", _cmd_forget))
     app.add_handler(CommandHandler("policy", _cmd_policy))
+    app.add_handler(CommandHandler("feedback", _cmd_feedback))
+    app.add_handler(CommandHandler("whoami", _cmd_whoami))
 
     app.add_handler(CallbackQueryHandler(_on_callback))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, _on_message))
@@ -189,8 +191,10 @@ async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/persona — persona keyboard\n"
         "/personas — list personas\n"
         "/lang — switch language (ko / en / ja / zh)\n"
+        "/feedback <message> — send feedback to dev (피드백 alias works too)\n"
         "/policy — data handling & disclaimer\n"
         "/forget — delete all my stored data\n"
+        "/whoami — show your Telegram chat_id (operator setup)\n"
         "/help — this message\n\n"
         f"{s.disclaimer}"
     )
@@ -232,6 +236,59 @@ async def _cmd_forget(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 async def _cmd_policy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     profile = _profile(update, context)
     await update.message.reply_text(t(profile.language).policy)
+
+
+async def _cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Reveal the caller's Telegram chat_id (so the operator can set TELEGRAM_OWNER_CHAT_ID)."""
+    user = update.effective_user
+    chat = update.effective_chat
+    text = (
+        f"👤 Your Telegram identity\n\n"
+        f"chat_id: <code>{chat.id}</code>\n"
+        f"user_id: <code>{user.id}</code>\n"
+        f"username: @{user.username or '(none)'}\n"
+        f"language: {user.language_code or '(none)'}\n\n"
+        f"Operators set TELEGRAM_OWNER_CHAT_ID=<chat_id> on the Function App."
+    )
+    await update.message.reply_text(text, parse_mode="HTML")
+
+
+async def _cmd_feedback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Forward the user's feedback to the operator's Telegram chat."""
+    profile = _profile(update, context)
+    s = t(profile.language)
+    body = " ".join(context.args or []).strip()
+    if not body:
+        await update.message.reply_text(s.feedback_usage)
+        return
+    await _forward_feedback(update, context, profile, body, s)
+
+
+async def _forward_feedback(update, context, profile, body: str, s) -> None:
+    """Shared sender used by /feedback and the '피드백' text-prefix shortcut."""
+    owner_id = os.getenv("TELEGRAM_OWNER_CHAT_ID", "").strip()
+    if not owner_id:
+        logger.warning("TELEGRAM_OWNER_CHAT_ID not set; feedback dropped")
+        await update.message.reply_text(s.feedback_error)
+        return
+
+    user = update.effective_user
+    user_label = f"@{user.username}" if user.username else f"id={user.id}"
+    forwarded = (
+        f"📬 [AI Investor Feedback]\n"
+        f"From: {user_label} (id={user.id}, anon={profile.anon_user_id})\n"
+        f"Lang: {profile.language} · Persona: {profile.persona_key}\n"
+        f"───\n"
+        f"{body}"
+    )
+
+    try:
+        await context.bot.send_message(chat_id=int(owner_id), text=forwarded)
+        await update.message.reply_text(s.feedback_thanks)
+        logger.info("feedback forwarded from anon=%s len=%d", profile.anon_user_id, len(body))
+    except Exception:
+        logger.exception("Failed to forward feedback")
+        await update.message.reply_text(s.feedback_error)
 
 
 # -----------------------------
@@ -364,6 +421,24 @@ async def _on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     profile = _profile(update, context)
     lang = profile.language
     s = t(lang)
+
+    # Korean slash-commands like "/피드백" aren't recognized by Telegram (commands
+    # must match [a-z0-9_]). Intercept "피드백 ..." or "feedback ..." as a text
+    # alias so Korean users get the same UX.
+    lowered = text.lower()
+    if text.startswith("피드백") or lowered.startswith("feedback"):
+        # Strip the prefix word + leading whitespace
+        for prefix in ("피드백", "feedback", "FEEDBACK"):
+            if text.startswith(prefix):
+                body = text[len(prefix):].strip(" :,-—")
+                break
+        else:
+            body = ""
+        if not body:
+            await update.message.reply_text(s.feedback_usage)
+        else:
+            await _forward_feedback(update, context, profile, body, s)
+        return
 
     # During interest step, free text is parsed as additional interest input.
     if profile.onboarding_step == STEP_INTEREST:
