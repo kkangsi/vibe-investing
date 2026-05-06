@@ -23,23 +23,39 @@ h1 { font-weight:700; }
 .persona-tab.active.wood    { background:var(--wood);    color:#1a1a2a; border-color:var(--wood); }
 .persona-tab.active.all     { background:var(--accent);  color:#1a1a2a; border-color:var(--accent); }
 .persona-tab:hover { color:#fff; }
-.card { background:var(--card); border:none; border-radius:12px; }
+.card { background:var(--card); border:none; border-radius:12px; color:#e8e8e8; }
 .card-header { background:transparent; border-bottom:1px solid #3a3a4a;
-               font-weight:700; padding:16px 20px; }
+               font-weight:700; padding:16px 20px; color:#f0f0f0; }
 .kpi-num { font-size:2rem; font-weight:800; color:var(--accent); }
-.table { color:#e0e0e0; --bs-table-bg:transparent; }
-.table thead { color:#aaa; font-size:13px; text-transform:uppercase; letter-spacing:.5px; }
+/* Bootstrap 5 reads cell color from CSS variables — must override
+   --bs-table-color-state for tbody to be readable on dark bg. */
+.table { --bs-table-bg:transparent; --bs-table-color:#f0f0f0;
+         --bs-table-color-state:#f0f0f0; --bs-table-hover-color:#ffffff;
+         --bs-table-hover-bg:#33334a; color:#f0f0f0; }
+.table thead, .table thead th {
+  color:#e0e0e0; font-size:13px; text-transform:uppercase; letter-spacing:.5px; font-weight:700;
+}
+.table tbody, .table tbody td { color:#f0f0f0; }
 .table tbody tr:hover { background:#33334a; }
-.rank-pill { background:#3a3a4a; color:#ccc; border-radius:8px;
+.rank-pill { background:#3a3a4a; color:#e8e8e8; border-radius:8px;
              padding:2px 8px; font-size:11px; font-weight:700; }
 .bar-wrap { background:#2a2a3c; border-radius:4px; height:8px; overflow:hidden;
             display:inline-block; vertical-align:middle; min-width:60px; }
 .bar-fill { height:100%; background:var(--accent); }
 .lang-badge { background:#3a3a4a; padding:3px 10px; border-radius:12px;
-              font-size:12px; margin-right:6px; color:#bbb; }
+              font-size:13px; margin-right:6px; color:#e8e8e8; }
 .lang-badge .num { color:var(--accent); font-weight:700; }
-.reason { color:#999; font-size:12px; line-height:1.4; }
-.muted { color:#888; font-size:13px; }
+.reason { color:#c8c8c8; font-size:12px; line-height:1.4; }
+.muted { color:#b0b0b0; font-size:13px; }
+/* Persona detail card — name + ticker need explicit bright colors so
+   they stay legible above the dark card background. */
+.kr-name { color:#f0f0f0; font-weight:700; }
+.kr-ticker { color:var(--accent); font-weight:600; margin-left:4px; }
+.kr-count { color:#f0f0f0; font-weight:700; font-size:14px; }
+.tok-num { color:var(--accent); font-weight:700; font-size:1.05rem; }
+.persona-name-card.buffett { color:var(--buffett); }
+.persona-name-card.dalio   { color:var(--dalio); }
+.persona-name-card.wood    { color:var(--wood); }
 .hero { background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%); padding:30px 0; margin-bottom:30px; }
 .error-box { background:#3a1f1f; border-left:4px solid #c62828;
              padding:14px 18px; border-radius:8px; color:#ffb4b4; }
@@ -229,12 +245,15 @@ function renderPersonaCard(p, data) {
   const krRows = (data.korean_favorites_top || []).map(r => `
     <tr>
       <td><span class="rank-pill">#${r.rank}</span></td>
-      <td><strong>${escapeHtml(r.name_kr)}</strong> <span class="muted">${escapeHtml(r.ticker)}</span></td>
-      <td class="text-end">${r.count}</td>
+      <td>
+        <span class="kr-name">${escapeHtml(r.name_kr)}</span><span class="kr-ticker">${escapeHtml(r.ticker)}</span>
+      </td>
+      <td class="text-end"><span class="kr-count">${r.count}</span></td>
     </tr>`).join('');
   return `
     <div class="card mb-3">
-      <div class="card-header">${PERSONA_NAMES[p] || p}
+      <div class="card-header">
+        <span class="persona-name-card ${p}">${PERSONA_NAMES[p] || p}</span>
         <span class="ms-2 muted">— 총 ${data.total||0}건 분석</span>
       </div>
       <div class="row g-0">
@@ -249,8 +268,8 @@ function renderPersonaCard(p, data) {
           <div class="muted mb-2">언어 분포</div>
           <div>${langs || '<span class="muted">—</span>'}</div>
           <div class="muted mt-3">LLM 토큰</div>
-          <div>입력: <strong>${(data.llm_in||0).toLocaleString()}</strong></div>
-          <div>출력: <strong>${(data.llm_out||0).toLocaleString()}</strong></div>
+          <div>입력: <span class="tok-num">${(data.llm_in||0).toLocaleString()}</span></div>
+          <div>출력: <span class="tok-num">${(data.llm_out||0).toLocaleString()}</span></div>
         </div>
       </div>
     </div>`;
