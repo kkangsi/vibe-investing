@@ -425,17 +425,43 @@ async def _handle_ticker_query(
     s = t(lang)
     persona = get_persona(profile.persona_key)
 
+    # Resolve to canonical ticker once for cache lookups (e.g. "테슬라" → "TSLA").
+    ticker_key = deps.stock_service._lookup.resolve(text).upper() if text else ""
+
+    # ────────────────────────────────────────────────────────────────
+    # CACHE TIER 1: pre-warmed commentary blob (fastest — no LLM, no yfinance).
+    # Skips if user has personal interests context (those queries miss the
+    # generic prewarm cache anyway).
+    # ────────────────────────────────────────────────────────────────
+    if ticker_key and not profile.interest_tags and not profile.watchlist_tickers:
+        cached = await _try_prewarmed_commentary(ticker_key, persona.key, lang)
+        if cached is not None:
+            logger.info("prewarm.cache_hit ticker=%s persona=%s lang=%s",
+                        ticker_key, persona.key, lang)
+            await update.message.reply_text(cached)
+            return
+
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.TYPING)
 
-    try:
-        snapshot = deps.stock_service.get_snapshot(text)
-    except StockServiceError as exc:
-        await update.message.reply_text(str(exc))
-        return
-    except Exception:
-        logger.exception("Stock lookup failed for input=%r", text)
-        await update.message.reply_text(s.error_market_data)
-        return
+    # ────────────────────────────────────────────────────────────────
+    # CACHE TIER 2: pre-warmed snapshot blob (skips yfinance, still calls LLM).
+    # ────────────────────────────────────────────────────────────────
+    snapshot = None
+    if ticker_key:
+        snapshot = await _try_prewarmed_snapshot(ticker_key)
+        if snapshot is not None:
+            logger.info("prewarm.snapshot_hit ticker=%s", ticker_key)
+
+    if snapshot is None:
+        try:
+            snapshot = deps.stock_service.get_snapshot(text)
+        except StockServiceError as exc:
+            await update.message.reply_text(str(exc))
+            return
+        except Exception:
+            logger.exception("Stock lookup failed for input=%r", text)
+            await update.message.reply_text(s.error_market_data)
+            return
 
     interests = [_localize_tag(tag, lang) for tag in profile.interest_tags]
     interests.extend(profile.watchlist_tickers)
@@ -454,6 +480,33 @@ async def _handle_ticker_query(
 
     header = f"[{persona.name(lang)} · {snapshot.ticker}]"
     await update.message.reply_text(f"{header}\n\n{reply}")
+
+
+async def _try_prewarmed_commentary(ticker: str, persona_key: str, language: str) -> str | None:
+    """Return blob-cached rendered text if available (production), else None."""
+    backend = os.getenv("STORAGE_BACKEND", "sqlite").lower()
+    account = os.getenv("STORAGE_ACCOUNT_NAME", "").strip()
+    if not account:
+        return None
+    try:
+        from services.prewarm_service import fetch_cached_commentary
+        return await fetch_cached_commentary(account, ticker, persona_key, language)
+    except Exception:
+        logger.exception("prewarm commentary fetch failed")
+        return None
+
+
+async def _try_prewarmed_snapshot(ticker: str):
+    """Return blob-cached StockSnapshot if available, else None."""
+    account = os.getenv("STORAGE_ACCOUNT_NAME", "").strip()
+    if not account:
+        return None
+    try:
+        from services.prewarm_service import fetch_cached_snapshot
+        return await fetch_cached_snapshot(account, ticker)
+    except Exception:
+        logger.exception("prewarm snapshot fetch failed")
+        return None
 
 
 async def _try_blob_cached_report(persona_key: str, language: str) -> str | None:

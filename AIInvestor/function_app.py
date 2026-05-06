@@ -45,6 +45,8 @@ _config: Config | None = None
 _ptb_app = None
 _market_report_service: MarketReportService | None = None
 _profile_repo: UserProfileRepo | None = None
+_persona_engine = None
+_stock_service = None
 
 
 async def _bootstrap() -> None:
@@ -55,26 +57,27 @@ async def _bootstrap() -> None:
     trip the bot performs on entry to its async context manager.
     """
     global _config, _ptb_app, _market_report_service, _profile_repo
+    global _persona_engine, _stock_service
     if _ptb_app is not None:
         return
 
     _config = Config.load()
     configure_logging(_config.log_level)
 
-    persona_engine = PersonaEngine(
+    _persona_engine = PersonaEngine(
         api_key=_config.deepseek_api_key,
         model=_config.deepseek_model,
         base_url=_config.deepseek_base_url,
     )
-    stock_service = StockService()
+    _stock_service = StockService()
     # 2차-B: BlobUserProfileRepo will replace SQLite. Until then SQLite path
     # points at a writable mount (Functions /home is persistent across restarts).
     _profile_repo = UserProfileRepo(db_path=_config.sqlite_path, salt=_config.user_id_salt)
-    _market_report_service = MarketReportService(persona_engine=persona_engine)
+    _market_report_service = MarketReportService(persona_engine=_persona_engine)
 
     deps = BotDependencies(
-        persona_engine=persona_engine,
-        stock_service=stock_service,
+        persona_engine=_persona_engine,
+        stock_service=_stock_service,
         profile_repo=_profile_repo,
         market_report_service=_market_report_service,
         default_persona_key=get_persona(_config.default_persona).key,
@@ -162,7 +165,80 @@ async def daily_report(timer: func.TimerRequest) -> None:
 
 
 # ---------------------------------------------------------------------
-# 3) Keepalive — every 5 minutes to prevent cold starts (Always Ready=1 fallback)
+# 3a) Prewarm — snapshots for ~250 priority tickers (every 4 hours)
+# ---------------------------------------------------------------------
+
+@app.timer_trigger(
+    schedule="0 0 */4 * * *",   # 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC
+    arg_name="timer",
+    run_on_startup=False,
+    use_monitor=True,
+)
+async def prewarm_snapshots(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        logger.warning("STORAGE_ACCOUNT_NAME not set; skipping prewarm_snapshots")
+        return
+    from services.prewarm_service import PrewarmService, load_priority_tickers
+    pool, _top50 = load_priority_tickers()
+    if not pool:
+        logger.warning("priority_tickers.csv empty; skipping")
+        return
+    svc = PrewarmService(
+        storage_account_name=_config.storage_account_name,
+        persona_engine=_persona_engine,
+        stock_service=_stock_service,
+    )
+    try:
+        await svc.refresh_snapshots(pool)
+    finally:
+        await svc.aclose()
+
+
+# ---------------------------------------------------------------------
+# 3b) Prewarm — commentaries for TOP_50 (every 4 hours, offset 30 min)
+# ---------------------------------------------------------------------
+
+@app.timer_trigger(
+    schedule="0 30 */4 * * *",   # 00:30, 04:30, 08:30, ...
+    arg_name="timer",
+    run_on_startup=False,
+    use_monitor=True,
+)
+async def prewarm_commentaries(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        logger.warning("STORAGE_ACCOUNT_NAME not set; skipping prewarm_commentaries")
+        return
+    from services.prewarm_service import PrewarmService, load_priority_tickers, fetch_cached_snapshot
+    _pool, top50 = load_priority_tickers()
+    if not top50:
+        logger.warning("no top50 in priority_tickers.csv")
+        return
+
+    # Pull pre-warmed snapshots back from blob (so we don't re-hit yfinance).
+    snapshots = {}
+    for ticker in top50:
+        snap = await fetch_cached_snapshot(_config.storage_account_name, ticker)
+        if snap is not None:
+            snapshots[ticker] = snap
+    if not snapshots:
+        logger.warning("no snapshots cached yet; commentaries will not run")
+        return
+
+    svc = PrewarmService(
+        storage_account_name=_config.storage_account_name,
+        persona_engine=_persona_engine,
+        stock_service=_stock_service,
+    )
+    try:
+        await svc.refresh_commentaries(snapshots, top50)
+    finally:
+        await svc.aclose()
+
+
+# ---------------------------------------------------------------------
+# 4) Keepalive — every 5 minutes to prevent cold starts (Always Ready=1 fallback)
 # ---------------------------------------------------------------------
 
 @app.timer_trigger(

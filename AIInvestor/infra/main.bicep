@@ -51,7 +51,7 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01'
   }
 }
 
-var containerNames = ['users', 'reports', 'logs', 'analysis', 'deployment']
+var containerNames = ['users', 'reports', 'logs', 'analysis', 'deployment', 'prewarm']
 resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = [for name in containerNames: {
   parent: blobService
   name: name
@@ -236,6 +236,88 @@ resource roleKvDeployer 'Microsoft.Authorization/roleAssignments@2022-04-01' = i
 }
 
 // -----------------------------------------------------------------
+// Azure Front Door Standard — global edge cache for prewarm/ blobs
+// (Classic Microsoft CDN is retired for new deployments.)
+// -----------------------------------------------------------------
+@description('Set to false to skip Front Door (saves ~$35/mo base cost)')
+param enableFrontDoor bool = true
+
+var frontDoorName = 'fd-${prefix}'
+var frontDoorEndpointName = 'edge-${prefix}'
+
+resource frontDoor 'Microsoft.Cdn/profiles@2024-02-01' = if (enableFrontDoor) {
+  name: frontDoorName
+  location: 'global'
+  sku: { name: 'Standard_AzureFrontDoor' }
+  properties: {}
+}
+
+resource frontDoorEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2024-02-01' = if (enableFrontDoor) {
+  parent: frontDoor
+  name: frontDoorEndpointName
+  location: 'global'
+  properties: { enabledState: 'Enabled' }
+}
+
+resource frontDoorOriginGroup 'Microsoft.Cdn/profiles/originGroups@2024-02-01' = if (enableFrontDoor) {
+  parent: frontDoor
+  name: 'storage-origin-group'
+  properties: {
+    loadBalancingSettings: {
+      sampleSize: 4
+      successfulSamplesRequired: 3
+      additionalLatencyInMilliseconds: 50
+    }
+    healthProbeSettings: {
+      probePath: '/'
+      probeRequestType: 'HEAD'
+      probeProtocol: 'Https'
+      probeIntervalInSeconds: 240
+    }
+  }
+}
+
+var blobHost = replace(replace(storage.properties.primaryEndpoints.blob, 'https://', ''), '/', '')
+
+resource frontDoorOrigin 'Microsoft.Cdn/profiles/originGroups/origins@2024-02-01' = if (enableFrontDoor) {
+  parent: frontDoorOriginGroup
+  name: 'blob-origin'
+  properties: {
+    hostName: blobHost
+    httpsPort: 443
+    originHostHeader: blobHost
+    priority: 1
+    weight: 1000
+    enabledState: 'Enabled'
+    enforceCertificateNameCheck: true
+  }
+}
+
+// Route only /prewarm/* and /reports/* through Front Door — internal containers
+// (users, logs, analysis, deployment) stay private with no public exposure.
+resource frontDoorRoute 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = if (enableFrontDoor) {
+  parent: frontDoorEndpoint
+  name: 'prewarm-and-reports'
+  dependsOn: [ frontDoorOrigin ]
+  properties: {
+    originGroup: { id: frontDoorOriginGroup.id }
+    supportedProtocols: [ 'Https' ]
+    patternsToMatch: [ '/prewarm/*', '/reports/*' ]
+    forwardingProtocol: 'HttpsOnly'
+    linkToDefaultDomain: 'Enabled'
+    httpsRedirect: 'Enabled'
+    enabledState: 'Enabled'
+    cacheConfiguration: {
+      queryStringCachingBehavior: 'IgnoreQueryString'
+      compressionSettings: {
+        contentTypesToCompress: [ 'application/json', 'text/plain' ]
+        isCompressionEnabled: true
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------
 // Outputs
 // -----------------------------------------------------------------
 output functionAppName string = funcApp.name
@@ -243,3 +325,4 @@ output functionAppHost string = funcApp.properties.defaultHostName
 output storageAccount string = storage.name
 output keyVaultName string = keyVault.name
 output appInsightsName string = appi.name
+output frontDoorEndpointHost string = enableFrontDoor ? frontDoorEndpoint.properties.?hostName ?? '' : ''
