@@ -370,27 +370,111 @@ async def _maybe_apply_referral(
 
 async def _cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     profile = await _profile(update, context)
-    s = t(profile.language)
-    await update.message.reply_text(
-        "/start — onboarding\n"
-        "/persona — persona keyboard\n"
+    lang = profile.language
+    s = t(lang)
+    await update.message.reply_text(_render_help(lang) + "\n\n" + s.disclaimer)
+
+
+# Localized full command list — shown via /help.
+# The public bot menu is reduced to 6 essentials; everything else is here.
+_HELP_TEXT = {
+    "ko": (
+        "📋 전체 명령 목록\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "/start — 다시 시작 (온보딩)\n"
+        "/persona — 투자 페르소나 변경\n"
+        "/personas — 페르소나 목록\n"
+        "/lang — 언어 변경 (ko / en / ja / zh)\n"
+        "\n📊 시황 & 분석\n"
+        "/today  /market  시황 — 최신 시황 (캐시 우선, 즉시)\n"
+        "/recommend [섹터] — 섹터별 인기 종목\n"
+        "/compare 종목1 종목2 — 종목 간 비교\n"
+        "\n🎮 게이미피케이션\n"
+        "/points — 포인트 잔액\n"
+        "/tier — 티어 / 다음 등급까지\n"
+        "/attend — 일일 출석 체크 (+10 P + 연속 보너스)\n"
+        "/invite — 초대 링크 + 통계 (+30 / +470 P 분할 보상)\n"
+        "/miniapp — 미니앱 열기 (투자의 전장으로!)\n"
+        "\n⚙️ 기타\n"
+        "/feedback <내용> — 개발자에게 한마디 (피드백)\n"
+        "/policy — 데이터 처리 정책 / 면책\n"
+        "/forget — 내 모든 데이터 삭제\n"
+        "/help — 이 도움말"
+    ),
+    "en": (
+        "📋 All commands\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "/start — restart onboarding\n"
+        "/persona — switch investor persona\n"
         "/personas — list personas\n"
         "/lang — switch language (ko / en / ja / zh)\n"
-        "/recommend [sector] — top tickers in a sector (no LLM call)\n"
-        "/compare T1 T2 [T3 T4] — side-by-side fundamentals (no LLM call)\n"
-        "/points — show your Point balance\n"
-        "/tier — show your tier + stage + points to next tier\n"
-        "/attend — daily attendance check-in (+10 P, +streak bonus)\n"
-        "/today | /market | 시황 — latest 6-slot market report (cached)\n"
-        "/invite — show your referral link + stats (+30/+470 P split reward)\n"
-        "/miniapp — open the gamification mini app (Telegram WebApp)\n"
-        "/feedback <message> — send feedback to dev (피드백 alias works too)\n"
+        "\n📊 Market & analysis\n"
+        "/today  /market — latest market report (cached, instant)\n"
+        "/recommend [sector] — top tickers in a sector\n"
+        "/compare T1 T2 — side-by-side fundamentals\n"
+        "\n🎮 Gamification\n"
+        "/points — Point balance\n"
+        "/tier — tier + progress to next\n"
+        "/attend — daily check-in (+10 P + streak bonus)\n"
+        "/invite — referral link + stats (+30 / +470 P split reward)\n"
+        "/miniapp — open the mini app\n"
+        "\n⚙️ Other\n"
+        "/feedback <text> — send feedback to the dev\n"
         "/policy — data handling & disclaimer\n"
-        "/forget — delete all my stored data\n"
-        "/whoami — show your Telegram chat_id (operator setup)\n"
-        "/help — this message\n\n"
-        f"{s.disclaimer}"
-    )
+        "/forget — delete all my data\n"
+        "/help — this message"
+    ),
+    "ja": (
+        "📋 全コマンド\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "/start — オンボーディング再開\n"
+        "/persona — ペルソナ変更\n"
+        "/personas — ペルソナ一覧\n"
+        "/lang — 言語変更 (ko / en / ja / zh)\n"
+        "\n📊 市況 & 分析\n"
+        "/today  /market — 最新市況 (キャッシュ優先)\n"
+        "/recommend [セクター] — セクター別人気銘柄\n"
+        "/compare T1 T2 — ファンダメンタル比較\n"
+        "\n🎮 ゲーミフィケーション\n"
+        "/points — ポイント残高\n"
+        "/tier — ティア / 次の段階\n"
+        "/attend — 出席チェック (+10 P + 連続ボーナス)\n"
+        "/invite — 招待リンク + 統計 (+30 / +470 P)\n"
+        "/miniapp — ミニアプリを開く\n"
+        "\n⚙️ その他\n"
+        "/feedback <text> — 開発者にフィードバック\n"
+        "/policy — データ処理 / 免責\n"
+        "/forget — 全データ削除\n"
+        "/help — このヘルプ"
+    ),
+    "zh": (
+        "📋 全部命令\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "/start — 重新开始\n"
+        "/persona — 切换投资角色\n"
+        "/personas — 角色列表\n"
+        "/lang — 切换语言 (ko / en / ja / zh)\n"
+        "\n📊 行情 & 分析\n"
+        "/today  /market — 最新市况 (缓存优先)\n"
+        "/recommend [行业] — 行业热门股\n"
+        "/compare T1 T2 — 基本面对比\n"
+        "\n🎮 游戏化\n"
+        "/points — 积分余额\n"
+        "/tier — 等级 / 距下一级\n"
+        "/attend — 每日签到 (+10 P + 连续奖励)\n"
+        "/invite — 邀请链接 + 统计 (+30 / +470 P)\n"
+        "/miniapp — 打开迷你应用\n"
+        "\n⚙️ 其他\n"
+        "/feedback <text> — 给开发者反馈\n"
+        "/policy — 数据政策 / 免责\n"
+        "/forget — 删除我所有数据\n"
+        "/help — 此帮助"
+    ),
+}
+
+
+def _render_help(lang: str) -> str:
+    return _HELP_TEXT.get(lang, _HELP_TEXT["en"])
 
 
 async def _cmd_personas(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

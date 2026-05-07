@@ -95,23 +95,15 @@ async def _bootstrap() -> None:
     # Publish the slash-command menu so /feedback etc. show in autocomplete.
     try:
         from telegram import BotCommand
+        # Reduced public menu — only 6 essentials (Korean descriptions).
+        # The full command list is shown via /help in the user's language.
         await _ptb_app.bot.set_my_commands([
-            BotCommand("start",     "Start onboarding"),
-            BotCommand("persona",   "Switch investor persona"),
-            BotCommand("personas",  "List personas"),
-            BotCommand("lang",      "Switch language (ko/en/ja/zh)"),
-            BotCommand("recommend", "Top tickers in a sector"),
-            BotCommand("compare",   "Side-by-side ticker fundamentals"),
-            BotCommand("points",    "Show your Point balance"),
-            BotCommand("tier",      "Show your tier + progress"),
-            BotCommand("attend",    "Daily attendance check-in"),
-            BotCommand("today",     "Latest market report (시황)"),
-            BotCommand("invite",    "Show your referral link + stats"),
-            BotCommand("miniapp",   "Open the mini app"),
-            BotCommand("feedback",  "Send feedback to the dev"),
-            BotCommand("policy",    "Data handling & disclaimer"),
-            BotCommand("forget",    "Delete all my data"),
-            BotCommand("help",      "Show command list"),
+            BotCommand("start",    "다시 시작"),
+            BotCommand("persona",  "투자 페르소나"),
+            BotCommand("lang",     "언어 변경 (ko / en / ja / zh)"),
+            BotCommand("miniapp",  "투자의 전장으로 가자!"),
+            BotCommand("feedback", "개발자에게 한마디"),
+            BotCommand("help",     "도움말"),
         ])
     except Exception:
         logger.exception("set_my_commands failed (non-fatal)")
