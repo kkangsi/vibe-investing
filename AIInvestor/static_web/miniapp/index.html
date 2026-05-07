@@ -1580,28 +1580,43 @@ function renderMatchups(r) {
     const livePctA = m.asset_a.anchor > 0 ? (m.asset_a.last - m.asset_a.anchor) / m.asset_a.anchor : 0;
     const livePctB = m.asset_b.anchor > 0 ? (m.asset_b.last - m.asset_b.anchor) / m.asset_b.anchor : 0;
 
-    const isOpen = m.status === "open";
+    // Backend status is "open" until the resolver cron flips it; check
+    // deadline client-side so users can't click after lock-time.
+    const deadlineMs = new Date(m.deadline_kst).getTime();
+    const isPastDeadline = Number.isFinite(deadlineMs) && Date.now() >= deadlineMs;
+    const isOpen = m.status === "open" && !isPastDeadline;
+    const isLocked = m.status === "open" && isPastDeadline;  // deadline passed, awaiting resolve
     const mySide = m.my_side || "";
 
-    const submitBtnA = isOpen
-      ? (mySide === "a"
-          ? `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 선택됨</button>`
-          : (mySide ? `<button class="btn-mission" disabled style="background:#444; width:100%;">—</button>`
-                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="a" style="width:100%;">A 선택</button>`))
-      : (m.winner === "a"
-          ? `<div style="text-align:center; color:var(--good); font-weight:700;">🏆 승</div>`
-          : `<div style="text-align:center; color:#888;">패</div>`);
-    const submitBtnB = isOpen
-      ? (mySide === "b"
-          ? `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 선택됨</button>`
-          : (mySide ? `<button class="btn-mission" disabled style="background:#444; width:100%;">—</button>`
-                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="b" style="width:100%;">B 선택</button>`))
-      : (m.winner === "b"
-          ? `<div style="text-align:center; color:var(--good); font-weight:700;">🏆 승</div>`
-          : `<div style="text-align:center; color:#888;">패</div>`);
+    function _btnFor(side) {
+      if (isOpen) {
+        if (mySide === side) {
+          return `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 선택됨</button>`;
+        }
+        if (mySide) {
+          return `<button class="btn-mission" disabled style="background:#444; width:100%;">—</button>`;
+        }
+        const label = side === "a" ? "A 선택" : "B 선택";
+        return `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="${side}" style="width:100%;">${label}</button>`;
+      }
+      if (isLocked) {
+        if (mySide === side) {
+          return `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 결산 대기</button>`;
+        }
+        return `<button class="btn-mission" disabled style="background:#3a3a4a; width:100%;">마감</button>`;
+      }
+      // resolved
+      return m.winner === side
+        ? `<div style="text-align:center; color:var(--good); font-weight:700;">🏆 승</div>`
+        : `<div style="text-align:center; color:#888;">패</div>`;
+    }
+    const submitBtnA = _btnFor("a");
+    const submitBtnB = _btnFor("b");
 
     const statusBadge = isOpen
       ? `<span style="color:var(--accent);">진행중</span> · 마감 ${_kstHM(m.deadline_kst)} · 결산 ${_kstHM(m.resolve_at_kst)}`
+      : isLocked
+      ? `<span style="color:#aaa;">마감 — 결산 대기</span> · 결산 ${_kstHM(m.resolve_at_kst)}`
       : `<span style="color:#888;">결산 완료</span>`;
 
     return `

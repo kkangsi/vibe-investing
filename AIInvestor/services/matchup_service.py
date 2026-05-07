@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 MATCHUPS_PER_HOUR = 3                # ≥3 per spec
-PREDICT_DEADLINE_MINUTES = 30        # picks lock 30 min after open
+PREDICT_DEADLINE_MINUTES = 55        # picks lock 5 min before next hour rolls in
 RESOLVE_OFFSET_HOURS = (1, 2, 3)     # rotate so result times are spread
 PARTICIPATION_POINTS = 1
 CORRECT_POINTS = 30                  # winner reward (single side)
