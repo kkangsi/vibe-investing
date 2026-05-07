@@ -7,6 +7,7 @@ Korea Central. Runtime layer only — all business logic stays in `bot/` and
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -946,6 +947,237 @@ async def gamification_set_persona(req: func.HttpRequest) -> func.HttpResponse:
         json.dumps({"success": True, "persona_key": profile.persona_key}, ensure_ascii=False),
         status_code=200, mimetype="application/json", headers=_CORS_HEADERS,
     )
+
+
+@app.route(route="gamification/language", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def gamification_set_language(req: func.HttpRequest) -> func.HttpResponse:
+    """Switch the user's UI language from the Mini App.
+    Body: {"language": "ko" | "en" | "ja" | "zh"}
+    """
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(json.dumps({"error": "bad json"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    lang = (body.get("language") or "").strip().lower()
+    if lang not in ("ko", "en", "ja", "zh"):
+        return func.HttpResponse(json.dumps({"error": "invalid_language"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    update_res = _profile_repo.update(user_key, language=lang)
+    profile = await update_res if hasattr(update_res, "__await__") else update_res
+    return func.HttpResponse(
+        json.dumps({"success": True, "language": profile.language}, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=_CORS_HEADERS_POST,
+    )
+
+
+@app.route(route="gamification/persona/preset_tickers", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def gamification_preset_tickers(req: func.HttpRequest) -> func.HttpResponse:
+    """Return the Korean retail favorites preset list for the persona-analysis quick buttons."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    import csv as _csv
+    from pathlib import Path as _Path
+    p = _Path(__file__).parent / "data" / "korean_favorite_tickers.csv"
+    items = []
+    try:
+        with p.open(encoding="utf-8") as f:
+            for row in _csv.DictReader(f):
+                items.append({
+                    "ticker": row.get("ticker", "").strip().upper(),
+                    "name_kr": row.get("name_kr", "").strip(),
+                    "name_en": row.get("name_en", "").strip(),
+                    "reason_kr": row.get("reason_kr", "").strip(),
+                })
+    except Exception:
+        logger.exception("preset_tickers load failed")
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "public, max-age=86400"
+    return func.HttpResponse(json.dumps({"tickers": items}, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers)
+
+
+@app.route(route="gamification/persona/analyze", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def gamification_persona_analyze(req: func.HttpRequest) -> func.HttpResponse:
+    """Persona-styled basic commentary on a ticker.
+    Body: {"ticker": "NVDA"}.
+    Always free (rate-limited via existing daily_deep_count quota in deeper-analysis path)."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    try:
+        body = req.get_json() or {}
+    except ValueError:
+        return func.HttpResponse(json.dumps({"error": "bad json"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    ticker = (body.get("ticker") or "").strip().upper()
+    if not ticker or len(ticker) > 12 or not ticker.replace(".", "").replace("-", "").isalnum():
+        return func.HttpResponse(json.dumps({"error": "invalid_ticker"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    try:
+        profile = await _profile_repo.get_or_create(user_key, "ko", "buffett")
+    except AttributeError:
+        profile = _profile_repo.get_or_create(user_key, "ko", "buffett")
+
+    from services.persona_engine import get_persona
+    persona = get_persona(profile.persona_key)
+    try:
+        snapshot = await asyncio.to_thread(_stock_service.snapshot, ticker)
+        commentary = await _persona_engine.generate(
+            persona=persona, snapshot=snapshot, language=profile.language,
+            interests=profile.interest_tags or None,
+        )
+    except Exception as e:
+        logger.exception("persona_analyze failed for %s", ticker)
+        return func.HttpResponse(json.dumps({"error": "analysis_failed", "detail": str(e)}),
+            status_code=502, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    return func.HttpResponse(json.dumps({
+        "ticker": snapshot.ticker,
+        "name": snapshot.name,
+        "sector": snapshot.sector,
+        "price": snapshot.price,
+        "persona_key": persona.key,
+        "persona_name": persona.name(profile.language),
+        "commentary": commentary,
+        "language": profile.language,
+    }, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+
+@app.route(route="gamification/persona/analyze_advanced", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def gamification_persona_analyze_advanced(req: func.HttpRequest) -> func.HttpResponse:
+    """Advanced multi-perspective analysis: all 3 personas + a same-sector rival.
+    Body: {"ticker": "NVDA"}.
+    First 5 days from saju_first_used_at (or sign-up if no Saju yet) are FREE; afterwards
+    costs ADVANCED_ANALYSIS_COST points (POINT_COSTS['extra_deep'] = 200).
+    """
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    try:
+        body = req.get_json() or {}
+    except ValueError:
+        return func.HttpResponse(json.dumps({"error": "bad json"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    ticker = (body.get("ticker") or "").strip().upper()
+    if not ticker:
+        return func.HttpResponse(json.dumps({"error": "missing_ticker"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    try:
+        profile = await _profile_repo.get_or_create(user_key, "ko", "buffett")
+    except AttributeError:
+        profile = _profile_repo.get_or_create(user_key, "ko", "buffett")
+
+    from services.gamification_config import POINT_COSTS
+    from services.persona_engine import PERSONAS, get_persona
+    from services.point_ledger import deduct_points
+    from services.saju_service import is_in_free_trial
+
+    cost = POINT_COSTS.get("extra_deep", 200)
+    free = is_in_free_trial(profile)
+
+    if not free:
+        debited = await deduct_points(_profile_repo, user_key, cost,
+                                      reason="persona_advanced_analysis", ref=ticker,
+                                      usage_logger=_usage_logger)
+        if debited is None:
+            return func.HttpResponse(json.dumps({
+                "error": "insufficient_points", "cost": cost,
+            }), status_code=402, mimetype="application/json", headers=_CORS_HEADERS_POST)
+        profile = debited
+
+    # Snapshot the requested ticker
+    try:
+        snapshot = await asyncio.to_thread(_stock_service.snapshot, ticker)
+    except Exception as e:
+        logger.exception("advanced snapshot failed for %s", ticker)
+        return func.HttpResponse(json.dumps({"error": "fetch_failed", "detail": str(e)}),
+            status_code=502, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    # Find a same-sector / same-element rival from stock_elements.csv
+    from services.stock_recommender import all_entries
+    pool = all_entries()
+    same_sector = [e for e in pool if e.sector == (snapshot.sector or "")
+                   and e.ticker != snapshot.ticker]
+    rival_entry = same_sector[0] if same_sector else (
+        pool[0] if pool and pool[0].ticker != snapshot.ticker else None)
+    rival_snap = None
+    if rival_entry is not None:
+        try:
+            rival_snap = await asyncio.to_thread(_stock_service.snapshot, rival_entry.ticker)
+        except Exception:
+            logger.warning("rival snapshot failed for %s", rival_entry.ticker)
+
+    # Run all 3 personas in parallel on the main ticker
+    persona_keys = ["buffett", "dalio", "wood"]
+    async def _one(pkey: str):
+        p = get_persona(pkey)
+        try:
+            txt = await _persona_engine.generate(
+                persona=p, snapshot=snapshot, language=profile.language,
+                interests=profile.interest_tags or None,
+            )
+            return pkey, p.name(profile.language), txt
+        except Exception as e:
+            logger.exception("persona %s commentary failed", pkey)
+            return pkey, p.name(profile.language), f"(분석 실패: {e})"
+    results = await asyncio.gather(*[_one(k) for k in persona_keys])
+
+    # Rival commentary using user's selected persona
+    rival_commentary = None
+    if rival_snap is not None:
+        try:
+            rival_commentary = await _persona_engine.generate(
+                persona=get_persona(profile.persona_key),
+                snapshot=rival_snap, language=profile.language,
+            )
+        except Exception:
+            logger.exception("rival commentary failed")
+
+    payload = {
+        "ticker": snapshot.ticker,
+        "name": snapshot.name,
+        "sector": snapshot.sector,
+        "price": snapshot.price,
+        "language": profile.language,
+        "free_trial_active": free,
+        "cost_charged": 0 if free else cost,
+        "points_balance": profile.points_balance,
+        "personas": [
+            {"persona_key": k, "persona_name": n, "commentary": t}
+            for (k, n, t) in results
+        ],
+        "rival": None if rival_snap is None else {
+            "ticker": rival_snap.ticker,
+            "name": rival_snap.name,
+            "sector": rival_snap.sector,
+            "price": rival_snap.price,
+            "commentary": rival_commentary or "(분석 없음)",
+            "by_persona": profile.persona_key,
+        },
+    }
+    return func.HttpResponse(json.dumps(payload, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=_CORS_HEADERS_POST)
 
 
 @app.route(route="gamification/welcome_event/status", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])

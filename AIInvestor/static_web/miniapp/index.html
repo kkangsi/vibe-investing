@@ -448,10 +448,54 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
   </div>
 
-  <div class="section-title" style="margin-top:18px;" data-i18n="language_section">언어</div>
-  <div class="card meta">
-    텔레그램 봇 <code>/lang</code> 명령으로 언어 변경 (ko / en / ja / zh).
-    미니앱은 자동 따라옵니다.
+  <!-- ── Persona-aware analysis (Korean favorites + search + advanced gate) ── -->
+  <div id="persona-analysis-block" style="display:none; margin-top:18px;">
+    <div class="section-title">📊 페르소나 분석</div>
+    <p class="meta" style="margin-bottom:8px;" id="persona-analysis-help">
+      종목을 골라 선택한 페르소나의 시각으로 분석을 받아보세요.
+    </p>
+
+    <div class="card">
+      <div style="font-size:12px; color:#aaa; margin-bottom:6px;">한국인이 선호하는 종목</div>
+      <div id="persona-presets" style="display:flex; flex-wrap:wrap; gap:6px;">로딩 중…</div>
+
+      <div style="margin-top:10px;">
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="persona-ticker-input" placeholder="다른 종목 검색 (예: AVGO, GOOG)"
+                 style="flex:1; padding:9px; border-radius:6px; border:1px solid var(--border); background:#1f1f2e; color:#e8e8e8; font-size:14px; text-transform:uppercase;">
+          <button class="btn-mission" id="persona-search-btn">검색</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="persona-analysis-result" style="display:none;">
+      <div class="card" style="border-left:4px solid var(--accent);">
+        <div class="title" id="par-title">—</div>
+        <div class="meta" id="par-meta" style="margin-top:4px;">—</div>
+        <div id="par-commentary" style="margin-top:10px; line-height:1.6; font-size:13px; white-space:pre-wrap;">—</div>
+      </div>
+
+      <div id="par-advanced-gate" class="card" style="border-left:4px solid var(--wood);">
+        <div class="title" style="font-size:14px;">🔬 고급 분석을 받아보시겠어요?</div>
+        <div class="meta" style="margin-top:6px; line-height:1.5;">
+          <strong>3명의 페르소나</strong>(버핏 · 달리오 · 우드) 시각 + <strong>같은 섹터 라이벌 종목</strong> 분석.
+          <br><span id="par-cost-line">5일 무료 체험 중</span>
+        </div>
+        <button class="btn-mission" id="par-advanced-btn" style="width:100%; margin-top:8px;">
+          고급 분석 시작
+        </button>
+      </div>
+
+      <div id="par-advanced-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:18px;" data-i18n="language_section">🌐 언어</div>
+  <div class="card" style="display:flex; gap:6px; flex-wrap:wrap;">
+    <button class="btn-mission lang-switch-btn" data-lang="ko" style="flex:1; min-width:100px;">🇰🇷 한국어</button>
+    <button class="btn-mission lang-switch-btn" data-lang="en" style="flex:1; min-width:100px;">🇺🇸 English</button>
+    <button class="btn-mission lang-switch-btn" data-lang="ja" style="flex:1; min-width:100px;">🇯🇵 日本語</button>
+    <button class="btn-mission lang-switch-btn" data-lang="zh" style="flex:1; min-width:100px;">🇨🇳 中文</button>
   </div>
 </section>
 
@@ -1061,6 +1105,10 @@ async function setActivePersonaBadge(currentPersona) {
   });
 }
 
+let _personaCurrent = null;
+let _personaPresets = null;
+let _parLastTicker = null;
+
 document.querySelectorAll(".persona-card").forEach(card => {
   card.addEventListener("click", async () => {
     const p = card.dataset.persona;
@@ -1071,14 +1119,154 @@ document.querySelectorAll(".persona-card").forEach(card => {
         body: JSON.stringify({ persona_key: p }),
       });
       tg?.HapticFeedback?.notificationOccurred("success");
+      _personaCurrent = p;
       setActivePersonaBadge(p);
       const labels = { buffett: "Warren Buffett", dalio: "Ray Dalio", wood: "Cathie Wood" };
       notify(`✓ ${labels[p]}`);
       // Reload today_market with new persona
       _todayMarket = null;
       loadTodayMarket();
+      // Reveal persona-analysis block + load presets if not loaded
+      document.getElementById("persona-analysis-block").style.display = "block";
+      if (!_personaPresets) await loadPersonaPresets();
+      // If a previous ticker was analyzed, re-run with the new persona
+      if (_parLastTicker) runPersonaAnalysis(_parLastTicker);
     } catch (e) {
       notify("Persona swap failed: " + e.message);
+    }
+  });
+});
+
+// ── Korean favorite presets ──
+async function loadPersonaPresets() {
+  try {
+    const r = await api("/persona/preset_tickers");
+    _personaPresets = r.tickers || [];
+    const html = _personaPresets.map(t =>
+      `<button class="btn-mission persona-preset-btn" data-ticker="${escapeHtml(t.ticker)}"
+               style="font-size:12px; padding:6px 10px;"
+               title="${escapeHtml(t.reason_kr || "")}">
+         ${escapeHtml(t.name_kr || t.ticker)}
+       </button>`
+    ).join("");
+    document.getElementById("persona-presets").innerHTML = html;
+    document.querySelectorAll(".persona-preset-btn").forEach(b => {
+      b.addEventListener("click", () => runPersonaAnalysis(b.dataset.ticker));
+    });
+  } catch (e) {
+    document.getElementById("persona-presets").innerHTML =
+      `<span class="meta">프리셋 로딩 실패: ${escapeHtml(e.message)}</span>`;
+  }
+}
+
+document.getElementById("persona-search-btn").addEventListener("click", () => {
+  const v = document.getElementById("persona-ticker-input").value.trim().toUpperCase();
+  if (!v) return;
+  runPersonaAnalysis(v);
+});
+document.getElementById("persona-ticker-input").addEventListener("keypress", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("persona-search-btn").click();
+  }
+});
+
+async function runPersonaAnalysis(ticker) {
+  _parLastTicker = ticker;
+  const resultBox = document.getElementById("persona-analysis-result");
+  const advBox = document.getElementById("par-advanced-result");
+  resultBox.style.display = "block";
+  advBox.style.display = "none";
+  advBox.innerHTML = "";
+  document.getElementById("par-title").textContent = `${ticker} · 분석 중…`;
+  document.getElementById("par-meta").textContent = "";
+  document.getElementById("par-commentary").textContent = "";
+  try {
+    const r = await api("/persona/analyze", {
+      method: "POST",
+      body: JSON.stringify({ ticker }),
+    });
+    document.getElementById("par-title").textContent = `${r.ticker} · ${r.name || ""}`;
+    document.getElementById("par-meta").textContent =
+      `${r.persona_name} · ${r.sector || "—"} · $${r.price ? r.price.toFixed(2) : "—"}`;
+    document.getElementById("par-commentary").textContent = r.commentary || "(분석 결과 없음)";
+    tg?.HapticFeedback?.notificationOccurred("success");
+  } catch (e) {
+    document.getElementById("par-title").textContent = `${ticker} · 분석 실패`;
+    document.getElementById("par-commentary").textContent = e.message;
+  }
+}
+
+// ── Advanced analysis ──
+document.getElementById("par-advanced-btn").addEventListener("click", async () => {
+  if (!_parLastTicker) return;
+  const btn = document.getElementById("par-advanced-btn");
+  btn.disabled = true;
+  btn.textContent = "분석 중… (3 페르소나 + 라이벌)";
+  const advBox = document.getElementById("par-advanced-result");
+  advBox.style.display = "block";
+  advBox.innerHTML = `<div class="card meta">잠시만 기다려주세요. ~5초 소요됩니다.</div>`;
+  try {
+    const r = await api("/persona/analyze_advanced", {
+      method: "POST",
+      body: JSON.stringify({ ticker: _parLastTicker }),
+    });
+    let html = "";
+    (r.personas || []).forEach(p => {
+      html += `<div class="card" style="border-left:4px solid var(--${p.persona_key});">
+        <div class="title">${escapeHtml(p.persona_name)}</div>
+        <div style="margin-top:8px; line-height:1.6; font-size:13px; white-space:pre-wrap;">${escapeHtml(p.commentary || "")}</div>
+      </div>`;
+    });
+    if (r.rival) {
+      html += `<div class="card" style="border-left:4px solid var(--accent);">
+        <div class="title">⚔️ 라이벌 — ${escapeHtml(r.rival.ticker)} · ${escapeHtml(r.rival.name || "")}</div>
+        <div class="meta" style="margin-top:4px;">${escapeHtml(r.rival.sector || "")} · $${r.rival.price ? r.rival.price.toFixed(2) : "—"}</div>
+        <div style="margin-top:8px; line-height:1.6; font-size:13px; white-space:pre-wrap;">${escapeHtml(r.rival.commentary || "")}</div>
+      </div>`;
+    }
+    if (!r.free_trial_active && r.cost_charged) {
+      html += `<div class="card meta">${r.cost_charged} P 차감 · 잔액 ${r.points_balance ?? "—"} P</div>`;
+    } else if (r.free_trial_active) {
+      html += `<div class="card meta" style="color:var(--good);">🎁 5일 무료 체험 — 0 P</div>`;
+    }
+    advBox.innerHTML = html;
+    tg?.HapticFeedback?.notificationOccurred("success");
+    if (!r.free_trial_active) await loadProfile();
+  } catch (e) {
+    if (e.message.includes("insufficient_points")) {
+      advBox.innerHTML = `<div class="card" style="border-left:4px solid var(--bad);">
+        포인트 부족 — 친구 초대 / 출석 / 도네이션으로 충전하세요.
+      </div>`;
+    } else {
+      advBox.innerHTML = `<div class="card" style="border-left:4px solid var(--bad);">고급 분석 실패: ${escapeHtml(e.message)}</div>`;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "고급 분석 시작";
+  }
+});
+
+// ── Language switcher ──
+document.querySelectorAll(".lang-switch-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const target = btn.dataset.lang;
+    if (target === _lang) { notify("이미 그 언어로 설정되어 있어요."); return; }
+    btn.disabled = true;
+    try {
+      await api("/language", {
+        method: "POST",
+        body: JSON.stringify({ language: target }),
+      });
+      tg?.HapticFeedback?.notificationOccurred("success");
+      // Refresh i18n + reload page so all bundled strings update
+      _lang = target;
+      applyI18n();
+      notify("언어가 변경되었습니다 · Language updated · 言語変更 · 已更换语言");
+      setTimeout(() => location.reload(), 800);
+    } catch (e) {
+      notify("언어 변경 실패: " + e.message);
+      btn.disabled = false;
     }
   });
 });
