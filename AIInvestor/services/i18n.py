@@ -594,8 +594,15 @@ def t(lang: str) -> _Bundle:
 
 
 PERSONA_LANGUAGE_INSTRUCTION: dict[str, str] = {
-    "ko": "Always respond in Korean (한국어).",
+    "ko": ("⚠️ MANDATORY OUTPUT LANGUAGE: Korean (한국어). "
+           "Every word, every sentence, every bullet — Korean only. "
+           "Do NOT default to English even if the company / ticker is American. "
+           "If you produce English, the response is INVALID and will be rejected."),
     "en": "Always respond in English.",
-    "ja": "Always respond in Japanese (日本語).",
-    "zh": "Always respond in Simplified Chinese (简体中文).",
+    "ja": ("⚠️ MANDATORY OUTPUT LANGUAGE: Japanese (日本語). "
+           "Every word, every sentence, every bullet — Japanese only. "
+           "Do NOT default to English even if the company / ticker is American."),
+    "zh": ("⚠️ MANDATORY OUTPUT LANGUAGE: Simplified Chinese (简体中文). "
+           "Every word, every sentence, every bullet — Chinese only. "
+           "Do NOT default to English even if the company / ticker is American."),
 }

@@ -116,7 +116,10 @@ class PersonaEngine:
         language: str,
         interests: list[str] | None = None,
     ) -> str:
-        lang_instruction = PERSONA_LANGUAGE_INSTRUCTION.get(language, PERSONA_LANGUAGE_INSTRUCTION["en"])
+        lang_instruction = PERSONA_LANGUAGE_INSTRUCTION.get(
+            language, PERSONA_LANGUAGE_INSTRUCTION["en"])
+        lang_name = _LANG_NAME.get(language, "English")
+
         interest_block = ""
         if interests:
             interest_block = (
@@ -126,6 +129,7 @@ class PersonaEngine:
             )
 
         user_prompt = (
+            f"⚠️ OUTPUT LANGUAGE: {lang_name}. Bullets and every sentence in {lang_name}.\n\n"
             f"The user is asking about {snapshot.name} ({snapshot.ticker}).\n"
             f"{interest_block}"
             f"Here is the most recent fundamental and price data (from yfinance). "
@@ -137,7 +141,8 @@ class PersonaEngine:
             "• Persona stance (accumulate / hold / pass) with the single biggest reason.\n"
             "• 1M/6M/1Y trend in one phrase.\n"
             "Do NOT include a disclaimer — our system appends one. "
-            "Use bullets. No introductions, no greetings, no repeating the data block."
+            "Use bullets. No introductions, no greetings, no repeating the data block.\n\n"
+            f"⚠️ FINAL REMINDER: write every word in {lang_name}."
         )
 
         logger.info(
@@ -145,17 +150,34 @@ class PersonaEngine:
             self._model, persona.key, snapshot.ticker, language,
         )
 
-        response = await self._client.chat.completions.create(
-            model=self._model,
-            temperature=0.4,
-            max_tokens=550,
-            timeout=20.0,
-            messages=[
-                {"role": "system", "content": f"{persona.system_prompt}\n\n{lang_instruction}"},
-                {"role": "user", "content": user_prompt},
-            ],
-        )
-        content = response.choices[0].message.content or ""
+        async def _call(extra_force: str = "") -> str:
+            sys_msg = f"{persona.system_prompt}\n\n{lang_instruction}"
+            if extra_force:
+                sys_msg += f"\n\n{extra_force}"
+            response = await self._client.chat.completions.create(
+                model=self._model,
+                temperature=0.4,
+                max_tokens=550,
+                timeout=20.0,
+                messages=[
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            return (response.choices[0].message.content or "").strip()
+
+        content = await _call()
+        # Compliance check: if the user asked for ko/ja/zh and the LLM
+        # came back with English content, retry once with even stronger
+        # directive. Cheap insurance against DeepSeek defaulting to English
+        # on American tickers.
+        if language in ("ko", "ja", "zh") and _looks_like_english(content):
+            logger.warning("LLM produced English for lang=%s ticker=%s — retrying",
+                           language, snapshot.ticker)
+            content = await _call(
+                extra_force=(f"PREVIOUS RESPONSE WAS REJECTED for being English. "
+                             f"Re-write entirely in {lang_name}. NO English sentences.")
+            )
         return _append_disclaimer(content, language)
 
     async def generate_deep(
@@ -346,6 +368,51 @@ class PersonaEngine:
 
     async def aclose(self) -> None:
         await self._client.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Language compliance helpers
+# ─────────────────────────────────────────────────────────────────────────────
+_LANG_NAME = {
+    "ko": "Korean (한국어)",
+    "en": "English",
+    "ja": "Japanese (日本語)",
+    "zh": "Simplified Chinese (简体中文)",
+}
+
+
+def _looks_like_english(text: str) -> bool:
+    """Heuristic: did the LLM hand us an English response when ko/ja/zh was asked?
+
+    Strategy: count CJK characters (Hangul/Kana/Han) and ASCII letters.
+    If CJK is < 5% of letter count and ASCII letters > 100, almost certainly
+    an English response.
+    """
+    if not text:
+        return False
+    cjk = 0
+    ascii_letters = 0
+    for ch in text:
+        cp = ord(ch)
+        # Hangul syllables (가-힣) + Jamo
+        if 0xAC00 <= cp <= 0xD7A3 or 0x1100 <= cp <= 0x11FF:
+            cjk += 1
+        # Hiragana + Katakana
+        elif 0x3040 <= cp <= 0x30FF:
+            cjk += 1
+        # CJK Unified Ideographs (Han)
+        elif 0x4E00 <= cp <= 0x9FFF:
+            cjk += 1
+        elif "a" <= ch.lower() <= "z":
+            ascii_letters += 1
+    if ascii_letters < 100:
+        return False
+    if cjk == 0:
+        return True
+    # Legitimate ko/ja/zh output typically has 60-90% CJK char ratio (with
+    # English brand names like 'YouTube', 'Cloud' interspersed). Below 15%
+    # is essentially English with a stray CJK phrase or stripped disclaimer.
+    return (cjk / (cjk + ascii_letters)) < 0.15
 
 
 # ─────────────────────────────────────────────────────────────────────────────

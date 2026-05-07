@@ -1049,7 +1049,7 @@ async def gamification_persona_analyze(req: func.HttpRequest) -> func.HttpRespon
     except AttributeError:
         profile = _profile_repo.get_or_create(user_key, "ko", "buffett")
 
-    from services.persona_engine import get_persona
+    from services.persona_engine import _looks_like_english, get_persona
     from services.prewarm_service import cache_commentary, fetch_cached_commentary
     persona = get_persona(profile.persona_key)
 
@@ -1064,8 +1064,15 @@ async def gamification_persona_analyze(req: func.HttpRequest) -> func.HttpRespon
             _config.storage_account_name, ticker, persona.key, profile.language,
         )
         if cached:
-            commentary = cached
-            cache_source = "blob"
+            # Reject stale cache entries that were generated when the LLM
+            # ignored the language directive (English content saved under a
+            # ko/ja/zh key). Forces regeneration with stronger prompt.
+            if profile.language in ("ko", "ja", "zh") and _looks_like_english(cached):
+                logger.info("rejecting English-polluted cache for %s.%s.%s",
+                            ticker, persona.key, profile.language)
+            else:
+                commentary = cached
+                cache_source = "blob"
 
     if commentary is None:
         try:
