@@ -65,6 +65,12 @@ def load_priority_tickers() -> tuple[list[str], list[str]]:
     return pool, top50
 
 
+# Prewarm DeepSeek API calls are logged to the usage NDJSON with this tier
+# value so the dashboard can report them as a separate "cache feed" cost
+# (distinct from user-driven LLM calls).
+PREWARM_TIER = "prewarm_llm"
+
+
 class PrewarmService:
     """Builds and uploads pre-warmed Blob cache. Called by Timer triggers."""
 
@@ -74,12 +80,17 @@ class PrewarmService:
         persona_engine: PersonaEngine,
         stock_service: StockService,
         credential=None,
+        usage_logger=None,
     ) -> None:
         self._account_url = f"https://{storage_account_name}.blob.core.windows.net"
         self._engine = persona_engine
         self._stock = stock_service
         self._credential = credential or DefaultAzureCredential()
         self._service: BlobServiceClient | None = None
+        # Optional — when supplied, every successful prewarm LLM call is
+        # logged to usage NDJSON with tier=prewarm_llm so the V2 dashboard
+        # can show prewarm cost separately from user-driven LLM calls.
+        self._usage_logger = usage_logger
 
     async def _client(self) -> BlobServiceClient:
         if self._service is None:
@@ -163,6 +174,7 @@ class PrewarmService:
             if snapshot is None:
                 return False
             async with sem:
+                t0 = time.monotonic()
                 try:
                     rendered = await self._engine.generate(
                         persona=persona, snapshot=snapshot, language=lang, interests=None,
@@ -171,6 +183,24 @@ class PrewarmService:
                     logger.exception("prewarm commentary LLM failed %s/%s/%s",
                                      ticker, persona.key, lang)
                     return False
+                # Track this prewarm DeepSeek API call so the dashboard can
+                # report cache-feed cost. We approximate token counts since
+                # the OpenAI client doesn't expose them on success here —
+                # rendered length is a reasonable proxy.
+                if self._usage_logger is not None:
+                    try:
+                        # Rough token estimate: 1 token ≈ 4 chars (conservative)
+                        approx_out = max(1, len(rendered) // 4)
+                        approx_in  = 800   # snapshot block + persona + instruction
+                        await self._usage_logger.record(
+                            anon="system_prewarm", lang=lang,
+                            persona=persona.key, ticker=ticker,
+                            tier=PREWARM_TIER,
+                            duration_ms=int((time.monotonic() - t0) * 1000),
+                            llm_in=approx_in, llm_out=approx_out,
+                        )
+                    except Exception:
+                        logger.debug("prewarm usage logging failed (non-fatal)", exc_info=True)
                 try:
                     payload = {
                         "ticker": ticker,

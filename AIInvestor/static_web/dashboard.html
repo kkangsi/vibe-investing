@@ -135,6 +135,35 @@ canvas { max-height: 240px; }
     💰 절감 LLM 호출은 LLM 캐시 히트 수 (DeepSeek API 사용 안 됨).
   </p>
 
+  <!-- DeepSeek API call split (prewarm vs user) — proves cache hypothesis -->
+  <h2 class="section-title">🤖 DeepSeek API 호출 분해 — 캐시 효율 증명</h2>
+  <div class="row g-3">
+    <div class="col-md-3 col-6"><div class="card kpi" style="border-top:3px solid #b39ddb;">
+      <div class="label">🔄 사전 캐싱 호출</div>
+      <div class="num" id="kpi-prewarm-today" style="color:#b39ddb;">—</div>
+      <div class="sub">오늘 · 누적 <span id="kpi-prewarm-total">—</span></div>
+    </div></div>
+    <div class="col-md-3 col-6"><div class="card kpi" style="border-top:3px solid var(--c-llm-call);">
+      <div class="label">👤 사용자 직접 호출</div>
+      <div class="num" id="kpi-user-llm-today" style="color:var(--c-llm-call);">—</div>
+      <div class="sub">오늘 · 누적 <span id="kpi-user-llm-total">—</span></div>
+    </div></div>
+    <div class="col-md-3 col-6"><div class="card kpi" style="border-top:3px solid var(--c-llm-cache);">
+      <div class="label">✨ 캐시 적중 (LLM 절감)</div>
+      <div class="num" id="kpi-cache-saved-today" style="color:var(--c-llm-cache);">—</div>
+      <div class="sub">오늘 · 누적 <span id="kpi-cache-saved-total">—</span></div>
+    </div></div>
+    <div class="col-md-3 col-6"><div class="card kpi" style="border-top:3px solid var(--good);">
+      <div class="label">📈 캐시 ROI</div>
+      <div class="num" id="kpi-cache-roi" style="color:var(--good);">—</div>
+      <div class="sub" id="kpi-roi-note">(절감 − 사전 호출) / 사전 호출</div>
+    </div></div>
+  </div>
+  <p class="muted mt-2"><i class="fa-solid fa-circle-info"></i>
+    <strong>가설 검증</strong>: 사전 캐싱 호출(고정)이 사용자 캐시 적중(DAU에 비례)보다 적어야 흑자.
+    DAU 증가 시 ROI는 자연스럽게 우상향. 현재가 음수면 break-even 전 단계.
+  </p>
+
   <!-- DeepSeek API spend + balance -->
   <h2 class="section-title">DeepSeek API 사용량 & 비용</h2>
   <div class="row g-3">
@@ -415,6 +444,29 @@ function renderV2(d) {
   // Saved LLM calls — exposed by aggregator at totals.llm_calls_saved_*
   document.getElementById('kpi-saved-total').textContent = fmtNum(t.llm_calls_saved_total);
   document.getElementById('kpi-saved-today').textContent = fmtNum(t.llm_calls_saved_today);
+
+  // DeepSeek API call split — prewarm (system) vs user (direct) vs saved (cache hits)
+  document.getElementById('kpi-prewarm-today').textContent = fmtNum(t.prewarm_calls_today);
+  document.getElementById('kpi-prewarm-total').textContent = fmtNum(t.prewarm_calls_total);
+  document.getElementById('kpi-user-llm-today').textContent = fmtNum(t.user_llm_calls_today);
+  document.getElementById('kpi-user-llm-total').textContent = fmtNum(t.user_llm_calls_total);
+  document.getElementById('kpi-cache-saved-today').textContent = fmtNum(t.llm_calls_saved_today);
+  document.getElementById('kpi-cache-saved-total').textContent = fmtNum(t.llm_calls_saved_total);
+  // ROI display: positive = green/good, negative = red/break-even-pending
+  const roiEl = document.getElementById('kpi-cache-roi');
+  const roiNote = document.getElementById('kpi-roi-note');
+  if (t.cache_roi_pct == null) {
+    roiEl.textContent = '—';
+    roiEl.style.color = '#999';
+    roiNote.textContent = '사전 캐싱 호출 없음';
+  } else {
+    const roi = t.cache_roi_pct;
+    roiEl.textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+    roiEl.style.color = roi >= 0 ? 'var(--good)' : 'var(--bad)';
+    roiNote.textContent = roi >= 0 ?
+      '✓ 흑자 (캐시가 운영비 회수 중)' :
+      '⚠ break-even 전 (DAU 증가 필요)';
+  }
 
   // DeepSeek tokens + cost — driven by d.deepseek block
   const ds = d.deepseek || {};

@@ -212,6 +212,7 @@ async def prewarm_snapshots(timer: func.TimerRequest) -> None:
         storage_account_name=_config.storage_account_name,
         persona_engine=_persona_engine,
         stock_service=_stock_service,
+        usage_logger=_usage_logger,    # track prewarm LLM calls in dashboard
     )
     try:
         await svc.refresh_snapshots(pool)
@@ -254,6 +255,7 @@ async def prewarm_commentaries(timer: func.TimerRequest) -> None:
         storage_account_name=_config.storage_account_name,
         persona_engine=_persona_engine,
         stock_service=_stock_service,
+        usage_logger=_usage_logger,    # track prewarm LLM calls in dashboard
     )
     try:
         await svc.refresh_commentaries(snapshots, top50)

@@ -366,17 +366,15 @@ async def fetch_persona_breakdown(
 
 
 def _classify_cache_category(tier: str) -> str:
-    """Map raw tier values to one of the 4 cache buckets.
+    """Map raw tier values to one of the 5 cache buckets.
 
     Cache hierarchy (fastest → slowest):
       function_cache  — Function App in-process 5-min memory cache hit
-                        (no yfinance, but LLM still ran)
-      llm_cache       — pre-warmed LLM commentary blob (no yfinance, no LLM)
-      obj_cache       — pre-warmed snapshot blob (no yfinance, LLM ran)
-      llm_call        — full live path (yfinance + LLM)
-
-    Note: 'commentary_hit' saves the LLM call; 'snapshot_hit' and
-    'function_cache' both save yfinance only — LLM still runs in those tiers.
+      llm_cache       — pre-warmed LLM commentary blob (no LLM call!)
+      obj_cache       — pre-warmed snapshot blob (yfinance saved, LLM ran)
+      llm_call        — full live path, USER-DRIVEN (yfinance + LLM)
+      prewarm_call    — system-driven LLM call to populate the cache
+                        (cost we pay UPFRONT to enable llm_cache hits later)
     """
     if tier == "commentary_hit":
         return "llm_cache"
@@ -386,6 +384,8 @@ def _classify_cache_category(tier: str) -> str:
         return "function_cache"
     if tier in ("live", "deep", "dual", "ai_search_live"):
         return "llm_call"
+    if tier == "prewarm_llm":
+        return "prewarm_call"
     return "other"
 
 
@@ -469,8 +469,9 @@ def _aggregate_v2(events: list[dict], days: int = 30) -> dict[str, Any]:
     """The big aggregation. Returns the full payload the v2 dashboard renders."""
     now = datetime.now(timezone.utc)
 
-    # 4-way category counters (function_cache replaces the old cdn_edge slot)
-    _empty_cats = lambda: {"function_cache": 0, "llm_cache": 0, "obj_cache": 0, "llm_call": 0, "other": 0}
+    # 5-way category counters (prewarm_call = system cache-feed cost)
+    _empty_cats = lambda: {"function_cache": 0, "llm_cache": 0, "obj_cache": 0,
+                           "llm_call": 0, "prewarm_call": 0, "other": 0}
     cat_today: dict[str, int] = _empty_cats()
     cat_total: dict[str, int] = _empty_cats()
 
@@ -528,7 +529,8 @@ def _aggregate_v2(events: list[dict], days: int = 30) -> dict[str, Any]:
 
         # daily series
         d = daily.setdefault(date_key, {
-            "function_cache": 0, "llm_cache": 0, "obj_cache": 0, "llm_call": 0, "other": 0,
+            "function_cache": 0, "llm_cache": 0, "obj_cache": 0,
+            "llm_call": 0, "prewarm_call": 0, "other": 0,
             "users": set(), "durations": [], "llm_in": 0, "llm_out": 0,
         })
         d[cat] = d.get(cat, 0) + 1
@@ -655,18 +657,29 @@ def _aggregate_v2(events: list[dict], days: int = 30) -> dict[str, Any]:
         cache_hits = (
             cat_total["function_cache"] + cat_total["llm_cache"] + cat_total["obj_cache"]
         )
-        all_paths = cache_hits + cat_total["llm_call"]
-        cache_hit_pct = round(cache_hits / max(all_paths, 1) * 100, 1)
-        # LLM 호출 절감 = LLM 캐시 히트 (commentary_hit). function_cache + obj_cache
-        # 는 yfinance 만 절약하고 LLM 은 호출됨.
+        user_paths = cache_hits + cat_total["llm_call"]
+        cache_hit_pct = round(cache_hits / max(user_paths, 1) * 100, 1)
+        # LLM 호출 절감 = LLM 캐시 히트 (commentary_hit, DeepSeek 호출 안 됨)
         llm_calls_saved = cat_total["llm_cache"]
+        prewarm_calls = cat_total["prewarm_call"]
+        # ROI: 캐시 히트로 절감한 호출 - 캐시를 채우기 위해 쓴 prewarm 호출
+        # 양수면 cache-positive (시스템 운영 효율), 음수면 prewarm 비용이 적중을 못 따라감
+        net_savings = llm_calls_saved - prewarm_calls
+        if prewarm_calls > 0:
+            roi_pct = round(net_savings / prewarm_calls * 100, 1)
+            roi_msg = f"ROI {roi_pct:+.1f}% (캐시 적중 {llm_calls_saved} − 사전 호출 {prewarm_calls})"
+        else:
+            roi_msg = "사전 캐싱 호출 없음 (prewarm timer가 아직 발화 안 됨)"
+
         interpretation.append({
             "kind": "cache_efficiency",
             "msg": (
-                f"실측 캐시 적중률 {cache_hit_pct}% (Function/LLM/Object 캐시 / 전체). "
-                f"LLM 호출 절감 {llm_calls_saved:,}건 — DeepSeek API 미사용."
+                f"실측 캐시 적중률 {cache_hit_pct}% — {roi_msg}. "
+                + ("✓ 사용자 수가 늘수록 효율 상승 (사전 호출은 고정, 적중은 비례 증가)"
+                   if net_savings > 0 else
+                   "⚠ 아직 break-even 도달 전 — DAU 증가 시 자연스럽게 흑자 전환")
             ),
-            "good": cache_hit_pct >= 50,
+            "good": net_savings > 0,
         })
     if cohort_summary["new"]["users"] and cohort_summary["active"]["users"]:
         interpretation.append({
@@ -689,6 +702,18 @@ def _aggregate_v2(events: list[dict], days: int = 30) -> dict[str, Any]:
             # LLM 호출 절감 = commentary_hit (LLM 결과 캐시 히트, DeepSeek 호출 안 됨)
             "llm_calls_saved_today": cat_today["llm_cache"],
             "llm_calls_saved_total": cat_total["llm_cache"],
+            # Prewarm = 캐시를 채우기 위한 시스템 호출 (사용자 안 부른 LLM)
+            "prewarm_calls_today": cat_today["prewarm_call"],
+            "prewarm_calls_total": cat_total["prewarm_call"],
+            # 직접 LLM 호출 (사용자가 부른 LLM)
+            "user_llm_calls_today": cat_today["llm_call"],
+            "user_llm_calls_total": cat_total["llm_call"],
+            # ROI = (절감 - 사전 호출) / 사전 호출 × 100  (음수면 break-even 전)
+            "cache_roi_pct": (
+                round((cat_total["llm_cache"] - cat_total["prewarm_call"]) /
+                      max(cat_total["prewarm_call"], 1) * 100, 1)
+                if cat_total["prewarm_call"] > 0 else None
+            ),
         },
         "deepseek": {
             "tokens_today_in":  tokens_today_in,
