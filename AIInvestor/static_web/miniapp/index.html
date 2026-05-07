@@ -1587,7 +1587,7 @@ function renderMatchups(r) {
       ? (mySide === "a"
           ? `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 선택됨</button>`
           : (mySide ? `<button class="btn-mission" disabled style="background:#444; width:100%;">—</button>`
-                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="a" style="width:100%;">⬆ A 선택</button>`))
+                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="a" style="width:100%;">A 선택</button>`))
       : (m.winner === "a"
           ? `<div style="text-align:center; color:var(--good); font-weight:700;">🏆 승</div>`
           : `<div style="text-align:center; color:#888;">패</div>`);
@@ -1595,7 +1595,7 @@ function renderMatchups(r) {
       ? (mySide === "b"
           ? `<button class="btn-mission" disabled style="background:var(--good); width:100%;">✓ 선택됨</button>`
           : (mySide ? `<button class="btn-mission" disabled style="background:#444; width:100%;">—</button>`
-                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="b" style="width:100%;">⬇ B 선택</button>`))
+                    : `<button class="btn-mission btn-matchup-submit" data-id="${escapeHtml(m.id)}" data-side="b" style="width:100%;">B 선택</button>`))
       : (m.winner === "b"
           ? `<div style="text-align:center; color:var(--good); font-weight:700;">🏆 승</div>`
           : `<div style="text-align:center; color:#888;">패</div>`);
