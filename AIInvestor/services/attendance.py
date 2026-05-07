@@ -43,7 +43,11 @@ async def daily_check_in(
 ) -> AttendanceResult:
     """Claim today's attendance + streak bonus. Idempotent within a KST day."""
     today_kst = kst_today_str()
-    profile = repo.get(user_key)
+    # Use get_or_create so first-time Mini App users (who haven't /started
+    # the bot) still get their profile auto-provisioned on first /attend
+    profile = repo.get_or_create(
+        user_key=user_key, default_language="ko", default_persona="buffett",
+    )
     if hasattr(profile, "__await__"):
         profile = await profile
 

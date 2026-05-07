@@ -104,11 +104,24 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div class="card">
     <div class="title">₿ BTC 시간별 가격 맞히기</div>
     <div class="meta">매 정시 -1분까지 · ±0.5% 오차 허용 · 정답 시 +30 P</div>
+    <div class="meta" style="margin-top:6px;" id="btc-current-meta">
+      현재가: <span id="btc-current-price" style="color:var(--accent); font-weight:700;">로딩 중…</span>
+      <button id="btc-refresh" style="background:transparent; border:1px solid var(--border);
+              color:#aaa; padding:1px 8px; border-radius:5px; font-size:11px; margin-left:6px;">↻</button>
+    </div>
     <div style="margin-top:10px; display:flex; gap:8px;">
-      <input type="number" id="btc-price-input" placeholder="예: 87432.50"
+      <input type="number" id="btc-price-input" placeholder="예: 87432.50" step="0.01"
              style="flex:1; background:#1e1e2a; border:1px solid var(--border);
                     color:#fff; padding:8px 10px; border-radius:6px;">
       <button class="btn-mission" id="btc-submit">제출</button>
+    </div>
+    <div style="display:flex; gap:6px; margin-top:6px;">
+      <button class="btn-prefill" data-delta="-1" style="flex:1; background:#3a2a2a; color:#e57373;
+              border:none; padding:5px; border-radius:5px; font-size:11px;">현재가 -1%</button>
+      <button class="btn-prefill" data-delta="0" style="flex:1; background:#2a3a2a; color:#4caf50;
+              border:none; padding:5px; border-radius:5px; font-size:11px;">현재가</button>
+      <button class="btn-prefill" data-delta="1" style="flex:1; background:#2a2a3a; color:#74b9ff;
+              border:none; padding:5px; border-radius:5px; font-size:11px;">현재가 +1%</button>
     </div>
   </div>
 
@@ -355,6 +368,42 @@ document.querySelectorAll(".btn-mission[data-market]").forEach(btn => {
   });
 });
 
+// ─────────────── BTC current price prefetch ───────────────
+let _btcCurrentPrice = null;
+
+async function fetchBtcCurrent() {
+  const FUNC_ROOT = FUNC_BASE.replace("/gamification", "");
+  try {
+    const r = await fetch(`${FUNC_ROOT}/data/BTC-USD`, { mode: "cors" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    _btcCurrentPrice = d.price;
+    if (_btcCurrentPrice) {
+      document.getElementById("btc-current-price").textContent = "$" + _btcCurrentPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      // Pre-fill input with current price
+      const inp = document.getElementById("btc-price-input");
+      if (!inp.value) inp.value = _btcCurrentPrice.toFixed(2);
+    } else {
+      document.getElementById("btc-current-price").textContent = "—";
+    }
+  } catch (e) {
+    document.getElementById("btc-current-price").textContent = "조회 실패";
+    console.error("BTC fetch failed:", e);
+  }
+}
+
+// Initial load + refresh button + prefill quick-select
+document.getElementById("btc-refresh").addEventListener("click", fetchBtcCurrent);
+document.querySelectorAll(".btn-prefill").forEach(b => {
+  b.addEventListener("click", () => {
+    if (!_btcCurrentPrice) return;
+    const delta = parseFloat(b.dataset.delta) || 0;
+    const v = _btcCurrentPrice * (1 + delta / 100);
+    document.getElementById("btc-price-input").value = v.toFixed(2);
+    tg?.HapticFeedback?.impactOccurred("light");
+  });
+});
+
 document.getElementById("btc-submit").addEventListener("click", async () => {
   const price = parseFloat(document.getElementById("btc-price-input").value);
   if (!price || price <= 0) { alert("가격을 입력해 주세요."); return; }
@@ -547,6 +596,7 @@ if (!initData) {
   showError("Telegram WebApp 환경에서만 동작합니다. 봇에서 [미니앱 열기]를 눌러주세요.");
 } else {
   loadProfile();
+  fetchBtcCurrent();   // pre-load BTC reference price
 }
 </script>
 </body>

@@ -178,6 +178,21 @@ resource funcApp 'Microsoft.Web/sites@2023-12-01' = {
       }
     }
     siteConfig: {
+      // Platform-level CORS — Azure Functions Flex intercepts OPTIONS preflight
+      // BEFORE Python user code runs. Without this block, OPTIONS responses
+      // come back with NO CORS headers and browsers block the actual request.
+      // Mini App + landing + dashboard pages all need to call this Function App.
+      cors: {
+        allowedOrigins: [
+          'https://black-plant-0f73c5e00.7.azurestaticapps.net'
+          'https://web.telegram.org'
+          'https://k.telegram.org'
+          'https://z.telegram.org'
+          'https://a.telegram.org'
+          'https://web.telegram.app'
+        ]
+        supportCredentials: false
+      }
       appSettings: [
         { name: 'AzureWebJobsStorage__accountName', value: storage.name }
         { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appi.properties.ConnectionString }
