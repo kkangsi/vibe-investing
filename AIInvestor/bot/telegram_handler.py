@@ -166,6 +166,21 @@ def _lang_keyboard() -> InlineKeyboardMarkup:
     ]])
 
 
+def _compact_lang_keyboard() -> list[InlineKeyboardButton]:
+    """Single-row 4-button compact lang switcher (한 / 中 / 日 / ENG).
+
+    Returned as a list so callers can stack it under another button row in
+    the same InlineKeyboardMarkup (e.g. attached to the /start saju_hook so
+    users can switch language without reading the language_switch_hint copy).
+    """
+    return [
+        InlineKeyboardButton("한",   callback_data="lang:ko"),
+        InlineKeyboardButton("中",   callback_data="lang:zh"),
+        InlineKeyboardButton("日",   callback_data="lang:ja"),
+        InlineKeyboardButton("ENG", callback_data="lang:en"),
+    ]
+
+
 # §8 Pairings — current persona is paired with a contrasting one.
 # Quota cost: 2 (vs 1 for single deep). Premium gate.
 _DUAL_COUNTERPARTS = {
@@ -228,18 +243,20 @@ async def _cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await _maybe_apply_referral(update, context, profile, payload)
         preview_query, preview_persona = _parse_question_persona(payload)
 
-    # [1] Greeting + language hint
-    await update.message.reply_text(f"{s.greeting}\n\n{s.language_switch_hint}")
+    # [1] Greeting (language already auto-detected from Telegram's
+    #     user.language_code via _profile()'s normalize_language() call).
+    #     We no longer print language_switch_hint copy — instead the saju_hook
+    #     message gets a compact 4-button lang switcher so users can override
+    #     in one tap without reading instructions.
+    await update.message.reply_text(s.greeting)
 
     # [2] Intro (once per user)
     if not profile.intro_seen:
         await update.message.reply_text(s.intro)
         await deps.profile_repo.update(profile.user_key, intro_seen=True)
 
-    # [3] §SAJU hook — pitch the Mini App as the primary entry point.
-    # Persona selection is deferred to inside the Mini App so first-run
-    # friction stays low; the user already has a default persona from
-    # profile_factory and can swap it later from the Persona tab.
+    # [3] §SAJU hook — pitch the Mini App as the primary entry point +
+    #     compact 한/中/日/ENG lang override row.
     miniapp_url = os.getenv(
         "MINIAPP_URL",
         "https://black-plant-0f73c5e00.7.azurestaticapps.net/miniapp/",
@@ -247,9 +264,10 @@ async def _cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await deps.profile_repo.update(profile.user_key, onboarding_step=STEP_READY)
     await update.message.reply_text(
         s.saju_hook,
-        reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton(s.miniapp_open_btn, web_app={"url": miniapp_url}),
-        ]]),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton(s.miniapp_open_btn, web_app={"url": miniapp_url})],
+            _compact_lang_keyboard(),
+        ]),
     )
 
     # §T2E-N — one-click value experience: if the inviter shared a /start

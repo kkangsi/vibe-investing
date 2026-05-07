@@ -91,7 +91,7 @@ class _Bundle:
 
 
 _KO = _Bundle(
-    greeting="🎯 증권당 — 투자의 전장에 오신 것을 환영합니다",
+    greeting="🎯 증권당 (証券堂 · 证王殿 · AI Investor) — 투자의 전장에 오신 것을 환영합니다",
     intro=(
         "🎯 증권당 — AI 투자 페르소나 챗봇\n"
         "*The AI investor personas. 4 languages. 1.7s response.*\n\n"
@@ -215,7 +215,7 @@ _KO = _Bundle(
 )
 
 _EN = _Bundle(
-    greeting="🎯 Welcome to Jeunggwondang — the AI investor battleground",
+    greeting="🎯 AI Investor (증권당 · 証券堂 · 证王殿) — welcome to the investing battleground",
     intro=(
         "🎯 Jeunggwondang — AI investor persona chatbot\n"
         "*증권당 · 投資の戦場 · The AI investor personas.*\n\n"
@@ -339,7 +339,7 @@ _EN = _Bundle(
 )
 
 _JA = _Bundle(
-    greeting="🎯 投資の戦場へようこそ — Jeunggwondang",
+    greeting="🎯 証券堂 (증권당 · 证王殿 · AI Investor) — 投資の戦場へようこそ",
     intro=(
         "🎯 Jeunggwondang — AI投資家ペルソナ・チャットボット\n"
         "*증권당 · The AI investor personas. 4 languages. 1.7s.*\n\n"
@@ -463,7 +463,7 @@ _JA = _Bundle(
 )
 
 _ZH = _Bundle(
-    greeting="🎯 欢迎来到投资战场 — Jeunggwondang",
+    greeting="🎯 证王殿 (증권당 · 証券堂 · AI Investor) — 欢迎来到投资战场",
     intro=(
         "🎯 Jeunggwondang — AI投资角色聊天机器人\n"
         "*증권당 · The AI investor personas. 4 languages. 1.7s.*\n\n"
