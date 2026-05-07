@@ -2003,13 +2003,29 @@ async def _handle_ticker_query(
 
 
 async def _offer_deeper(update, context, ticker: str, persona, lang: str) -> None:
-    """After short response, offer a deeper persona analysis with a disclaimer."""
+    """After short response, offer a deeper persona analysis + Mini App promo.
+    The Mini App button + invite-reward line pulls users into the gamification
+    layer (matchups, brag cards, donation rewards). One message, three rows."""
     s = t(lang)
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(s.deeper_analysis_yes, callback_data=f"deeper:{ticker}"),
-        InlineKeyboardButton(s.deeper_analysis_no,  callback_data="deeper:no"),
-    ]])
-    body = f"{s.deeper_analysis_offer.format(persona=persona.name(lang))}\n\n{s.risk_notice}"
+    miniapp_url = os.getenv(
+        "MINIAPP_URL",
+        "https://black-plant-0f73c5e00.7.azurestaticapps.net/miniapp/",
+    )
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(s.deeper_analysis_yes, callback_data=f"deeper:{ticker}"),
+            InlineKeyboardButton(s.deeper_analysis_no,  callback_data="deeper:no"),
+        ],
+        [
+            InlineKeyboardButton(s.miniapp_open_btn, web_app={"url": miniapp_url}),
+        ],
+    ])
+    body = (
+        f"{s.deeper_analysis_offer.format(persona=persona.name(lang))}\n\n"
+        f"{s.risk_notice}\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"{s.miniapp_promo}"
+    )
     await update.message.reply_text(body, reply_markup=keyboard)
 
 

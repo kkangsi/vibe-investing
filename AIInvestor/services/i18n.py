@@ -86,6 +86,8 @@ class _Bundle:
     # §SAJU — onboarding hook (replaces persona keyboard at /start)
     saju_hook: str
     miniapp_open_btn: str
+    # Promo line appended after every ticker analysis — pulls users into Mini App + invite system
+    miniapp_promo: str
 
 
 _KO = _Bundle(
@@ -203,6 +205,10 @@ _KO = _Bundle(
         "미니앱에서 한 번에 확인하실까요?"
     ),
     miniapp_open_btn="🚀 미니앱 열기",
+    miniapp_promo=(
+        "💎 미니앱에서 다양한 주식의 정보와 \"누가 주식 왕\"인지 확인할 수 있어요.\n"
+        "친구를 초대하면 더 많은 분석을 받고, 친구 초대 왕에게는 최대 1,000 USDT 리워드!"
+    ),
 )
 
 _EN = _Bundle(
@@ -320,6 +326,10 @@ _EN = _Bundle(
         "Open the mini app to see them all?"
     ),
     miniapp_open_btn="🚀 Open mini app",
+    miniapp_promo=(
+        "💎 In the mini app you'll find more stocks and see who's the \"stock king\".\n"
+        "Invite friends for extra analyses — top inviter wins up to 1,000 USDT!"
+    ),
 )
 
 _JA = _Bundle(
@@ -437,6 +447,10 @@ _JA = _Bundle(
         "ミニアプリで一括チェックしませんか?"
     ),
     miniapp_open_btn="🚀 ミニアプリを開く",
+    miniapp_promo=(
+        "💎 ミニアプリでは多くの銘柄情報と「株式王」が誰かを確認できます。\n"
+        "友達招待で分析が増え、招待王には最大 1,000 USDT のリワードあり!"
+    ),
 )
 
 _ZH = _Bundle(
@@ -554,6 +568,10 @@ _ZH = _Bundle(
         "在迷你应用中一键查看?"
     ),
     miniapp_open_btn="🚀 打开迷你应用",
+    miniapp_promo=(
+        "💎 迷你应用中可查看更多股票信息和谁是\"股票王\"。\n"
+        "邀请好友获得更多分析,邀请王最高可得 1,000 USDT 奖励!"
+    ),
 )
 
 _BUNDLES: dict[str, _Bundle] = {"ko": _KO, "en": _EN, "ja": _JA, "zh": _ZH}
