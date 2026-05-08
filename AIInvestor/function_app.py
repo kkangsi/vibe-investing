@@ -53,6 +53,7 @@ _matchup_repo = None
 _donation_repo = None
 _ton_client = None
 _tron_client = None
+_prediction_repo = None  # §4 generic ticker prediction (separate from KOSPI presets)
 
 
 async def _bootstrap() -> None:
@@ -64,7 +65,7 @@ async def _bootstrap() -> None:
     """
     global _config, _ptb_app, _market_report_service, _profile_repo
     global _persona_engine, _stock_service, _usage_logger, _matchup_repo
-    global _donation_repo, _ton_client, _tron_client
+    global _donation_repo, _ton_client, _tron_client, _prediction_repo
     if _ptb_app is not None:
         return
 
@@ -90,6 +91,8 @@ async def _bootstrap() -> None:
         _matchup_repo = MatchupRepo(_config.storage_account_name)
         from services.donation_service import DonationIntentRepo
         _donation_repo = DonationIntentRepo(_config.storage_account_name)
+        from services.prediction_repo import PredictionRepo
+        _prediction_repo = PredictionRepo(_config.storage_account_name)
         from services.chain_clients import TonClient, TronClient
         _ton_client = TonClient(api_key=os.getenv("TONAPI_KEY") or None)
         _tron_client = TronClient(api_key=os.getenv("TRONGRID_API_KEY") or None)
@@ -1714,6 +1717,142 @@ async def saju_unlock(req: func.HttpRequest) -> func.HttpResponse:
         json.dumps(payload, ensure_ascii=False),
         status_code=status, mimetype="application/json", headers=_CORS_HEADERS_POST,
     )
+
+
+# ---------------------------------------------------------------------
+# §PREDICTIONS-V2 — generic ticker prediction (work-priority §4)
+#   Sits parallel to existing /predict (KOSPI/NASDAQ/TSLA presets) and
+#   /matchup/* (paired-asset). This one accepts any ticker + up/down.
+# ---------------------------------------------------------------------
+
+@app.route(route="predictions/create", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def predictions_create(req: func.HttpRequest) -> func.HttpResponse:
+    """§4 — Submit a generic ticker prediction. Body: {ticker, direction}.
+    target_date = next trading day (KST). created_price fetched live."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    if _prediction_repo is None:
+        return func.HttpResponse(json.dumps({"error": "not_configured"}),
+            status_code=500, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    try:
+        body = req.get_json() or {}
+    except ValueError:
+        return func.HttpResponse(json.dumps({"error": "invalid_json"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    import re
+    ticker = (body.get("ticker") or "").strip().upper()
+    direction = (body.get("direction") or "").strip().lower()
+    if not re.match(r"^[A-Z0-9.\-]{1,12}$", ticker) or direction not in ("up", "down"):
+        return func.HttpResponse(json.dumps({"error": "invalid_ticker_or_direction"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    # Live price via existing 3-tier ticker_data_cache (memory→Blob→yfinance)
+    try:
+        from services.ticker_data_cache import get_or_fetch as _td_fetch
+        data, _src = await _td_fetch(ticker, _config.storage_account_name)
+        created_price = float(data.get("price") or 0)
+    except Exception:
+        created_price = 0.0
+    if created_price <= 0:
+        return func.HttpResponse(json.dumps({"error": "price_unavailable"}),
+            status_code=502, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    from services.prediction_repo import Prediction
+    from services.prediction_settler import next_trading_day_kst
+    from services.user_profile import make_anon_user_id
+
+    anon = make_anon_user_id(user_key, _config.user_id_salt)
+    target = next_trading_day_kst()
+    p = Prediction.new(anon, ticker, direction, created_price, target)
+    await _prediction_repo.create(p)
+
+    return func.HttpResponse(json.dumps({
+        "prediction_id": p.prediction_id, "ticker": p.ticker,
+        "direction": p.direction, "created_price": p.created_price,
+        "target_date": p.target_date, "status": p.status,
+    }, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+
+@app.route(route="predictions/mine", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def predictions_mine(req: func.HttpRequest) -> func.HttpResponse:
+    """§4 — List the caller's predictions. Query: ?status=all|pending|settled|no_data&limit=50"""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    if _prediction_repo is None:
+        return func.HttpResponse(json.dumps({"predictions": []}),
+            status_code=200, mimetype="application/json", headers=_CORS_HEADERS)
+
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS)
+
+    status_filter = (req.params.get("status") or "all").strip().lower()
+    if status_filter == "all":
+        status_filter = None
+    elif status_filter not in ("pending", "settled", "no_data"):
+        return func.HttpResponse(json.dumps({"error": "invalid_status"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS)
+
+    try:
+        limit = max(1, min(200, int(req.params.get("limit") or 50)))
+    except ValueError:
+        limit = 50
+
+    from dataclasses import asdict
+    from services.user_profile import make_anon_user_id
+    anon = make_anon_user_id(user_key, _config.user_id_salt)
+    rows = await _prediction_repo.list_by_user(anon, status_filter=status_filter, limit=limit)
+
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "private, max-age=10"
+    return func.HttpResponse(
+        json.dumps({"predictions": [asdict(r) for r in rows]}, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers)
+
+
+# Timer: KST 16:00 weekdays — settle predictions targeting today
+@app.timer_trigger(schedule="0 0 7 * * 1-5", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def predictions_settle_timer(timer: func.TimerRequest) -> None:
+    """KST 16:00 (UTC 07:00 weekdays) — settle pending predictions for today."""
+    await _bootstrap()
+    if _prediction_repo is None:
+        return
+    from services.prediction_settler import settle_predictions
+    try:
+        result = await settle_predictions(_prediction_repo)
+        if any(result.values()):
+            logger.info("predictions_settle_timer %s", result)
+    except Exception:
+        logger.exception("predictions_settle_timer failed")
+
+
+# Timer: KST 02:30 daily — expire pendings older than 7 days
+@app.timer_trigger(schedule="0 30 17 * * *", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def predictions_expire_timer(timer: func.TimerRequest) -> None:
+    """KST 02:30 — expire 7-day-old pendings to no_data."""
+    await _bootstrap()
+    if _prediction_repo is None:
+        return
+    from services.prediction_settler import expire_stale_predictions
+    try:
+        n = await expire_stale_predictions(_prediction_repo)
+        if n:
+            logger.info("predictions_expire_timer expired %d", n)
+    except Exception:
+        logger.exception("predictions_expire_timer failed")
 
 
 # ---------------------------------------------------------------------
