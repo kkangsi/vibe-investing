@@ -151,7 +151,35 @@ async def telegram_webhook(req: func.HttpRequest) -> func.HttpResponse:
     # context entry was costing ~750ms of getMe roundtrip.
     await _ptb_app.process_update(update)
 
+    # Fire-and-forget pre-warm of the user's profile cache so that when they
+    # tap the Mini App button the /api/profile/check probe is a memory hit
+    # (~5ms) instead of a Blob round-trip (~50–150ms).
+    try:
+        if update and update.effective_user and _profile_repo is not None:
+            user_key = f"tg:{update.effective_user.id}"
+            asyncio.create_task(_warmup_miniapp_profile(user_key))
+    except Exception:
+        logger.debug("warmup task scheduling failed (non-fatal)", exc_info=True)
+
     return func.HttpResponse(status_code=200)
+
+
+async def _warmup_miniapp_profile(user_key: str) -> None:
+    """Best-effort cache warmup. Errors are swallowed — never blocks the bot."""
+    try:
+        from services.user_profile import make_anon_user_id
+        anon = make_anon_user_id(user_key, _config.user_id_salt)
+        # Touch both caches: full profile (user_key) + slim anon-check
+        result = _profile_repo.get_or_create(
+            user_key=user_key, default_language="ko", default_persona="buffett",
+        )
+        if hasattr(result, "__await__"):
+            await result
+        # Slim probe cache — only warm if blob repo (skip sync sqlite path)
+        if hasattr(_profile_repo, "check_by_anon"):
+            await _profile_repo.check_by_anon(anon)
+    except Exception:
+        logger.debug("warmup_miniapp_profile failed for %s", user_key, exc_info=True)
 
 
 # ---------------------------------------------------------------------
@@ -538,6 +566,52 @@ def _detect_lang_from_init_data(req: func.HttpRequest) -> str:
         return normalize_language(user.get("language_code"))
     except Exception:
         return "en"
+
+
+@app.route(route="profile/check", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def profile_check(req: func.HttpRequest) -> func.HttpResponse:
+    """§2 P0 — Lightweight profile-existence probe for Mini App cold start.
+
+    Mini App calls this BEFORE init_data HMAC verification so the UI shell
+    can render in 200–400ms (no Blob round-trip on warm path). Auth is
+    intentionally absent: anon is a non-identifying SHA-256 hash and we
+    only return existence + has_birth_info + last_seen, never PII.
+
+    Query: ?anon=<16-hex>
+    Response: {"exists": bool, "has_birth_info": bool, "last_seen": ISO|null}
+    Target: p95 < 100ms (memory cache hit)
+    """
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    if _profile_repo is None or not hasattr(_profile_repo, "check_by_anon"):
+        # SQLite/legacy backend — degrade gracefully (always "miss")
+        return func.HttpResponse(
+            json.dumps({"exists": False, "has_birth_info": False, "last_seen": None}),
+            status_code=200, mimetype="application/json", headers=_CORS_HEADERS,
+        )
+
+    import re
+    anon = (req.params.get("anon") or "").strip().lower()
+    if not re.match(r"^[0-9a-f]{16}$", anon):
+        return func.HttpResponse(
+            json.dumps({"error": "invalid_anon", "expected": "16-hex"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS,
+        )
+
+    try:
+        payload = await _profile_repo.check_by_anon(anon)
+    except Exception:
+        logger.exception("profile/check failed for %s", anon[:8])
+        # Fail-open so Mini App can still show onboarding shell
+        payload = {"exists": False, "has_birth_info": False, "last_seen": None}
+
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "private, max-age=30"
+    return func.HttpResponse(
+        json.dumps(payload, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers,
+    )
 
 
 @app.route(route="gamification/profile", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])

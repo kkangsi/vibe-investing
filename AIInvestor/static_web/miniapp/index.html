@@ -683,6 +683,33 @@ if (tg) {
 
 const initData = tg?.initData || "";
 
+// §2 P0 — Pre-warm probe. localStorage caches the anon hash from the first
+// /profile call; on every subsequent page load we fire a fast existence
+// check (memory-cached on the server, ~5ms p95) so the UI shell can render
+// immediately without waiting for the full /profile round-trip.
+const _ANON_KEY = "vinv_anon_v1";
+const _cachedAnon = (() => {
+  try { return localStorage.getItem(_ANON_KEY) || ""; }
+  catch { return ""; }
+})();
+
+(async function _profilePreWarmProbe() {
+  if (!_cachedAnon) return;
+  try {
+    const r = await fetch(
+      `${FUNC_BASE.replace("/gamification", "")}/profile/check?anon=${encodeURIComponent(_cachedAnon)}`,
+      { mode: "cors", cache: "no-store" }
+    );
+    if (r.ok) {
+      const d = await r.json();
+      // Stash the slim probe payload on window so subsequent code can use it
+      // (e.g. skip the saju-input-card render if has_birth_info=true)
+      window._profileProbe = d;
+      console.debug("profile probe", d);
+    }
+  } catch { /* network error — fall through to normal load */ }
+})();
+
 function escapeHtml(s) {
   return (s||'').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 }
@@ -1005,6 +1032,10 @@ async function loadProfile() {
     // Server's profile.language is authoritative — overrides tg locale
     if (p.language && ["ko", "en", "ja", "zh"].includes(p.language)) {
       _lang = p.language; applyI18n();
+    }
+    // §2 — cache anon for next visit's pre-warm probe
+    if (p.anon_user_id) {
+      try { localStorage.setItem(_ANON_KEY, p.anon_user_id); } catch {}
     }
     document.getElementById("points-balance").textContent = (p.points?.balance || 0).toLocaleString();
 

@@ -38,6 +38,39 @@ def _blob_path(anon_user_id: str) -> str:
     return f"{anon_user_id[:2]}/{anon_user_id}.json"
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Anon-keyed pre-warm cache for /api/profile/check
+# ─────────────────────────────────────────────────────────────────────────────
+# Separate cache from the user_key cache because the public probe endpoint
+# only knows the anon hash (not the raw tg user_key). Stores a tiny dict
+# (exists/has_birth_info/last_seen) — not the full profile — so that even
+# 100k users fits in <10MB process memory.
+_ANON_CHECK_CACHE: dict[str, tuple[float, dict]] = {}
+_ANON_CHECK_LOCK = asyncio.Lock()
+_ANON_CHECK_TTL = 300  # 5 min
+
+
+def _anon_cache_get(anon: str) -> dict | None:
+    entry = _ANON_CHECK_CACHE.get(anon)
+    if entry is None:
+        return None
+    expires, payload = entry
+    if expires < time.monotonic():
+        _ANON_CHECK_CACHE.pop(anon, None)
+        return None
+    return payload
+
+
+def _anon_cache_put(anon: str, payload: dict) -> None:
+    _ANON_CHECK_CACHE[anon] = (time.monotonic() + _ANON_CHECK_TTL, payload)
+
+
+def anon_cache_evict(anon: str) -> None:
+    """Public helper — call this after any profile update so the next probe
+    re-reads the blob (avoids stale 'has_birth_info=False' after onboarding)."""
+    _ANON_CHECK_CACHE.pop(anon, None)
+
+
 class BlobUserProfileRepo:
     """Blob-backed repo with TTL 5min memory cache.
 
@@ -118,6 +151,33 @@ class BlobUserProfileRepo:
             self._cache_put(user_key, profile, etag)
             return profile
 
+    async def check_by_anon(self, anon: str) -> dict:
+        """Lightweight existence check by anon hash — for /api/profile/check.
+
+        Returns: {"exists": bool, "has_birth_info": bool, "last_seen": ISO|None}
+        Hits the in-process anon cache first (5min TTL), else streams the
+        single user blob and caches the slim payload.
+        """
+        cached = _anon_cache_get(anon)
+        if cached is not None:
+            return cached
+
+        async with _ANON_CHECK_LOCK:
+            cached = _anon_cache_get(anon)  # double-check inside lock
+            if cached is not None:
+                return cached
+            try:
+                profile, _etag = await self._download(_blob_path(anon))
+                payload = {
+                    "exists": True,
+                    "has_birth_info": bool(getattr(profile, "saju_birth_date", "")),
+                    "last_seen": getattr(profile, "updated_at", "") or None,
+                }
+            except ResourceNotFoundError:
+                payload = {"exists": False, "has_birth_info": False, "last_seen": None}
+            _anon_cache_put(anon, payload)
+            return payload
+
     async def update(self, user_key: str, **fields) -> UserProfile:
         async with self._lock:
             current = self._cache.get(user_key)
@@ -145,6 +205,7 @@ class BlobUserProfileRepo:
                 etag = await self._upload(_blob_path(profile.anon_user_id), profile, if_match=etag)
 
             self._cache_put(user_key, profile, etag)
+            anon_cache_evict(profile.anon_user_id)
             return profile
 
     async def get(self, user_key: str) -> UserProfile:
