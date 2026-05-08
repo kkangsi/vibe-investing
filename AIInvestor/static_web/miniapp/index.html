@@ -134,6 +134,75 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
     </div>
   </div>
 
+  <!-- §3 P0 — Today's fortune (1 free + 2 locked) -->
+  <div class="section-title" style="margin-top:24px;">🍀 오늘의 운세 + 추천 종목</div>
+
+  <!-- Onboarding card: shown when birth_date is missing -->
+  <div id="fortune-onboard-card" class="card" style="display:none; border-left:4px solid var(--accent);">
+    <div class="title">생년월일시 입력 (1회)</div>
+    <div class="meta" style="margin:6px 0 12px; line-height:1.55;">
+      양력 기준. 시(時)는 모르면 비워두세요. 입력 후 매일 새로운 행운 번호 + 3개 종목 추천을 받습니다.
+    </div>
+    <div style="margin-bottom:8px;">
+      <label style="font-size:13px; display:block; margin-bottom:6px;">생년월일</label>
+      <div style="display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:6px;">
+        <input type="number" id="fortune-onboard-year" inputmode="numeric"
+               min="1900" max="2030" value="1988" placeholder="YYYY"
+               style="padding:10px; border-radius:6px; border:1px solid var(--border); background:#1f1f2e; color:#e8e8e8; font-size:15px; text-align:center;">
+        <select id="fortune-onboard-month"
+                style="padding:10px; border-radius:6px; border:1px solid var(--border); background:#1f1f2e; color:#e8e8e8; font-size:15px;"></select>
+        <select id="fortune-onboard-day"
+                style="padding:10px; border-radius:6px; border:1px solid var(--border); background:#1f1f2e; color:#e8e8e8; font-size:15px;"></select>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
+      <label style="min-width:70px; font-size:13px;">출생 시각</label>
+      <select id="fortune-onboard-hour" style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border); background:#1f1f2e; color:#e8e8e8;">
+        <option value="9999">모름 / Unknown</option>
+        <option value="0030">23:00–00:59 자시</option>
+        <option value="0230">01:00–02:59 축시</option>
+        <option value="0430">03:00–04:59 인시</option>
+        <option value="0630">05:00–06:59 묘시</option>
+        <option value="0830">07:00–08:59 진시</option>
+        <option value="1030">09:00–10:59 사시</option>
+        <option value="1230">11:00–12:59 오시</option>
+        <option value="1430">13:00–14:59 미시</option>
+        <option value="1630">15:00–16:59 신시</option>
+        <option value="1830">17:00–18:59 유시</option>
+        <option value="2030">19:00–20:59 술시</option>
+        <option value="2230">21:00–22:59 해시</option>
+      </select>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px; font-size:12px; line-height:1.5;">
+      <label style="display:flex; gap:6px; align-items:flex-start;">
+        <input type="checkbox" id="fortune-onboard-age" style="margin-top:3px;">
+        <span>만 19세 이상입니다 (한국 청소년보호법 / 게임산업진흥법 준수).</span>
+      </label>
+      <label style="display:flex; gap:6px; align-items:flex-start;">
+        <input type="checkbox" id="fortune-onboard-not-us" style="margin-top:3px;">
+        <span>미국 거주자가 아닙니다 (Tether 약관 준수).</span>
+      </label>
+      <label style="display:flex; gap:6px; align-items:flex-start;">
+        <input type="checkbox" id="fortune-onboard-terms" style="margin-top:3px;">
+        <span><a href="../terms.html" target="_blank" style="color:var(--accent);">이용약관</a> 및 <a href="../policy.html" target="_blank" style="color:var(--accent);">개인정보 처리방침</a>에 동의합니다.</span>
+      </label>
+    </div>
+    <button class="btn-mission" id="fortune-onboard-submit" style="width:100%;">시작하기</button>
+    <div id="fortune-onboard-error" style="margin-top:8px; color:var(--bad); font-size:12px;"></div>
+  </div>
+
+  <!-- Result card: shown when birth data exists -->
+  <div id="fortune-result-card" style="display:none;">
+    <div class="card" style="border-left:4px solid var(--accent);">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="title">오늘의 행운 번호</div>
+        <div style="font-size:32px; font-weight:800; color:var(--accent);" id="fortune-lucky">—</div>
+      </div>
+      <div class="meta" style="margin-top:4px;">매일 KST 자정 갱신</div>
+    </div>
+    <div id="fortune-picks-list">로딩 중…</div>
+  </div>
+
   <div class="section-title" style="margin-top:24px;" data-i18n="my_stats">내 통계</div>
   <div class="card" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
     <div>
@@ -1126,6 +1195,195 @@ async function fetchBtcCurrent() {
 
 // Initial load + refresh button (BTC UP/DOWN buttons handled by .btn-mission listener)
 document.getElementById("btc-refresh").addEventListener("click", fetchBtcCurrent);
+
+// ─────────────── §3 Today's fortune (onboarding + 3 picks) ───────────────
+
+const FUNC_API_ROOT = FUNC_BASE.replace("/gamification", "");
+
+function _populateFortuneMonthDay() {
+  const mon = document.getElementById("fortune-onboard-month");
+  if (mon && !mon.options.length) {
+    for (let m = 1; m <= 12; m++) {
+      const o = document.createElement("option");
+      o.value = String(m); o.textContent = `${m}월`;
+      mon.appendChild(o);
+    }
+    mon.value = "1";
+  }
+  const day = document.getElementById("fortune-onboard-day");
+  const yr = parseInt(document.getElementById("fortune-onboard-year")?.value, 10) || 1988;
+  const m = parseInt(mon?.value, 10) || 1;
+  const max = new Date(yr, m, 0).getDate();
+  if (day) {
+    const prev = day.value;
+    day.innerHTML = "";
+    for (let d = 1; d <= max; d++) {
+      const o = document.createElement("option");
+      o.value = String(d); o.textContent = `${d}일`;
+      day.appendChild(o);
+    }
+    day.value = (prev && parseInt(prev, 10) <= max) ? prev : "1";
+  }
+}
+
+async function loadFortune() {
+  // Determine state via /fortune/today (returns available=false if no birth data)
+  try {
+    const r = await fetch(`${FUNC_API_ROOT}/fortune/today`, {
+      mode: "cors",
+      headers: { "X-Telegram-Init-Data": initData },
+    });
+    if (!r.ok) {
+      // Probably 401 (unauthorized — webview not in Telegram); hide section
+      document.getElementById("fortune-onboard-card").style.display = "none";
+      document.getElementById("fortune-result-card").style.display = "none";
+      return;
+    }
+    const d = await r.json();
+    if (!d.available) {
+      document.getElementById("fortune-onboard-card").style.display = "block";
+      document.getElementById("fortune-result-card").style.display = "none";
+      _populateFortuneMonthDay();
+      return;
+    }
+    document.getElementById("fortune-onboard-card").style.display = "none";
+    document.getElementById("fortune-result-card").style.display = "block";
+    renderFortune(d);
+  } catch (e) {
+    console.error("loadFortune failed", e);
+  }
+}
+
+function _riskBadge(risk) {
+  const map = {
+    low:    "🛡️ 안정",
+    medium: "⚖️ 중도",
+    high:   "🚀 공격",
+  };
+  return map[risk] || risk;
+}
+
+function renderFortune(d) {
+  document.getElementById("fortune-lucky").textContent = d.lucky_number;
+  const list = [d.free, ...(d.locked || [])];
+  const html = list.map((p, idx) => {
+    const isFree = idx === 0;
+    const ticker = p.ticker || "***";
+    const masked = ticker === "***";
+    if (isFree) {
+      return `<div class="card" style="border-left:4px solid var(--good); margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="title">⭐ ${escapeHtml(ticker)} <span class="meta" style="margin-left:6px;">${_riskBadge(p.risk)}</span></div>
+            <div class="meta" style="margin-top:4px;">오늘의 무료 추천</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    if (masked) {
+      return `<div class="card" style="border-left:4px solid #555; margin-top:8px; opacity:.85;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div style="flex:1;">
+            <div class="title">🔒 잠금 종목 <span class="meta" style="margin-left:6px;">${_riskBadge(p.risk)}</span></div>
+            <div class="meta" style="margin-top:4px;">100 P 또는 친구 초대 / 후원으로 잠금 해제</div>
+          </div>
+          <button class="btn-mission btn-fortune-unlock" data-risk="${escapeHtml(p.risk)}">100 P</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="card" style="border-left:4px solid var(--good); margin-top:8px;">
+      <div class="title">✓ ${escapeHtml(ticker)} <span class="meta" style="margin-left:6px;">${_riskBadge(p.risk)}</span></div>
+      <div class="meta" style="margin-top:4px;">잠금 해제됨</div>
+    </div>`;
+  }).join("");
+  document.getElementById("fortune-picks-list").innerHTML = html;
+  document.querySelectorAll(".btn-fortune-unlock").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const risk = btn.dataset.risk;
+      btn.disabled = true; btn.textContent = "처리 중…";
+      try {
+        const r = await fetch(`${FUNC_API_ROOT}/fortune/unlock`, {
+          method: "POST", mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Telegram-Init-Data": initData,
+          },
+          body: JSON.stringify({ target_risk: risk, channel: "points" }),
+        });
+        const d = await r.json();
+        if (d.success) {
+          tg?.HapticFeedback?.notificationOccurred("success");
+          notify(`${d.ticker} 잠금 해제! 잔액 ${d.points_balance ?? "—"} P`);
+          await Promise.allSettled([loadFortune(), loadProfile()]);
+        } else if (d.reason === "insufficient_points") {
+          notify(`포인트 부족 (필요 ${d.cost_points ?? 100} P) — 친구 초대 / 후원으로 충전`);
+          btn.disabled = false; btn.textContent = "100 P";
+        } else {
+          notify(`잠금 해제 실패: ${d.reason || d.error}`);
+          btn.disabled = false; btn.textContent = "100 P";
+        }
+      } catch (e) {
+        notify("잠금 해제 실패: " + e.message);
+        btn.disabled = false; btn.textContent = "100 P";
+      }
+    });
+  });
+}
+
+document.getElementById("fortune-onboard-year")?.addEventListener("input", _populateFortuneMonthDay);
+document.getElementById("fortune-onboard-month")?.addEventListener("change", _populateFortuneMonthDay);
+document.getElementById("fortune-onboard-submit")?.addEventListener("click", async () => {
+  const errEl = document.getElementById("fortune-onboard-error");
+  errEl.textContent = "";
+  const y = parseInt(document.getElementById("fortune-onboard-year").value, 10);
+  const m = parseInt(document.getElementById("fortune-onboard-month").value, 10);
+  const d = parseInt(document.getElementById("fortune-onboard-day").value, 10);
+  const ht = document.getElementById("fortune-onboard-hour").value;
+  const ageOk = document.getElementById("fortune-onboard-age").checked;
+  const notUsOk = document.getElementById("fortune-onboard-not-us").checked;
+  const termsOk = document.getElementById("fortune-onboard-terms").checked;
+
+  if (!y || y < 1900 || y > 2030) { errEl.textContent = "연도를 1900~2030 사이로 입력하세요."; return; }
+  if (!m || !d) { errEl.textContent = "월/일을 선택하세요."; return; }
+  if (!ageOk) { errEl.textContent = "만 19세 이상 동의가 필요합니다."; return; }
+  if (!notUsOk) { errEl.textContent = "미국 거주자가 아님을 확인해 주세요."; return; }
+  if (!termsOk) { errEl.textContent = "이용약관 / 개인정보 처리방침 동의가 필요합니다."; return; }
+
+  const bd = `${y}${String(m).padStart(2,"0")}${String(d).padStart(2,"0")}`;
+  const submitBtn = document.getElementById("fortune-onboard-submit");
+  submitBtn.disabled = true; submitBtn.textContent = "저장 중…";
+  try {
+    const r = await fetch(`${FUNC_API_ROOT}/profile/onboard`, {
+      method: "POST", mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Init-Data": initData,
+      },
+      body: JSON.stringify({
+        birth_date: bd, birth_time: ht || "9999",
+        agree_age_19: ageOk, agree_not_us: notUsOk, agree_terms: termsOk,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      const map = {
+        under_age_19: "만 19세 미만은 가입할 수 없습니다.",
+        invalid_birth_date_format: "생년월일 형식 오류.",
+        invalid_birth_time_format: "출생 시각 형식 오류.",
+        must_accept_all_agreements: "모든 동의 항목을 체크해 주세요.",
+      };
+      errEl.textContent = map[data.error] || `오류: ${data.error || r.status}`;
+      submitBtn.disabled = false; submitBtn.textContent = "시작하기";
+      return;
+    }
+    tg?.HapticFeedback?.notificationOccurred("success");
+    await loadFortune();
+  } catch (e) {
+    errEl.textContent = "네트워크 오류: " + e.message;
+    submitBtn.disabled = false; submitBtn.textContent = "시작하기";
+  }
+});
+
 
 // ─────────────── §A5 Today's market (slot report) ───────────────
 
@@ -2452,13 +2710,14 @@ if (!initData) {
   // Show TG name immediately (no network wait)
   const tgName = tgDisplayName();
   if (tgName) document.getElementById("display-name").textContent = tgName;
-  // Fire all 3 fetches in parallel — total time = max, not sum
+  // Fire all parallel — total time = max, not sum
   Promise.allSettled([
     loadProfile(),
     fetchBtcCurrent(),
     loadInvitePack(),   // warm cache so invite tab opens instant
     loadWelcomeEvent(), // detect active event so predict tab is ready
     loadTodayMarket(),  // §A5 — surface latest slot report on Home
+    loadFortune(),      // §3 — onboarding gate or 3 fortune cards
   ]);
 }
 </script>
