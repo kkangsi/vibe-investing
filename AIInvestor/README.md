@@ -117,7 +117,19 @@ Timer Triggers (매일 cron):
 | `3a1c060` | 도네이션 카피 세련화 + 홈 업셀 카드 (포인트 부족 시 초대/후원 유도) |
 | `518c5f4` | persona 분석 캐싱 + Telegram 언어 자동 적용 + 누적 CSV (24h/7d/30d/90d/1y) + Azure 과금 위젯 |
 
-### Phase 5 — 게이미피케이션 + 리더보드 + 유저 유입 (다음 단계, 미완)
+### Phase 5 — work-priority v1.1 (P0+P1+P2 백엔드 완성, 2026-05-08)
+`docs/work-priority-and-prompts-v1.0-ko.md`의 7개 작업 중 백엔드는 모두 구현.
+| 커밋 | § | 내용 |
+|---|---|---|
+| `a22b192` | §2 P0 | Profile pre-warm cache + `/profile/check` + Telegram warmup hook |
+| `344a4ae` | §3 P0 | Fortune match 엔진 + 3 endpoints (1무료/2잠금) |
+| `4781f56` | §3 P0 | 미니앱 onboarding UI (홈 탭 상단) |
+| `8999d88` | §4 P0 | Generic ticker prediction + 2 timer (settle + expire) |
+| `fe0bf09` | §5+§6 P1 | Click counter + Wilson ranking + reward payout |
+| `7ef4484` | §7 P2 | Donation/Invite unlock channels + reroll |
+
+자세한 변경 이력은 [CHANGELOG.md](CHANGELOG.md) 참조.
+
 잔여 작업은 [§ 잔여 작업 목표](#-잔여-작업-목표) 섹션 참고.
 
 ---
