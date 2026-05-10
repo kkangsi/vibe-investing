@@ -1372,6 +1372,166 @@ async def gamification_welcome_event_status(req: func.HttpRequest) -> func.HttpR
     )
 
 
+@app.route(route="gamification/prediction_stats", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def gamification_prediction_stats(req: func.HttpRequest) -> func.HttpResponse:
+    """Unified accuracy stats across ALL prediction systems:
+      - KOSPI/NASDAQ/TSLA/NVDA/BTC presets (predictions/<user_short>/...)
+      - §4 generic ticker predictions (predictions/<anon[:2]>/<anon>/...)
+      - matchup A/B paired (matchups/<date>/*.json — predictions[] array)
+      - §Single hourly UP/DOWN (single-predictions/<date>/*.json)
+
+    Returns {total, correct, accuracy, breakdown: {<source>: {total, correct}}}.
+    """
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS)
+    if not _config or not _config.storage_account_name:
+        return func.HttpResponse(json.dumps({"total": 0, "correct": 0, "accuracy": 0}),
+            status_code=200, mimetype="application/json", headers=_CORS_HEADERS)
+
+    from azure.identity.aio import DefaultAzureCredential
+    from azure.storage.blob.aio import BlobServiceClient
+    from datetime import timedelta as _td
+
+    user_short = user_key.replace("tg:", "")
+    breakdown = {
+        "preset": {"total": 0, "correct": 0, "pending": 0},
+        "generic": {"total": 0, "correct": 0, "pending": 0},
+        "matchup": {"total": 0, "correct": 0, "pending": 0},
+        "single": {"total": 0, "correct": 0, "pending": 0},
+    }
+    creds = DefaultAzureCredential()
+    cutoff = datetime.now(timezone.utc) - _td(days=30)
+
+    try:
+        async with BlobServiceClient(
+            account_url=f"https://{_config.storage_account_name}.blob.core.windows.net",
+            credential=creds,
+        ) as svc:
+            # ── 1. Preset predictions (predictions/<user_short>/<id>.json) ──
+            try:
+                container = svc.get_container_client("predictions")
+                async for blob in container.list_blobs(name_starts_with=f"{user_short}/"):
+                    if blob.last_modified and blob.last_modified < cutoff:
+                        continue
+                    try:
+                        body = await (await container.get_blob_client(blob.name)
+                                      .download_blob()).readall()
+                        d = json.loads(body)
+                        # Skip §4 generic (different layout: anon[:2]/anon/id.json
+                        # — name has 2 slashes, preset has 1)
+                        if blob.name.count("/") != 1:
+                            continue
+                        breakdown["preset"]["total"] += 1
+                        if d.get("resolved"):
+                            if d.get("correct"):
+                                breakdown["preset"]["correct"] += 1
+                        else:
+                            breakdown["preset"]["pending"] += 1
+                    except Exception:
+                        continue
+            except Exception:
+                logger.debug("preset scan failed", exc_info=True)
+
+            # ── 2. §4 Generic predictions ──
+            try:
+                from services.user_profile import make_anon_user_id
+                anon = make_anon_user_id(user_key, _config.user_id_salt)
+                container = svc.get_container_client("predictions")
+                async for blob in container.list_blobs(name_starts_with=f"{anon[:2]}/{anon}/"):
+                    try:
+                        body = await (await container.get_blob_client(blob.name)
+                                      .download_blob()).readall()
+                        d = json.loads(body)
+                        breakdown["generic"]["total"] += 1
+                        if d.get("status") == "settled":
+                            if d.get("result") == "win":
+                                breakdown["generic"]["correct"] += 1
+                        elif d.get("status") == "pending":
+                            breakdown["generic"]["pending"] += 1
+                    except Exception:
+                        continue
+            except Exception:
+                logger.debug("generic scan failed", exc_info=True)
+
+            # ── 3. Matchup predictions (scan today + last 7 days) ──
+            try:
+                container = svc.get_container_client("matchups")
+                today_kst = (datetime.now(timezone.utc) + _td(hours=9)).date()
+                for d_offset in range(7):
+                    d_iso = (today_kst - _td(days=d_offset)).isoformat()
+                    async for blob in container.list_blobs(name_starts_with=f"{d_iso}/"):
+                        if blob.name.endswith("__summary.json"):
+                            continue
+                        try:
+                            body = await (await container.get_blob_client(blob.name)
+                                          .download_blob()).readall()
+                            m = json.loads(body)
+                            mine = next((p for p in m.get("predictions", [])
+                                         if p.get("user_key") == user_key), None)
+                            if not mine:
+                                continue
+                            breakdown["matchup"]["total"] += 1
+                            if m.get("status") == "resolved":
+                                if mine.get("side") == m.get("winner"):
+                                    breakdown["matchup"]["correct"] += 1
+                            else:
+                                breakdown["matchup"]["pending"] += 1
+                        except Exception:
+                            continue
+            except Exception:
+                logger.debug("matchup scan failed", exc_info=True)
+
+            # ── 4. §Single predictions (scan today + last 3 days) ──
+            try:
+                container = svc.get_container_client("single-predictions")
+                today_kst = (datetime.now(timezone.utc) + _td(hours=9)).date()
+                for d_offset in range(3):
+                    d_iso = (today_kst - _td(days=d_offset)).isoformat()
+                    async for blob in container.list_blobs(name_starts_with=f"{d_iso}/"):
+                        if blob.name.endswith("__summary.json"):
+                            continue
+                        try:
+                            body = await (await container.get_blob_client(blob.name)
+                                          .download_blob()).readall()
+                            s = json.loads(body)
+                            mine = next((p for p in s.get("predictions", [])
+                                         if p.get("user_key") == user_key), None)
+                            if not mine:
+                                continue
+                            breakdown["single"]["total"] += 1
+                            if s.get("status") == "resolved":
+                                if mine.get("direction") == s.get("winner"):
+                                    breakdown["single"]["correct"] += 1
+                            else:
+                                breakdown["single"]["pending"] += 1
+                        except Exception:
+                            continue
+            except Exception:
+                logger.debug("single scan failed", exc_info=True)
+    finally:
+        await creds.close()
+
+    total = sum(b["total"] for b in breakdown.values())
+    correct = sum(b["correct"] for b in breakdown.values())
+    pending = sum(b["pending"] for b in breakdown.values())
+    resolved = total - pending
+    accuracy = (correct / resolved * 100) if resolved > 0 else 0.0
+
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "private, max-age=30"
+    return func.HttpResponse(json.dumps({
+        "total": total, "correct": correct, "pending": pending,
+        "resolved": resolved, "accuracy": round(accuracy, 1),
+        "breakdown": breakdown,
+    }, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers)
+
+
 @app.route(route="gamification/prediction_history", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
 async def gamification_prediction_history(req: func.HttpRequest) -> func.HttpResponse:
     """§T2E-B — Return the user's recent prediction submissions across all markets.

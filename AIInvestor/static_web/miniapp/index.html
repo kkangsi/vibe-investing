@@ -1923,6 +1923,16 @@ async function loadPredictionHistory() {
   } catch (e) {
     console.error("prediction history failed", e);
   }
+  // Unified stats across ALL prediction systems (matchup + single + generic + preset)
+  try {
+    const s = await api("/prediction_stats");
+    document.getElementById("pred-stat-total").textContent = s.total || 0;
+    document.getElementById("pred-stat-correct").textContent = s.correct || 0;
+    document.getElementById("pred-stat-accuracy").textContent =
+      s.resolved > 0 ? `${(s.accuracy || 0).toFixed(1)}%` : "—";
+  } catch (e) {
+    console.error("unified stats failed", e);
+  }
 }
 
 function renderPredictionHistory() {
@@ -1947,14 +1957,8 @@ function renderPredictionHistory() {
     });
   });
 
-  // Stats
-  const resolved = _predictionHistory.filter(it => it.resolved);
-  const correct = resolved.filter(it => it.correct).length;
-  const total = resolved.length;
-  document.getElementById("pred-stat-total").textContent = _predictionHistory.length;
-  document.getElementById("pred-stat-correct").textContent = correct;
-  document.getElementById("pred-stat-accuracy").textContent =
-    total > 0 ? `${(correct / total * 100).toFixed(1)}%` : "—";
+  // Stats now populated by /prediction_stats (unified across all systems)
+  // — see loadPredictionHistory() which calls it after this function.
 }
 
 // Predict tab buttons (KOSPI/NASDAQ UP/DOWN) — same handler as home tab
