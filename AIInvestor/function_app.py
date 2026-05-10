@@ -54,6 +54,7 @@ _donation_repo = None
 _ton_client = None
 _tron_client = None
 _prediction_repo = None  # §4 generic ticker prediction (separate from KOSPI presets)
+_single_pred_repo = None  # §Single hourly UP/DOWN top-10 stock + top-10 coin
 
 
 async def _bootstrap() -> None:
@@ -65,7 +66,7 @@ async def _bootstrap() -> None:
     """
     global _config, _ptb_app, _market_report_service, _profile_repo
     global _persona_engine, _stock_service, _usage_logger, _matchup_repo
-    global _donation_repo, _ton_client, _tron_client, _prediction_repo
+    global _donation_repo, _ton_client, _tron_client, _prediction_repo, _single_pred_repo
     if _ptb_app is not None:
         return
 
@@ -93,6 +94,8 @@ async def _bootstrap() -> None:
         _donation_repo = DonationIntentRepo(_config.storage_account_name)
         from services.prediction_repo import PredictionRepo
         _prediction_repo = PredictionRepo(_config.storage_account_name)
+        from services.single_pred_service import SinglePredRepo
+        _single_pred_repo = SinglePredRepo(_config.storage_account_name)
         from services.chain_clients import TonClient, TronClient
         _ton_client = TonClient(api_key=os.getenv("TONAPI_KEY") or None)
         _tron_client = TronClient(api_key=os.getenv("TRONGRID_API_KEY") or None)
@@ -2578,6 +2581,215 @@ async def matchup_resolve_due(timer: func.TimerRequest) -> None:
             logger.info("matchup_resolve_due resolved %s", summary)
     except Exception:
         logger.exception("matchup_resolve_due failed")
+
+
+# ---------------------------------------------------------------------
+# §SINGLE — hourly UP/DOWN single-asset predictions (top 10 stock + top 10 coin)
+#   Parallel to §MATCHUP. Each hour: 10 stock + 10 coin slots, 3 free + 7
+#   premium per category. Settles 1 hour after open.
+# ---------------------------------------------------------------------
+
+@app.route(route="gamification/single_pred/active", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def single_pred_active(req: func.HttpRequest) -> func.HttpResponse:
+    """List today's single-asset slots (open + recently resolved)."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    if _single_pred_repo is None:
+        return func.HttpResponse(json.dumps({"slots": []}),
+            status_code=200, mimetype="application/json", headers=_CORS_HEADERS)
+
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    is_premium = False
+    if user_key:
+        try:
+            profile = await _profile_repo.get_or_create(
+                user_key=user_key,
+                default_language=_detect_lang_from_init_data(req),
+                default_persona="buffett",
+            )
+        except AttributeError:
+            profile = _profile_repo.get_or_create(
+                user_key=user_key, default_language="ko", default_persona="buffett")
+        from services.referrer_milestones import is_supporter_or_higher
+        is_premium = is_supporter_or_higher(getattr(profile, "donation_total_usdt", 0) or 0)
+
+    from datetime import datetime, timezone, timedelta
+    kst_today = (datetime.now(timezone.utc) + timedelta(hours=9)).date().isoformat()
+    slots = await _single_pred_repo.list_for_date(kst_today)
+    slots.sort(key=lambda s: s.id)
+
+    out = []
+    for s in slots:
+        is_locked = s.premium_only and not is_premium
+        my_dir = ""
+        if user_key:
+            mine = next((p for p in s.predictions if p.user_key == user_key), None)
+            if mine:
+                my_dir = mine.direction
+
+        if is_locked:
+            out.append({
+                "id": s.id, "category": s.category,
+                "ticker": "***", "name": "프리미엄 잠금",
+                "yesterday_pct": 0.0,
+                "anchor_price": 0.0, "last_price": 0.0,
+                "open_at_kst": s.open_at_kst, "deadline_kst": s.deadline_kst,
+                "resolve_at_kst": s.resolve_at_kst,
+                "status": s.status, "winner": "", "my_direction": "",
+                "predictions_count": len(s.predictions),
+                "premium_only": True, "locked": True,
+            })
+            continue
+
+        # Live pct vs anchor
+        live_pct = ((s.last_price - s.anchor_price) / s.anchor_price
+                    if s.anchor_price > 0 else 0.0)
+        out.append({
+            "id": s.id, "category": s.category,
+            "ticker": s.ticker, "name": s.name,
+            "yesterday_pct": s.yesterday_pct,
+            "anchor_price": s.anchor_price,
+            "last_price": s.last_price,
+            "live_pct": round(live_pct, 6),
+            "last_polled_at": s.last_polled_at,
+            "open_at_kst": s.open_at_kst, "deadline_kst": s.deadline_kst,
+            "resolve_at_kst": s.resolve_at_kst,
+            "status": s.status, "winner": s.winner,
+            "settled_close": s.settled_close,
+            "my_direction": my_dir,
+            "predictions_count": len(s.predictions),
+            "premium_only": s.premium_only, "locked": False,
+        })
+
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "private, max-age=20"
+    return func.HttpResponse(
+        json.dumps({"slots": out, "kst_date": kst_today,
+                    "is_premium": is_premium,
+                    "free_per_category": 3, "premium_per_category": 10,
+                    "participation_points": 1, "correct_points": 20},
+                   ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers,
+    )
+
+
+@app.route(route="gamification/single_pred/predict", auth_level=func.AuthLevel.ANONYMOUS, methods=["POST", "OPTIONS"])
+async def single_pred_predict(req: func.HttpRequest) -> func.HttpResponse:
+    """Submit a single-asset UP/DOWN prediction.
+    Body: {slot_id: '2026-05-10-h14-s1', direction: 'up'|'down'}"""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS_POST)
+    await _bootstrap()
+    if _single_pred_repo is None:
+        return func.HttpResponse(json.dumps({"error": "not_configured"}),
+            status_code=500, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    user_key = await _verify_telegram_init_data_get_userkey(req)
+    if not user_key:
+        return func.HttpResponse(json.dumps({"error": "unauthorized"}),
+            status_code=401, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    try:
+        body = req.get_json() or {}
+    except ValueError:
+        return func.HttpResponse(json.dumps({"error": "invalid_json"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+    slot_id = (body.get("slot_id") or "").strip()
+    direction = (body.get("direction") or "").strip().lower()
+    if not slot_id or direction not in ("up", "down"):
+        return func.HttpResponse(json.dumps({"error": "invalid_request"}),
+            status_code=400, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+    from services.point_ledger import add_points
+    from services.referrer_milestones import is_supporter_or_higher
+    from services.single_pred_service import (
+        CORRECT_POINTS, PARTICIPATION_POINTS, submit_single_prediction,
+    )
+    from services.user_profile import make_anon_user_id
+
+    try:
+        profile = await _profile_repo.get_or_create(
+            user_key=user_key,
+            default_language=_detect_lang_from_init_data(req),
+            default_persona="buffett",
+        )
+    except AttributeError:
+        profile = _profile_repo.get_or_create(
+            user_key=user_key, default_language="ko", default_persona="buffett")
+    is_premium = is_supporter_or_higher(getattr(profile, "donation_total_usdt", 0) or 0)
+    anon = make_anon_user_id(user_key, _config.user_id_salt)
+
+    ok, reason = await submit_single_prediction(
+        _single_pred_repo, slot_id, user_key, anon, direction,
+        is_premium=is_premium,
+    )
+    payload = {"success": ok, "reason": reason}
+    if ok:
+        try:
+            await add_points(_profile_repo, user_key, PARTICIPATION_POINTS,
+                             reason="single_pred_participation", ref=slot_id,
+                             usage_logger=_usage_logger)
+        except Exception:
+            logger.exception("single participation credit failed")
+        payload["participation_points"] = PARTICIPATION_POINTS
+        payload["correct_points"] = CORRECT_POINTS
+    status = (200 if ok
+              else 409 if reason == "already_submitted"
+              else 410 if reason == "deadline_passed"
+              else 402 if reason == "premium_only"
+              else 400)
+    return func.HttpResponse(json.dumps(payload, ensure_ascii=False),
+        status_code=status, mimetype="application/json", headers=_CORS_HEADERS_POST)
+
+
+# Timer: every hour at :00 KST → generate top 10 stock + top 10 coin singles
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def single_pred_hourly_generate(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if _single_pred_repo is None or not _config or not _config.storage_account_name:
+        return
+    from services.single_pred_service import ensure_singles_for_hour
+    try:
+        slots = await ensure_singles_for_hour(
+            _single_pred_repo, _config.storage_account_name)
+        logger.info("single_pred_hourly_generate %d slots", len(slots))
+    except Exception:
+        logger.exception("single_pred_hourly_generate failed")
+
+
+# Timer: every 30 min — refresh live prices for active slots
+@app.timer_trigger(schedule="0 */30 * * * *", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def single_pred_gauge_refresh(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if _single_pred_repo is None:
+        return
+    from services.single_pred_service import update_gauges
+    try:
+        n = await update_gauges(_single_pred_repo)
+        if n:
+            logger.info("single_pred_gauge_refresh updated %d", n)
+    except Exception:
+        logger.exception("single_pred_gauge_refresh failed")
+
+
+# Timer: every 5 min — resolve any slot whose resolve_at_kst has passed
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def single_pred_resolve_due(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if _single_pred_repo is None or _profile_repo is None:
+        return
+    from services.single_pred_service import resolve_due_singles
+    try:
+        summary = await resolve_due_singles(
+            _single_pred_repo, _profile_repo, usage_logger=_usage_logger)
+        if summary:
+            logger.info("single_pred_resolve_due resolved %s", summary)
+    except Exception:
+        logger.exception("single_pred_resolve_due failed")
 
 
 # ---------------------------------------------------------------------
