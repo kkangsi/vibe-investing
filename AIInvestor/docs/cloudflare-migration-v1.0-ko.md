@@ -1,9 +1,11 @@
 # 증권당 — Azure → Cloudflare 전면 이전 설계 v1.0
 
 **문서 버전**: v1.0 (2026-05-11)
-**작성자**: Betalabs Inc. / Dennis Kim
+**작성자**: Dennis Kim
 **목적**: 아시아 서비스 확대 전 인프라 재검토. Azure(Korea Central 단일) →
 Cloudflare(아시아 15+ POP) 이전을 통한 지연시간·가용성·비용 개선 검토.
+
+Azure Free Tier + Azure Function + static page + blob의 경우 동작은 하지만, 사용성, 유저 경험을 헤치는 부분이 있어 이 부분을 cloudFlare로 이전할 경우의 장점, 플랜, 어느 정도 코드를 갈아 엎어야할지에 대해서 정리
 
 ---
 
