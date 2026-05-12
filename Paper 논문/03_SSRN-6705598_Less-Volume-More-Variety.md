@@ -58,6 +58,7 @@ jel_codes: ["G11", "G14", "G17", "C45", "O33"]
 acm_classification: ["I.2.7 Natural Language Processing"]
 mesh_terms: []
 github_repo: "https://github.com/gameworkerkim/vibe-investing"
+primary_package_url: "https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Pharma%20sector%20prompt"
 related_papers: []
 target_journal: "Finance Research Letters"
 ---

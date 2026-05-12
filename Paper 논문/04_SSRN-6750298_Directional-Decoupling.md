@@ -51,6 +51,7 @@ jel_codes: ["G12", "G14", "G15", "C58"]
 acm_classification: []
 mesh_terms: []
 github_repo: "https://github.com/gameworkerkim/vibe-investing"
+primary_package_url: "https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column/BNB_ETH%20Relationship"
 related_papers: ["10.2139/ssrn.6632838", "10.2139/ssrn.6688740"]
 ---
 

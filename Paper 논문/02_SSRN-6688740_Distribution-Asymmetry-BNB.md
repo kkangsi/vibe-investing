@@ -49,6 +49,7 @@ jel_codes: ["G14", "G12", "G15", "D31", "L86"]
 acm_classification: []
 mesh_terms: []
 github_repo: "https://github.com/gameworkerkim/vibe-investing"
+primary_package_url: "https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column/BNBChain"
 related_papers: ["10.2139/ssrn.6632838", "10.2139/ssrn.6750298"]
 ---
 

@@ -45,6 +45,7 @@ jel_codes: ["G14", "G12", "G17"]
 acm_classification: []
 mesh_terms: []
 github_repo: "https://github.com/gameworkerkim/vibe-investing"
+primary_package_url: "https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Token%20unlock%2072h%20shock%20analysis%20"
 related_papers: ["10.2139/ssrn.6688740", "10.2139/ssrn.6750298"]
 ---
 
