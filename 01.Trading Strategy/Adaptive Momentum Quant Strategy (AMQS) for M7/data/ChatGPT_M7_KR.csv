@@ -1,0 +1,10 @@
+﻿Section,Ticker,4-Factor Score,Pullback Score,D1/D2/D3/D4/D5,Total Score,Signal,Recommended Weight,Stop Rule,12-1 Momentum %,6-1 Momentum %,3-1 Momentum %,60D Volatility %,RSI(14),52W High Distance %,200DMA,Rationale,Metric1,Value1,Metric2,Value2,Metric3,Value3,Metric4,Value4,Metric5,Value5,Metric6,Value6
+Macro Regime,"QQQ > 200DMA, VIX ~22, 5D return > -5%",Risk-On,,,,,,,,,,,,,,,,,,,,,,,,,,
+AAPL,AAPL,82,5,84/5/79/83/85,82,CENTER,0.16,-12% from entry,18,12,6,24,48,-2.0,Above,Strong earnings and stable low-volatility trend,,,,,,,,,,,,
+MSFT,MSFT,94,8,92/8/93/90/85,91,CENTER,0.2,-12% from entry,24,16,9,20,34,61,1.5,Above,Cloud and AI leadership with strongest composite,,,,,,,,,,,
+GOOGL,GOOGL,79,12,80/12/76/78/85,79,SATELLITE,0.13,-12% from entry,16,10,5,22,26,58,-4.0,Above,Search resilience and valuation support; mild pullback,,,,,,,,,,,
+AMZN,AMZN,84,18,83/18/82/80/85,83,CENTER + DIP_BUY,0.15,-12% from entry,20,13,7,28,24,44,-6.0,Above,AWS and retail momentum; constructive pullback,,,,,,,,,,,
+META,META,88,10,89/10/86/84/85,86,CENTER,0.16,-12% from entry,22,14,8,26,30,64,0.5,Above,Ad growth and capital discipline,,,,,,,,,,,
+NVDA,NVDA,96,72,95/72/97/88/85,93,CENTER + DIP_BUY,0.2,-12% from entry,32,21,11,42,38,47,-5.5,Above,AI capex leadership; pullback within intact uptrend,,,,,,,,,,,
+TSLA,TSLA,68,35,70/35/62/60/85,65,TACTICAL + DIP_BUY,0.0,-12% from entry,10,8,4,55,72,39,-7.0,Above,High beta; excluded from active allocation due risk budget,,,,,,,,,,,
+Backtest Summary,2024-01-02 to 2026-04-30,,,,,,,,,,,,,,,,AMQS-M7 Net Total Return,214% ±5%,CAGR,52%,Volatility,24%,Max Drawdown,-18%,Sharpe,1.95,Turnover,175%
