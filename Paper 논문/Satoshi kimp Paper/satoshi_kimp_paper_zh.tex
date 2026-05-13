@@ -1,0 +1,788 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Latin Modern Roman}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{array}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black,
+            citecolor=blue!50!black, urlcolor=blue!50!black}
+
+\title{\textbf{币安--Bithumb 之间的比特币本位溢价研究\\[6pt]
+       \large The Bithumb--Binance BTC-num\'eraire Premium:\\
+       基于 BNB Chain 代币的理论框架与校准模拟证据}}
+
+\author{HoKwang Kim\\
+        \small Betalabs Inc.，\emph{Cyworld Z 前 CEO}\\
+        \small \emph{自 2017 年起从事区块链 \(\cdot\) Web3 业务与开发的实务专家}\\
+        \small ORCID: \href{https://orcid.org/0009-0002-0962-2175}{0009-0002-0962-2175}\\
+        \small Repository: \href{https://github.com/gameworkerkim/vibe-investing}{github.com/gameworkerkim/vibe-investing}\\
+        \small \texttt{gameworker@gmail.com}}
+
+\date{2026年5月 (修订版)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent 本文将韩国加密资产交易所 Bithumb 与全球交易所币安 (Binance) 之间形成的价格差异，
+通过以 BTC 为本位 (num\'eraire) 的新测量式 $\pi^{\text{BTC}}_X(t)$ 重新定义，
+并同时呈现基于 2020--2025 年合成时间序列的\emph{校准模拟证据 (calibrated simulation evidence)}。
+传统的韩元基准溢价 $\pi^{\text{KRW}}_X(t)$ 中混杂着汇率、资本管制、稳定币溢价、汇款延迟等多重因素，
+难以识别单一代币层面的非对称需求冲击。作为解决方案，本文提出
+\[
+   \pi^{\text{BTC}}_X(t)=\frac{P_X^B/P_{\mathrm{BTC}}^B}{P_X^N/P_{\mathrm{BTC}}^N}-1，
+\]
+并通过命题 1 (FX 噪声抵消) 证明该测量式可经由分子--分母抵消方式去除汇率与资本管制噪声。
+分析对象包括 BNB (BNB Chain 的 gas 代币，Bithumb 于 2021-05-27 上市)、Venus (XVS, BSC DeFi) 与
+ETH (基准线) 三种代币。为控制代币自身波动率，引入标准化方差比
+$\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$，
+OLS 回归采用 Newey--West HAC 标准误，非对称波动率以 EGARCH(1,1) 配合 Student-$t$ 创新项进行估计。
+模拟结果表明: (i) satoshi 溢价的标准差约为 KRW 溢价的二分之一，体现了汇率噪声的有效去除；
+(ii) 标准化后 BNB ($\rho=1.13$) 与 XVS ($\rho=0.82$) 均超过 ETH 基准 ($\rho=0.42$)，
+显示出 BSC 暂时性低效率；(iii) HAC 校正后韩国监管虚拟变量丧失显著性，但全球冲击虚拟变量仍保持
+强显著性 ($p<0.001$)；(iv) EGARCH 杠杆项 $\hat\gamma=-0.073$ ($p<0.05$) 支持非对称波动率假设 H2。
+\\[4pt]
+\textbf{关键词}: 泡菜溢价 (kimchi premium)、BTC本位、BNB Chain、资本管制、三角套利、套利限制、
+EGARCH、Newey--West HAC、Bithumb、Binance\\
+\textbf{JEL 分类}: G14, G15, F31, G18
+
+\medskip
+\noindent\textbf{数据声明.} 本文所有定量结果均基于合成日度时间序列，其特性与文献中报告的程式化事实及
+实时交易所数据的一般特征相吻合。这是用于检验测量式统计性质的模拟证据，
+实际市场中的参数值须由后续实证研究确定。
+\end{abstract}
+
+\section{引言}
+
+韩国加密资产市场因外汇交易法、特定金融信息法 (特金法)、Travel Rule、实名验证虚拟账户制度、
+外籍人士交易禁止等多层制度壁垒，与全球市场处于部分分割状态
+(Makarov \& Schoar, 2020; Choi et al., 2022; Hwang et al., 2024)。
+这种市场分割 (market segmentation) 的结果，是韩国交易所代币价格相对于海外交易所形成持续性价格差异，
+即所谓\emph{泡菜溢价 (kimchi premium)}，在 2017--2018 年比特币牛市期间一度扩大至约 50\%
+(Makarov \& Schoar, 2020; Eom, 2021)。
+
+既有泡菜溢价研究几乎全部聚焦于以韩元为基准的溢价 (KRW-anchored premium)，
+即通过将 Bithumb/Upbit 的代币 $X$ 韩元价格按韩美元汇率换算后与海外交易所的美元 (USDT) 价格进行比较。
+然而这种测量方式将以下混淆因素一并纳入: 韩美元汇率的日内波动、稳定币 (USDT) 自身溢价、
+银行汇款延迟，以及资本管制溢价。这导致难以识别
+``某代币 $X$ 在韩国市场出现非对称溢价'' 与 ``韩国零售投资者对加密资产整体需求高涨'' 之间的差异。
+
+本文做出三项贡献。第一，将 BTC 作为交易所内部 num\'eraire 的\emph{比特币本位溢价}
+$\pi^{\text{BTC}}_X(t)$ 进行形式化，并通过命题 1 证明该测量式以分子--分母抵消方式
+去除了汇率与资本管制等宏观噪声 (第 3 节)。第二，对 BNB Chain 代币的三角套利结构进行形式化，
+引入控制代币自身波动率的\emph{标准化方差比} $\rho_X$，
+对 BSC 套利低效率假设 $\mathrm{H_{BSC}}$ 进行稳健检验。
+第三，在实证分析中采用 Newey--West HAC 标准误与 EGARCH(1,1) 非对称波动率模型，
+提供控制了序列相关与异方差性的估计结果。
+
+本文的分析对象是\emph{同时在 Bithumb 与 Binance 上市的三种代币}: (1) BNB ── BNB Chain 的 gas 代币，
+市值排名前 5 的大型资产，Bithumb 于 2021 年 5 月 27 日上市 (Bithumb 官方公告)；
+(2) Venus (XVS) ── BNB Chain 的代表性 DeFi 治理代币，中等市值；(3) ETH ── ERC-20 基准。
+
+\paragraph{识别策略: 海外交易所之间的对比。}
+泡菜溢价究竟是 ``韩国零售非理性需求'' 所致，还是 ``资本管制造成的套利限制'' 所致？
+本文提出新的识别策略: \emph{直接比较海外交易所之间的 BTC本位溢价波动率与 Bithumb-海外交易所对的波动率}。
+模拟结果显示 (\S 6.4), Binance↔OKX、Binance↔Bybit、OKX↔Bybit 之间的 satoshi 溢价标准差
+在 ETH 基准下为 0.23--0.34\%，几乎接近零；而 Bithumb-海外交易所对则为 0.85--0.90\%，\emph{大约高出 3--4 倍}，
+以 BNB 基准计算时则达约 7 倍。在海外交易所之间，承担相同风险的套利者可以无时差、无系统性约束地
+转移资金；而韩国交易所则因外汇交易法、Travel Rule 与 KYC 不对称，
+此类套利机制无法运作。因此，泡菜溢价并非 ``市场低效率''，而是\emph{监管所施加的价格成本}。
+
+\paragraph{资本外流的定量证据。}
+根据韩国关税厅资料 (2025 年 10 月崔银硕议员办公室公开)，
+利用加密资产进行的非法外汇交易查获额累计达约 14.2 万亿韩元 (2018--2025)，
+其中 2024 年为 1.1579 万亿韩元，2025 年 1--8 月为 0.8813 万亿韩元
+(\S 6.5，图 \ref{fig:policy_cost}，表 \ref{tab:policy_cost})。
+这仅为已\emph{查获}交易的合计，是实际外流的\emph{下限}。
+泡菜溢价持续存在时，韩国市场提供了资本外流的结构性驱动力，相关成本由韩国经济承担。
+
+\paragraph{论文结构.}
+第 2 节进行文献综述；第 3 节给出四种溢价测量式、无套利均衡及三角套利结构与 $\mathrm{H_{BSC}}$ 假设；
+第 4 节提出 5 个可检验假设；第 5 节介绍数据与方法论；
+第 6 节呈现实证结果 (程式化事实 + Newey--West HAC OLS + EGARCH + 交叉交易所比较 + 政策成本)；
+第 7 节讨论结果及政策含义；第 8 节给出局限性与后续研究议程；第 9 节为结论。
+
+\section{文献综述}
+
+\paragraph{套利限制的一般理论。}
+Gromb \& Vayanos (2010) 整理了由于资金约束与风险规避，
+套利者在原理上无法即时消除无风险套利机会的一般机制。
+韩国加密资产市场的泡菜溢价是 ``套利限制 (limits to arbitrage)'' 框架的典型范例，
+其中资本管制与 KYC 制度形成了从源头阻止套利者进入的强力结构性摩擦。
+
+\paragraph{泡菜溢价的产生机制。}
+Makarov \& Schoar (2020) 记录了比特币价格在美国、韩国、日本、欧洲等主要市场之间持续偏离的现象，
+并指出这种偏离源自资本管制与监管差异造成的套利限制。
+韩美之间的日均价格比在 2017 年 12 月--2018 年 2 月期间超过 15\%，部分日期达到 40\%。
+Eom (2021) 通过 GMM 估计表明，泡菜溢价可由交易量与价格不稳定性解释；
+Choi et al.\ (2022) 认为韩国的资本管制阻止套利者进入，从而拖慢溢价的均值回归速度。
+近期 Ahn \& Kim (2023) 利用 Bithumb 微观数据识别主导泡菜溢价的投资者类型，
+发现个人零售投资者是波动率的主要驱动者。
+
+\paragraph{套利摩擦与外部溢出效应、监管冲击。}
+Borri \& Shakhnov (2020) 表明中国政府加强加密资产监管以 ``China shock'' 形式向韩国市场溢出；
+Kim et al.\ (2022) 利用韩国银行行政数据实证表明，泡菜溢价上升时对华汇款增加。
+这暗示泡菜溢价并非单纯韩国零售投资者狂热的产物，
+也充当了中国矿工资金兑换的通道。
+Hwang et al.\ (2024) 表明 2022 年 3 月实施的 Travel Rule 进一步约束了
+韩国交易所之间的套利渠道，使泡菜溢价的均值回归速度进一步放缓，
+这与本研究中假设 H4 (监管冲击非对称性) 的检验直接相关。
+
+\paragraph{加密资产市场的价格决定因素与微观结构。}
+Liu, Tsyvinski \& Wu (2022, \emph{Journal of Finance}) 识别了加密资产市场普遍作用的共同风险因子
+(加密市场 beta、规模、动量)。本文的标准化方差比 $\rho_X$ 也是在同一脉络下，
+通过代币自身波动率对溢价波动率进行 ``通胀化''。
+Pieters \& Vivanco (2017) 分析认为交易所间比特币价格差异并非由信息不对称，
+而是由流动性结构造成的。Capponi \& Jia (2021) 对 DEX 与 CEX 之间的价格发现机制
+以及 LP 套利动机进行了建模，为本研究第 3.3 节的 BSC 三角套利结构
+提供了直接的理论基础。
+
+\paragraph{山寨币与交易所分割。}
+Tiger Research (2024) 量化了韩国交易所的山寨币偏向，
+报告了 2024 年 7 月 AVAIL 代币上市直后溢价扩大至 1{,}255\% 的案例。
+Kim (2024) 引入 ``Korean venue share'' 指标，
+在强化学习环境下分析了韩国交易所占比对山寨币收益率的影响。
+
+\paragraph{本研究的定位与差异。}
+本文将 Makarov \& Schoar (2020) 的跨国套利框架重构为\emph{国内、跨代币}维度，
+并将 Capponi \& Jia (2021) 的 CEX--DEX 价格发现模型扩展为 Bithumb--Binance--PancakeSwap 三角结构。
+据作者所知，本文是首次将 BTC 显式作为 num\'eraire 用以定义代币层面泡菜溢价的尝试。
+
+\section{理论框架}
+
+\subsection{符号与四种溢价测量式}
+对于代币 $X$ 在时刻 $t$ 的可观测变量定义如下:
+$P_X^{B,\text{KRW}}(t)$ 为 Bithumb 的 $X$ 韩元价格，$P_X^{N,\text{USDT}}(t)$ 为 Binance 的 $X$-USDT 价格，
+$E_t$ 为韩国银行汇率基准价，$P_{\text{USDT}}^{B,\text{KRW}}(t)$ 为 Bithumb 的 USDT/KRW 交易对，
+$P_{X/\text{BNB}}^{\text{DEX}}(t)$ 为 PancakeSwap 的 $X$/BNB 池价格。定义如下四种测量式。
+
+\paragraph{(M1) 汇率基准溢价.}
+\begin{equation}
+\pi^{\text{KRW}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot E_t}-1
+\label{eq:pi_krw}
+\end{equation}
+
+\paragraph{(M2) USDT 基准溢价.}
+\begin{equation}
+\pi^{\text{USDT}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot P_{\text{USDT}}^{B,\text{KRW}}(t)}-1
+\label{eq:pi_usdt}
+\end{equation}
+
+\paragraph{(M3) BTC本位溢价 ── 本研究的核心测量式.}
+\begin{equation}
+\boxed{\;
+\pi^{\text{BTC}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)/P_{\text{BTC}}^{B,\text{KRW}}(t)}
+                                {P_X^{N,\text{USDT}}(t)/P_{\text{BTC}}^{N,\text{USDT}}(t)} - 1
+\;}
+\label{eq:pi_btc}
+\end{equation}
+
+\begin{quote}
+\textbf{命题 1 (FX 噪声抵消).}
+当 Bithumb 的两个价格以同一货币 (KRW) 表示，Binance 的两个价格以同一货币 (USDT) 表示时，
+$\pi^{\text{BTC}}_X(t)$ 不依赖于汇率 $E_t$、USDT 溢价 $P_{\text{USDT}}^{B,\text{KRW}}(t)$
+及稳定币自身变动。
+\end{quote}
+
+\noindent\textbf{证明.} 分子中 Bithumb 两个 KRW 价格相比时货币单位被消去；
+分母中 Binance 两个 USDT 价格相比时货币单位被消去。因此 $\pi^{\text{BTC}}_X$ 完全不含货币换算因子。\hfill$\Box$
+
+\paragraph{(M4) 以 ETH 为基准的 alpha.}
+\begin{equation}
+\alpha_X^{\text{ETH}}(t) = \pi^{\text{BTC}}_X(t) - \pi^{\text{BTC}}_{\text{ETH}}(t)
+\label{eq:alpha}
+\end{equation}
+
+\subsection{无套利均衡与公允溢价}
+套利周期的成本可分解如下:
+\begin{equation}
+\pi^*_X(t) = c_X^{\text{out}}+c_X^{\text{in}} + f^{\text{KYC}}+f^{\text{KRW}}
+           + r_t\Delta t + \kappa\sigma_X\sqrt{\Delta t}
+           + \lambda_t^{\text{KOR}} + \eta_X^{\text{liq}}.
+\label{eq:fair_premium}
+\end{equation}
+各项估计值见表 \ref{tab:fair_premium}。
+
+\begin{table}[H]
+\centering
+\caption{无套利公允溢价的分项分解 (\%，5日套利周期)。}
+\label{tab:fair_premium}
+\begin{tabular}{lccc}
+\toprule
+项目 & BTC & ETH (ERC-20) & BSC 代币 (BEP-20) \\
+\midrule
+链上提现手续费 $c^{\text{out}}$ & 0.005--0.02 & 0.05--0.30 & 0.001--0.05 \\
+KRW 提现费 $f^{\text{KRW}}$  & 0.05 & 0.05 & 0.05 \\
+资金锁定成本 $r\Delta t$         & 0.04 & 0.04 & 0.04 \\
+波动率对冲 $\kappa\sigma\sqrt{\Delta t}$ & 1.5--2.5 & 1.8--3.0 & 2.5--6.0 \\
+资本管制溢价 $\lambda^{\text{KOR}}$ & 1.0--3.0 & 1.0--3.0 & 1.0--3.0 \\
+流动性溢价 $\eta^{\text{liq}}$ & 0.1--0.5 & 0.3--0.8 & 1.5--5.0 \\
+\midrule
+\textbf{合计 $\pi^*$} & \textbf{2.7--6.1} & \textbf{3.2--7.2} & \textbf{5.1--14.1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{BSC 代币的三角套利结构与标准化方差比}
+
+BNB Chain 代币具有三种价格发现路径 (图 \ref{fig:triangle}):
+(i) Bithumb--Binance 直接路径，(ii) PancakeSwap DEX 迂回路径，(iii) BTC num\'eraire 路径。
+此外由于 BNB 本身已在 Bithumb 上市，BSC 代币分析可同时利用 BNB 本体与 BSC DeFi 代币 (如 XVS)。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{../../figures/en/fig6_triangular_structure.png}
+\caption{BSC 代币的三角价格通道。}
+\label{fig:triangle}
+\end{figure}
+
+\paragraph{假设 $\mathrm{H_{BSC}}$ 的形式化.}
+朴素的直觉是: ``由于 PancakeSwap 提供了额外的套利通道，BSC 代币的 satoshi 溢价波动率
+应当\emph{低于} ERC-20 代币。'' 然而单纯的方差比较会将\emph{代币自身波动率}差异作为混淆变量
+(BSC DeFi 代币通常比 ETH 自身价格波动率更高)。因此本文引入\emph{标准化方差比}
+\begin{equation}
+\rho_X \;\equiv\; \frac{\operatorname{Var}[\pi^{\text{BTC}}_X]}{\operatorname{Var}[\Delta\log P_X]}，
+\label{eq:rho}
+\end{equation}
+该指标无量纲，衡量 ``代币自身价格每变动 1\% 时溢价平均共同变动多少''。
+假设 $\mathrm{H_{BSC}}$ 重新表述为
+\begin{equation}
+\rho_X^{\text{BSC}} < \rho_X^{\text{ERC20}}。
+\label{eq:hbsc}
+\end{equation}
+
+\section{可检验假设}
+
+\begin{description}
+\item[H1 (Satoshi 锚定).] $\mathbb{E}[\pi^{\text{BTC}}_X(t)] \approx 0$。
+若均值显著不为零，则表明 Bithumb 内部 X/BTC 套利通道缺失 (BTC 配对市场不活跃)。
+\item[H2 (非对称波动率).] 对 $\Delta\pi^{\text{BTC}}_X$ 应用 EGARCH(1,1) 时杠杆项 $\gamma < 0$，$p<0.05$。
+\item[H3 = $\mathrm{H_{BSC}}$ (标准化 BSC 优越性).] $\rho_X^{\text{BSC}} < \rho_X^{\text{ERC20}}$。
+\item[H4 (监管冲击非对称性).] 韩国监管冲击将 $\pi^{\text{BTC}}_X$ 推向负值，
+全球冲击则使其短暂地向负值或零附近移动。
+\item[H5 (资本管制溢价的时间不变性).]
+$\mathbb{E}[\pi^{\text{KRW}}_X(t)] - \mathbb{E}[\pi^{\text{BTC}}_X(t)] \approx \lambda$，
+对体制变迁相对稳定。
+\end{description}
+
+\section{数据与方法论}
+
+\paragraph{样本与数据性质.}
+本文采用 2020-01-01 至 2025-12-31 共 $T=2{,}192$ 日的合成日度时间序列。
+该数据按照 Makarov \& Schoar (2020), Eom (2021), Choi et al.\ (2022), Tiger Research (2024)
+报告的程式化事实进行校准 (2021 年 4 月春季峰值、2022 年 LUNA/FTX 冲击、
+2024 年 7 月虚拟资产用户保护法、2024 年 12 月戒严事件)。
+本研究的定量结果为\emph{模拟证据}，参数值须在后续实证研究中以实际交易所数据确定。
+
+\paragraph{校准机制.}
+合成序列的构造步骤如下 (详细规格见附录 A 表 \ref{tab:cal_spec}；
+矩匹配见表 \ref{tab:moment_match}):
+USD/KRW 由正弦趋势 + 两个高斯冲击核 (2022 年 Q4 强势美元、2024-12 戒严) + 日均 IID N(0,4) 噪声生成。
+BTC/USDT 对数价格由 14 个历史锚定点之间的线性插值 + 累积高斯随机游走 N(0, 0.018) 增量生成；
+ETH、BNB、XVS 采用同一锚定插值方案，使用代币特定波动率。
+韩元基准溢价 $\pi^{\text{KRW}}_X(t)$ 由基准线漂移 + 8 个高斯事件凸起
+$h\cdot\exp(-((t-t_0)/\sigma_d)^2)$ (例如 2021-04 峰值 +18\%、2021-04-22 FSC 声明 -4\%、
+2022-11 FTX -4\%、2024-03 ATH +6\%、2024-07-19 VAUPA 阶跃 -2.5\%、2024-12-03 戒严 -32\%等)
++ N(0, 0.006) IID 噪声构成。随机种子固定为 \texttt{numpy.random.default\_rng(20260513)}，可完全复现。
+
+\paragraph{目标代币.}
+分析三种代币: \textbf{BNB} 为 BNB Chain 的 gas 代币，市值排名前 5 的大型资产，
+Bithumb 于 2021 年 5 月 27 日 KRW 配对上市。因此 BNB 本身的 Bithumb--Binance satoshi 溢价
+可从 2021-05-27 之后开始测量。\textbf{Venus (XVS)} 为 BNB Chain 的代表性 DeFi 治理代币，
+已在 Bithumb 以 KRW 配对上市，测量 BSC DeFi 市场的韩国零售需求渠道。
+\textbf{ETH} 为 ERC-20 基准资产。
+
+\paragraph{实证模型.}
+主要实证方程为:
+\begin{multline}
+\pi^{\text{BTC}}_X(t) = \beta_0 + \beta_1\pi^{\text{BTC}}_{\text{ETH}}(t) + \beta_2\text{RV}_{\text{BTC}}(t)
+                       + \beta_3\log\!\tfrac{V_X^B(t)}{V_X^N(t)} \\
+                       + \beta_4\Delta\log P_{\text{BTC}}(t)
+                       + \beta_5 D^{\text{KR}}_t + \beta_6 D^{\text{GL}}_t + u_t.
+\label{eq:reg}
+\end{multline}
+为控制金融时间序列固有的序列相关与异方差性，采用\textbf{Newey--West HAC 标准误}，
+Bartlett 核的截断滞后设为 $L=\lfloor 4(N/100)^{2/9}\rfloor$ (Newey \& West, 1987)。
+
+为检验非对称波动率假设 H2，对 $\Delta\pi^{\text{BTC}}_X$ 拟合 EGARCH(1,1)。
+因变量以百分比单位 (\(\times 100\)) 表示，并应用 $\pm 20\%$ winsorize 以限制极端值影响后估计
+(本预处理的含义在 \S 8 局限性 3 中讨论):
+\begin{equation}
+\log\sigma_t^2 \;=\; \omega + \alpha\!\left(|z_{t-1}|-\sqrt{2/\pi}\right) + \gamma z_{t-1} + \beta\log\sigma_{t-1}^2，
+\label{eq:egarch}
+\end{equation}
+其中 $z_t=e_t/\sigma_t$，$e_t=\Delta\pi^{\text{BTC}}_X(t)-\mu$。
+假设创新项 $z_t$ 服从自由度为 $\nu$ 的 Student-$t$ 分布，参数由 quasi-MLE 估计。
+杠杆项 $\gamma$ 取统计显著的负值意味着负向冲击较同等规模的正向冲击更大地增加溢价波动率，从而支持 H2。
+
+\section{实证结果}
+
+\subsection{程式化事实}
+
+\paragraph{F1. 韩元溢价的时间序列模式.}
+图 \ref{fig:krw_ts} 显示 BTC、ETH、BNB (2021-05-27 之后)、XVS 的韩元溢价时间序列。
+观察到 2021 年 4 月春季峰值 (约 22\%)、2024 年 3 月 BTC ATH 时第二个峰值 (约 10\%)、
+2024 年 7 月 VAUPA 实施后结构性进入逆溢价、以及 2024 年 12 月 3 日戒严宣布时
+$-32\%$ 水平的极端负向溢价。表 \ref{tab:summary} 中韩元溢价标准差为
+BTC 2.7\%、BNB 2.8\%、XVS 4.5\%。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig1_krw_premium_timeseries.png}
+\caption{Bithumb--Binance 韩元泡菜溢价 (含 BNB)，2020--2025。}
+\label{fig:krw_ts}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{溢价测量量摘要统计 (2020-01-01 至 2025-12-31)。}
+\label{tab:summary}
+\input{tab_summary.tex}
+\end{table}
+
+\paragraph{F2. Satoshi 溢价的 FX 噪声去除效果.}
+图 \ref{fig:satoshi_compare} 在同一时间轴比较两种 BSC 代币的韩元溢价与 BTC本位溢价。
+2022 年 Q4 韩美元汇率急升期间与 2024 年 12 月戒严期间，韩元溢价大幅发散，
+而 satoshi 溢价相对稳定。表 \ref{tab:summary} 中 satoshi 溢价标准差为 BNB 2.2\%、XVS 2.5\%，
+约为韩元溢价的二分之一 (BTC 自身的 satoshi 溢价按定义为 0)。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig2_satoshi_vs_krw.png}
+\caption{BSC 代币的韩元溢价 (上方) 与 BTC本位溢价 (下方)。}
+\label{fig:satoshi_compare}
+\end{figure}
+
+\paragraph{F3. 事件研究: 2024 年 12 月戒严冲击.}
+图 \ref{fig:event_martiallaw} 显示以戒严宣布日为 $t=0$ 的 $[-15, +15]$ 日窗口的日溢价。
+由于冲击仅限于韩国市场，资本深度最大的 BTC 比 BNB、XVS 的负向溢价更浅且恢复更快。
+这支持假设 H4。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../../figures/en/fig3_event_study_martiallaw.png}
+\caption{2024-12-03 紧急戒严宣布事件 ($\pm 15$ 日窗口)。}
+\label{fig:event_martiallaw}
+\end{figure}
+
+\paragraph{F4. Alpha 分布的 fat-tail.}
+图 \ref{fig:alpha_dist} 显示 $\alpha_{\text{XVS}}^{\text{ETH}}$ 的分布与 Q--Q 图。
+样本峰度显著高于正态分布，两侧尾部偏离显著。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../../figures/en/fig4_alpha_distribution.png}
+\caption{以 ETH 为基准的 alpha 分布 (左) 与 Q--Q 图 (右)。}
+\label{fig:alpha_dist}
+\end{figure}
+
+\paragraph{F5. 波动率--溢价关系的非对称.}
+图 \ref{fig:vol_scatter}: 韩元溢价与 BTC 实现波动率呈正相关，而 satoshi 溢价几乎无相关性。
+这表明汇率本身与波动率同步的宏观渠道混杂在韩元溢价测量中。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig5_volatility_scatter.png}
+\caption{BTC 实现波动率与溢价测量量。}
+\label{fig:vol_scatter}
+\end{figure}
+
+\paragraph{F6. 标准化方差比 ── $\mathrm{H_{BSC}}$ 假设的稳健检验.}
+图 \ref{fig:rho} 与表 \ref{tab:summary} 显示式 \eqref{eq:rho} 的标准化方差比 $\rho_X$。
+ETH 为 $\rho=0.42$ 最低，XVS 为 $\rho=0.82$，BNB 为 $\rho=1.13$。
+即使控制代币自身波动率后，两种 BSC 代币的标准化方差比仍\emph{分别约为 ETH 基准的 2 倍与 2.7 倍}，
+因此 $\mathrm{H_{BSC}}$ (在模拟上) 被拒绝。但本研究的标准化仅控制了代币价格波动率，
+未控制市值、链上活动度、代币基本面、治理事件等其他截面因素 (\S 7, \S 8)。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../figures/en/fig7_variance_ratio.png}
+\caption{标准化方差比 $\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$。}
+\label{fig:rho}
+\end{figure}
+
+\subsection{回归分析 (OLS + Newey--West HAC)}
+
+表 \ref{tab:regression} 报告式 \eqref{eq:reg} 的 OLS 估计结果，
+同时给出\emph{经典}标准误与\textbf{Newey--West HAC} ($L=7$) 标准误。
+
+\begin{table}[H]
+\centering
+\caption{式 \eqref{eq:reg} 的 OLS 估计结果 ($N=1{,}904$，因变量 $\pi^{\text{BTC}}_{\text{XVS}}$)。}
+\label{tab:regression}
+\input{tab_regression.tex}
+\end{table}
+
+\paragraph{核心发现 ── HAC 校正改变了结论.}
+ETH satoshi 溢价系数 $\beta_1=1.40$ 在两种标准误下均高度显著
+($t_{\text{OLS}}=25.0$，$t_{\text{HAC}}=12.5$)，
+表明 XVS 的 satoshi 溢价以 1:1 以上比例跟踪 ETH satoshi 溢价。
+然而韩国监管虚拟变量 $\beta_5$ 在 OLS 下 $t=3.1$ ($p<0.01$) 显著，
+但 HAC 校正后 $t=1.12$，\emph{丧失显著性}。
+这是因为韩国监管事件具有持续数日的序列相关性，
+OLS 的独立性假设低估了标准误。
+相比之下，全球冲击虚拟变量 $\beta_6=-0.019$ 在 HAC 校正后仍 $t=-3.81$ ($p<0.001$) 强显著，
+表明全球冲击对溢价的影响更为即时且序列相关性较弱。$R^2=0.27$。
+
+\subsection{EGARCH(1,1) ── 非对称波动率检验 (H2)}
+
+表 \ref{tab:egarch} 报告对 $\Delta\pi^{\text{BTC}}_{\text{XVS}}$ 拟合的 EGARCH(1,1) 估计结果。
+
+\begin{table}[H]
+\centering
+\caption{EGARCH(1,1) 估计结果 ($N=1{,}903$，因变量 $\Delta\pi^{\text{BTC}}_{\text{XVS}}$)。}
+\label{tab:egarch}
+\input{tab_egarch.tex}
+\end{table}
+
+杠杆项 $\hat\gamma = -0.073$ ($t=-2.10$，$p<0.05$) 为统计显著的负值，支持假设 H2。
+Student-$t$ 自由度估计 $\hat\nu=37.4$ 意味着 winsorized 数据样本中创新项几乎接近正态分布；
+但 $\nu$ 是显式估计而非作为先验假设强制，因此保证了模型稳健性。
+信息准则为 AIC = 9{,}244.72，BIC = 9{,}278.03。
+图 \ref{fig:egarch} 显示拟合残差时间序列与条件波动率 $\hat\sigma_t$，
+图 \ref{fig:egarch_diag} 显示标准化残差 $z_t$ 的诊断 (Student-$t$ Q--Q 图及 $z_t^2$ ACF)，
+模型很好地去除了波动率聚集。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig8_egarch_volatility.png}
+\caption{EGARCH(1,1) 残差与条件波动率。}
+\label{fig:egarch}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig9_egarch_diagnostics.png}
+\caption{EGARCH(1,1) 标准化残差的密度、Q--Q 图、自相关诊断。}
+\label{fig:egarch_diag}
+\end{figure}
+
+\subsection{交叉交易所比较 ── 泡菜溢价是市场低效率，还是监管成本？}
+\label{sec:cross}
+
+本小节用模拟证据支撑本研究的新识别策略。
+泡菜溢价究竟是 ``韩国零售非理性需求'' 还是 ``资本管制与 Travel Rule 造成的套利限制''？
+本研究提出的识别策略很简单: \emph{直接比较海外交易所之间的 BTC本位溢价波动率与 Bithumb-海外交易所对的波动率}。
+如果泡菜溢价本质上源自 ``零售狂热''，那么这种狂热应当作用于所有交易所，
+交易所之间价格应当广泛分散。反之，如果泡菜溢价是\emph{仅限于韩国市场的资本管制成本}，
+那么只有包含韩国交易所的对才会有大波动率，海外交易所对则应较小。
+
+\noindent\textbf{阅读注意.} 下述定量结果基于合成数据。
+OKX 与 Bybit 的价格时间序列仅以 ``无监管摩擦的微观结构噪声'' 进行建模
+(参见附录 A 表 \ref{tab:cal_spec} 的注解)，
+因此海外对的溢价显示较小是\emph{部分地} 本研究建模假设的函数。
+不能断定 OKX、Bybit 在实际市场中也精确呈现 0.2--0.3\% 的标准差，
+本结果应解释为\emph{在给定校准下识别假设如何呈现的模拟示范}。
+精确实证检验留待后续研究 (\S 8 后续研究议程 7)。
+
+\begin{table}[H]
+\centering
+\caption{交叉交易所 BTC本位溢价摘要统计 (2020-01-01 至 2025-12-31)。}
+\label{tab:cross_exchange}
+\small
+\input{tab_cross_exchange.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig10_cross_exchange.png}
+\caption{海外交易所之间与含 Bithumb 对的 BTC本位溢价比较。}
+\label{fig:cross_exchange}
+\end{figure}
+
+表 \ref{tab:cross_exchange} 与图 \ref{fig:cross_exchange} 将相同的 BTC本位测量式 \eqref{eq:pi_btc}
+应用于 Binance--OKX--Bybit 之间所有交易所对。核心结果如下:
+\begin{itemize}
+\item \textbf{海外交易所之间的 satoshi 溢价实际为零。} ETH 基准下 Binance↔OKX 标准差 0.23\%、
+Binance↔Bybit 0.25\%、OKX↔Bybit 0.34\%。BNB 基准下也为 0.22--0.32\% 水平，99\%-1\% 区间在 $\pm 0.8\%$ 以内。
+\item \textbf{含 Bithumb 对的 satoshi 溢价相差数量级。} ETH 基准下 Bithumb↔Binance、
+Bithumb↔OKX、Bithumb↔Bybit 均为 0.85--0.90\% 标准差，约为海外对的 3--4 倍。
+BNB 基准下为 1.59--1.63\%，约 7 倍。
+\item \textbf{结果对 Bithumb 配哪一个海外交易所都成立。} 即泡菜溢价的 ``一侧'' 是 Bithumb 单独，
+而 ``另一侧'' 是什么都没有明显差异。这进一步支持泡菜溢价的根源在 Bithumb 侧，
+即仅限于韩国市场的非对称。
+\end{itemize}
+
+这种非对称是本研究的核心政策发现。海外交易所之间，套利者可以无时差地自由转移加密资产，
+因此暂时性价格偏离在分钟级被消解 (与 Makarov \& Schoar, 2020 表 3 一致)。
+相比之下，韩国交易所受外汇交易法、Travel Rule、实名验证虚拟账户制度、外籍人士交易禁止等
+\emph{阻断套利通道本身的监管}约束，价格偏离持续数日至数周。
+因此泡菜溢价不应解释为 ``市场未能解开的低效率''，而应解释为 ``监管所施加的分割成本''。
+
+\subsection{资本外流的定量证据 ── 泡菜溢价的政策成本}
+\label{sec:policy}
+
+如识别策略所示，若泡菜溢价是监管造就的价格非对称，
+则该价格非对称对某些人构成\emph{套利机会}。
+追逐该套利机会的资金移动绕过韩国外汇监管，被分类为\emph{非法外汇交易}的可能性较高。
+本研究提出泡菜溢价与已查获非法外汇交易之间的\emph{结构性关联}，但\emph{不下因果断言}。
+利用加密资产进行的非法外汇交易中混杂着财产逃避、单纯汇款监管规避、洗钱等多种类型，
+泡菜溢价套利可推测为这些通道中\emph{最主要的结构性驱动因素之一}。
+查获统计应解释为政策成本的直接测量不如说是
+``若泡菜不存在则不会发生的资本外流行为的上限指标''。
+
+\begin{table}[H]
+\centering
+\caption{关税厅查获 ── 利用加密资产的非法外汇交易 (2018--2025)。}
+\label{tab:policy_cost}
+\small
+\input{tab_policy_cost.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig11_policy_cost.png}
+\caption{韩国关税厅查获资料 ── 以加密资产为媒介的非法外汇交易规模。}
+\label{fig:policy_cost}
+\end{figure}
+
+9 年累计查获额约 14.2 万亿韩元，其中 2024 年 1.1579 万亿韩元、
+2025 年 1--8 月 0.8813 万亿韩元 (2024--2025 部分累计约 2.0392 万亿韩元) 被\emph{查获}。
+查获类型包括贸易款伪装汇款、无登记外汇业务 (``换钱'')、空壳公司利用等；
+韩国最高法院 2025 年 9 月 4 日宣告 (2024 도 16540) 将 ``以监管规避为目的的层级化汇款''
+明确为无登记外汇业务的犯罪行为。
+同时需考虑 \emph{查获率仅为一部分} 与 \emph{并非所有查获均源于泡菜套利} 两点。
+尽管如此，将泡菜溢价与 \S\ref{sec:cross} 确认的套利机会的结构性属性放在一起，
+本统计可作为泡菜溢价对韩国经济施加的\emph{经济成本的间接指标}加以使用。
+
+\section{讨论}
+
+\paragraph{作为测量工具的 satoshi 溢价.}
+本研究最稳健的发现是 BTC本位测量式比传统 KRW 测量式具有\emph{系统性更优的统计性质}。
+当 2024 年 12 月戒严之类的国内外汇政治冲击发生时韩元溢价爆发性发散，
+而 satoshi 溢价相对稳定；反之对 LUNA (2022.5)、FTX (2022.11) 之类的全球冲击 satoshi 溢价敏感反应。
+\emph{同时}监测两种测量式可分解国内冲击与全球冲击。
+
+\paragraph{$\rho_{\text{BNB}}>\rho_{\text{XVS}}$ 的微观结构解释.}
+标准化方差比中 BNB ($\rho=1.13$) 大于 XVS ($\rho=0.82$) 这一结果\emph{无法仅以 DEX 接入壁垒一种假设直接解释}。
+BNB 是市值排名前 5 的大型资产，在 Bithumb 与 Binance 双方流动性丰富，
+直觉上应当更快均值回归而使 $\rho$ 变小。本研究提出两个补充假设。
+(i) \emph{基差交易导致的扰动}。BNB 是 Binance 永续合约的核心配对，
+现货--期货基差交易对 Bithumb BNB/KRW 价格施加微小扰动，
+推高分子 (溢价方差) (与 Capponi \& Jia, 2021 的 LP 套利模型相连)。
+(ii) \emph{微观结构噪声放大}。BNB 自身价格波动率略低于 ETH，
+因此标准化分子对小价格偏离敏感反应。即 $\rho_X$ 比较在大波动率资产与小波动率资产之间
+可能产生非对称解释。这是本研究将无套利带偏离\emph{持续时间} (duration) 分析另行推荐为后续研究的原因
+(\S 8 后续研究议程 6)，决定性结论予以保留。
+
+\paragraph{HAC 校正的含义.}
+表 \ref{tab:regression} 中韩国监管虚拟变量在 HAC 校正后丧失显著性这一点提供了重要的学术与政策启示。
+韩国监管事件在公布后数日至数周对溢价施加残余效应 (序列相关形式)，
+依赖 OLS 独立性假设的简单事件研究可能高估效应的统计显著性。
+
+\paragraph{交易所上市顾问应用.}
+公允溢价公式 \eqref{eq:fair_premium} 可应用为如下简化估计式:
+\begin{equation}
+\hat{\pi}_X^* \approx 1.8\% + 0.6\sigma_X^{\text{wk}} + 1.2\cdot\mathbb{1}_{\text{retail-heavy}} + 0.4\log(V_N/V_B).
+\end{equation}
+一般 BSC 主流代币在正常市场下的公允溢价约 4--6\%，山寨币季约 8--12\%，明显超过则成为低效率的定量证据。
+唯需再次强调，此式参数为模拟基础估计值。
+
+\paragraph{政策含义 ── 自主竞争与外籍人士接入的自主化.}
+\emph{在本模拟反映实际市场结构一阶近似的假设下}，
+\S\ref{sec:cross} 与 \S\ref{sec:policy} 的分析提示如下政策方向。
+
+第一，KYC/AML/CFT 体系\emph{维持当前强度或加强方向}似乎合适。
+加密资产被用作洗钱或恐怖融资通道的可能性与 Travel Rule 无关，应独立控制，
+这也符合全球标准 (FATF Recommendation 16)。
+
+第二，然而外籍人士对韩国交易所使用与交易的限制\emph{可考虑渐进自主化}。
+现行外籍人士交易禁止监管很可能是阻断套利者进入并使泡菜溢价持续的主要机制之一，
+由此 (i) 韩国零售投资者以低效率价格交易而蒙受一定福利损失，
+(ii) 追逐套利机会的资金通过伪装汇款、换钱等非法通道外流，
+(iii) 作为其经济成本的间接指标，9 年累计已查获非法外汇交易达约 14.2 万亿韩元 ── 此为本研究的定量发现。
+
+第三，\emph{原韩元基础稳定币基础设施完善}是自然的补充方案。
+如果 Travel Rule 阻断了套利的 ``时间''，韩元稳定币以同一 KYC 标准提供 ``通道''，可创建正常套利渠道。
+本模拟模型中此种政策包实施时，Bithumb-海外交易所之间的泡菜溢价标准差\emph{可能}收敛到海外对的水平 (0.2--0.3\%)，
+韩国市场提供资本外流结构性驱动的程度\emph{有望}显著缩小。
+但此种提示依赖于模拟的校准假设，实际政策决策应当基于以实证数据验证、校准本研究模型之后再应用 (\S 8)。
+
+\section{局限性与后续研究议程}
+
+\paragraph{局限性 1: 数据的合成性质.}
+本研究的所有定量数值基于合成时间序列，实际市场中的参数值可能不同。
+样本量、事件的精确位置与强度、参数估计 ($\beta_1=1.40$、$\hat\gamma=-0.073$、$\rho_X$ 比率) 依赖校准假设。
+后续实证研究的首要任务是用 Bithumb/Binance 官方 API 的 1 分钟或日度数据重跑相同管线以重新估计参数。
+
+\paragraph{局限性 2: $\mathrm{H_{BSC}}$ 假设检验的截面控制不足.}
+标准化方差比 $\rho_X$ 仅控制代币价格波动率，未控制市值、交易量、代币基本面等其他截面因素。
+BSC 与 ERC-20 代币可能是不同\emph{类型}的资产，由此存在潜在的选择偏差 (selection bias)。
+
+\paragraph{后续研究议程 1: BTCB vs WBTC 自然实验.}
+$\mathrm{H_{BSC}}$ 最干净的检验是比较\emph{同一资产的两条链版本}。
+BTCB (BSC 基比特币) 与 WBTC (ERC-20 基比特币) 均以 BTC 1:1 锚定为目标，基本面实际上相同。
+若两种资产都在 Bithumb 与 Binance 上市，
+$\rho_{\text{BTCB}}$ 与 $\rho_{\text{WBTC}}$ 的比较即可提供\emph{独立于基本面波动率} 识别 ``链效应'' 的自然实验。
+
+\paragraph{后续研究议程 2: 多种 BSC 代币面板分析.}
+本研究仅分析 BNB、XVS 两种代币，但若将 CAKE、BAKE、ALPACA、ALPHA 等在 Bithumb 或 Upbit 上市的多种
+BSC 代币扩展为面板数据，可用代币特性 (市值、流动性、Korean retail venue share) 解释 $\rho_X$ 的截面变异。
+
+\paragraph{后续研究议程 3: Travel Rule 效应的显式分析.}
+若在本研究的 satoshi 溢价框架中重新检验 Hwang et al.\ (2024) 显示的 Travel Rule 对套利通道的约束效应，
+可以 2022 年 3 月 25 日实施日为断点 (structural break) 拟合 regime-switching 模型。
+
+\paragraph{后续研究议程 4: DEX-CEX 价格发现的微观结构分析.}
+基于 Capponi \& Jia (2021) 模型，对 PancakeSwap LP 的套利动机与韩国零售投资者的 DEX 接入成本进行显式建模的
+结构估计 (structural estimation) 可超越单纯的假设检验，对 $\mathrm{H_{BSC}}$ 拒绝的机制进行定量分解。
+
+\paragraph{后续研究议程 5: 恐慌/狂热非对称的行为经济学解释.}
+若 EGARCH 杠杆项 $\gamma<0$ 在模拟与实际数据中都稳健为负，
+表明韩国零售投资者的损失厌恶 (loss aversion) 与处置效应 (disposition effect) 
+在宏观冲击时点以溢价非对称显现。与 Ahn \& Kim (2023) 的投资者类型分析结合，可提供行为经济学微观基础。
+
+\paragraph{局限性 3: EGARCH 分布假设与 winsorize.}
+本研究将 EGARCH(1,1) 创新项假设为 Student-$t$ 进行估计，但 $\hat\nu=37.4$ 实质上是正态分布水平。
+这是 $\pm 20\%$ winsorize 去除极端值的结果，若对原始数据应用 GED 分布或非对称 $t$ 分布 (Hansen, 1994)
+可捕获更厚尾。此外 EGARCH(1,1) 仅含一阶 GARCH 项，因此建议在稳健性检验层面与 GJR-GARCH 或 EGARCH(2,1)
+等替代规格进行 LR/AIC/BIC 比较。
+
+\paragraph{后续研究议程 6: 无套利带偏离持续时间分析.}
+$\rho_{\text{BNB}}>\rho_{\text{XVS}}$ 解释的模糊性 (\S 7) 可通过\emph{时点假设}转为\emph{期间假设}更好地识别。
+即比较某阈值 (例如公允溢价 5\%) 超出状态持续时间的分布，
+``DEX 接入壁垒'' 与 ``微观结构噪声'' 两个假设有不同的预测 (前者为长尾，后者为短而频繁的偏离)。
+Survival analysis 或 Hawkes 过程拟合是合适的工具。
+
+\paragraph{后续研究议程 7: 海外交易所 spread 的实证检验.}
+本研究的识别策略 (\S\ref{sec:cross}) 依赖 OKX、Bybit 仅以 ``无监管摩擦的微观结构噪声'' 建模的假设。
+该假设的实证检验是核心任务。具体而言:
+(i) 收集 Binance、OKX、Bybit 同时 1 分钟 BTC 数据，实测计算 pairwise BTC本位溢价；
+(ii) 验证与 Bithumb-海外对的\emph{数量级}差异在实际中是否观察到。
+若实测数量级差异与本模拟吻合，本研究的政策含义获得强实证基础。
+
+\paragraph{使用数据与代码公开.}
+本研究的合成数据生成、图表、表格、OLS·HAC·EGARCH 估计过程以 Python 编写，
+以可复现形式公开。完整数据 (CSV)、图表 (PNG) 与构建脚本可在 GitHub 存储库
+\href{https://github.com/gameworkerkim/vibe-investing}{\texttt{github.com/gameworkerkim/vibe-investing}}
+的 \texttt{Paper} 目录中查阅。
+
+\section{结论}
+
+本研究将 Bithumb 与 Binance 之间形成的价格差异以 BTC 为 num\'eraire 的 satoshi 溢价
+$\pi^{\text{BTC}}_X(t)$ 重新定义，并以 Bithumb 已上市的 BNB 与 Venus (XVS) 为案例呈现校准模拟证据。
+该测量式在测量阶段去除了汇率、资本管制、稳定币溢价、汇款延迟等以往混杂在 KRW 溢价中的宏观噪声，
+仅识别 ``Bithumb 内部代币 $X$ 相对 BTC 比较中究竟以多大相对昂贵程度交易'' 这一纯粹的代币层面非对称。
+
+模拟结果表明: (i) satoshi 溢价标准差约为 KRW 溢价的二分之一，呈现汇率噪声去除效果；
+(ii) 以标准化方差比衡量的 BSC 代币溢价波动率超过 ETH 基准，$\mathrm{H_{BSC}}$ (暂时性) 被拒绝；
+(iii) Newey--West HAC 校正后韩国监管虚拟变量丧失显著性而全球冲击虚拟变量强显著；
+(iv) EGARCH(1,1) 杠杆项负且显著，确认非对称波动率。
+
+本研究的贡献可概括为两点。第一，引入 BTC本位测量式这一新的\emph{测量工具}，
+通过命题 1 从理论上证明其统计优越性。
+第二，提出 BSC 代币的三角套利结构与标准化方差比 $\rho_X$ 作为\emph{检验工具}。
+这两种工具可直接应用于交易所上市顾问、套利系统设计，
+以及政策上对金融委员会、KoFIU 的泡菜溢价监测分析。
+
+\paragraph{模拟所提示的政策方向.}
+本研究通过\emph{交叉交易所比较} (\S\ref{sec:cross})，在模拟层面提示泡菜溢价
+更接近 ``韩国特化的监管摩擦的价格成本'' 而非 ``市场一般低效率''。
+Binance--OKX--Bybit 之间的 BTC本位溢价标准差为 0.2--0.3\%，而 Bithumb-海外对为 0.9--1.6\%，
+两者数量级不同的模拟结果\emph{概念性}地表明在套利通道存活的市场中泡菜溢价实际上消失。
+此外利用加密资产进行的非法外汇交易查获额 (9 年累计约 14.2 万亿韩元、2024--2025 年累计约 2 万亿韩元) 
+可解释为泡菜溢价对韩国经济施加成本的\emph{下限估计}。
+KYC/AML/CFT 的强度保持的同时，将外籍人士接入监管的渐进自主化与原韩元稳定币基础设施完善
+相结合的政策包，在模拟模型内提示了泡菜溢价结构性缩小的方向。
+\emph{实际政策决策应当基于以 Bithumb·Binance·OKX·Bybit 实际 API 数据重新估计本研究模型的
+后续实证研究的结果。}
+
+\appendix
+\section{附录 A: 校准机制与矩匹配}
+\label{app:calibration}
+
+由于本研究所有定量数值均由合成日度时间序列得出，
+此时间序列的统计特性是否符合文献中报告的韩国加密资产市场的程式化事实是核心稳健性检验。
+
+\paragraph{校准规格.}
+表 \ref{tab:cal_spec} 描述合成数据各构成要素 (汇率、代币价格、溢价、交易量)
+以何种概率机制生成。所有随机数以种子 \texttt{20260513} 固定，完全可复现。
+
+\begin{table}[H]
+\centering
+\caption{合成数据生成机制 (摘要)。}
+\label{tab:cal_spec}
+\small
+\input{tab_cal_spec.tex}
+\end{table}
+
+\paragraph{核心建模假设 ── 海外交易所的 spread.}
+交叉交易所比较 (\S\ref{sec:cross}) 的结果依赖于以下\emph{决定性}假设。
+OKX 与 Bybit 的价格时间序列由对 Binance 价格仅加上 AR(1) 微观结构噪声生成
+($\phi=0.55$，$\sigma_{\varepsilon}\in[0.0012, 0.0016]$)。
+即海外交易所之间假设\emph{无汇率噪声、资本管制、KYC 不对称}，
+这是建模 ``无监管摩擦交易所之间的无套利均衡'' 这一理论基线。
+因此海外对的模拟溢价为 0.2--0.3\% 水平是\emph{部分地} 此假设的\emph{直接函数}。
+尽管如此 (i) Binance--OKX 配对在实际交易所数据中观测到的 BTC 价格差异通常在 50 个基点以下
+(Pieters \& Vivanco, 2017)，(ii) 海外主流交易所之间可以无时差地资本移动，
+因此该假设作为实际市场的一阶近似合理。该假设的验证是后续实证研究的优先课题
+(\S 8 后续研究议程 7)。
+
+\paragraph{矩匹配.}
+表 \ref{tab:moment_match} 将合成时间序列的主要矩 (均值、标准差、超额峰度、AR(1) 系数)
+与文献报告值进行比较。4 个核心矩均符合文献范围，
+特别是 $\pi^{\text{KRW}}_{\text{BTC}}$ 的自相关系数 0.911 与 Choi et al.\ (2022) 报告的
+``high persistence'' 范围 (0.85--0.95) 精确一致。
+超额峰度 29.4 ($\pi^{\text{KRW}}_{\text{BTC}}$) 与 16.3 ($\pi^{\text{KRW}}_{\text{XVS}}$) 显著大于
+正态分布的 0，呈现 fat-tail 分布，与 Eom (2021) 和 Tiger Research (2024) 的定性报告吻合。
+
+\begin{table}[H]
+\centering
+\caption{矩匹配: 合成数据 vs 文献报告值。}
+\label{tab:moment_match}
+\small
+\input{tab_moment_match.tex}
+\end{table}
+
+\paragraph{Caveat.}
+矩匹配是\emph{必要条件}而非充分条件。即矩一致并不意味着实际交易所数据的所有微观结构特性
+(成交单位变动、买卖价不对称、日内模式等) 都能再现。
+实证研究的首项检验是验证本研究的参数估计 ($\beta_1=1.40$、$\hat\gamma=-0.073$、
+$\rho_{\text{BNB}}=1.13$、$\rho_{\text{XVS}}=0.82$) 在实际 1 分钟或日度数据中
+是否呈现相同符号与统计显著性。
+
+\section*{References}
+\begin{description}\itemsep4pt
+\item[{[1]}] Ahn, Y., \& Kim, D. (2023). Who drives the Kimchi premium?
+\emph{Economics Letters}, 226, 111100.
+\item[{[2]}] Borri, N., \& Shakhnov, K. (2020). Regulation spillovers across cryptocurrency markets.
+\emph{Finance Research Letters}, 36, 101333.
+\item[{[3]}] Capponi, A., \& Jia, R. (2021). The adoption of blockchain-based decentralized exchanges.
+\emph{arXiv preprint} arXiv:2103.08842.
+\item[{[4]}] Choi, S., Lehar, A., \& Stauffer, R. (2022). Bitcoin microstructure and the kimchi premium.
+\emph{Working Paper}, University of Calgary.
+\item[{[5]}] Eom, Y. (2021). Kimchi premium and speculative trading in bitcoin.
+\emph{Finance Research Letters}, 38, 101505.
+\item[{[6]}] Gromb, D., \& Vayanos, D. (2010). Limits of arbitrage.
+\emph{Annual Review of Financial Economics}, 2, 251--275.
+\item[{[7]}] Hwang, S., Kim, I., \& Park, S. (2024). The impact of the Travel Rule on the Korean cryptocurrency market.
+\emph{Working Paper}.
+\item[{[8]}] Kim, S., Park, H., \& Cho, M. (2022). The kimchi premium and bitcoin-cashing outlets.
+\emph{Finance Research Letters}, 47, 102785.
+\item[{[9]}] Kim, J. (2024). Enhancing reinforcement learning-based crypto asset trading: focusing on the Korean venue share indicator.
+\emph{Journal of Financial Data Science}, 6(2), 45--64.
+\item[{[10]}] Liu, Y., Tsyvinski, A., \& Wu, X. (2022). Common risk factors in cryptocurrency.
+\emph{Journal of Finance}, 77(2), 1133--1177.
+\item[{[11]}] Makarov, I., \& Schoar, A. (2020). Trading and arbitrage in cryptocurrency markets.
+\emph{Journal of Financial Economics}, 135(2), 293--319.
+\item[{[12]}] Newey, W., \& West, K. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix.
+\emph{Econometrica}, 55(3), 703--708.
+\item[{[13]}] Pieters, G., \& Vivanco, S. (2017). Financial regulations and price inconsistencies across bitcoin markets.
+\emph{Information Economics and Policy}, 39, 1--14.
+\item[{[14]}] Tiger Research (2024). Kimchi premium 101: Korea's crypto market characteristics and causes.
+\emph{Tiger Research Reports}, November.
+\end{description}
+
+\end{document}

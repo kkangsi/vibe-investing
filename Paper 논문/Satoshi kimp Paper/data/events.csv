@@ -1,0 +1,15 @@
+date,event,type
+2020-03-12,COVID-19 crash; BTC -50% in 24h,global_crash
+2020-10-15,XVS launched on Binance,listing
+2021-01-28,GameStop frenzy; KR attention drain,domestic_diversion
+2021-04-07,Spring kimchi peak; BTC ~$58k,speculation_peak
+2021-04-22,FSC chair (Eun Sung-soo) remarks,regulatory_kr
+2021-05-19,BTC -30% China mining ban,global_crash
+2021-09-24,China total crypto ban,regulatory_global
+2022-05-12,Terra-LUNA collapse,global_crash
+2022-11-09,FTX bankruptcy,global_crash
+2023-06-05,SEC sues Binance,regulatory_global
+2024-01-10,US BTC spot ETF approval,regulatory_global
+2024-03-13,BTC ATH ~ $73k,speculation_peak
+2024-07-19,Korea Virtual Asset User Protection Act effective,regulatory_kr
+2024-12-03,President Yoon declares martial law,domestic_crash

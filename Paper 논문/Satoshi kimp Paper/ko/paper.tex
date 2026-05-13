@@ -1,0 +1,846 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{xeCJK}
+\setCJKmainfont{Noto Serif CJK KR}
+\setCJKsansfont{Noto Sans CJK KR}
+\setmainfont{Latin Modern Roman}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{array}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black,
+            citecolor=blue!50!black, urlcolor=blue!50!black}
+
+\title{\textbf{바이낸스--빗썸 사이의 사토시 김프 연구}\\[6pt]
+       \large The Bithumb--Binance BTC-num\'eraire Premium:\\
+       A Theoretical Framework with Calibrated Simulation Evidence\\
+       on BNB Chain Tokens}
+
+\author{김호광 (HoKwang Kim)\\
+        \small Betalabs Inc., \emph{Cyworld Z 전 CEO}\\
+        \small \emph{2017년부터 Blockchain · Web3 사업과 개발을 수행한 실무 경험자}\\
+        \small ORCID: \href{https://orcid.org/0009-0002-0962-2175}{0009-0002-0962-2175}\\
+        \small Repository: \href{https://github.com/gameworkerkim/vibe-investing}{github.com/gameworkerkim/vibe-investing}\\
+        \small \texttt{gameworker@gmail.com}}
+
+\date{2026년 5월 (revised)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent 본 연구는 한국 가상자산 거래소 빗썸(Bithumb)과 글로벌 거래소 바이낸스(Binance) 사이에
+형성되는 가격 괴리를 BTC를 num\'eraire로 한 새로운 측정식 $\pi^{\text{BTC}}_X(t)$로 재정의하는
+\emph{이론적 프레임워크}와, 2020--2025년 합성 시계열에 기반한 \emph{calibrated simulation evidence}를
+함께 제시한다. 관례적 원화 기준 김프 $\pi^{\text{KRW}}_X(t)$는 환율, 자본통제, 스테이블코인 프리미엄,
+송금지연 등 다중 요인이 혼재되어 토큰별 비대칭 수요 충격을 식별하기 어렵다. 이에 대한 해결책으로 본 논문은
+\[
+   \pi^{\text{BTC}}_X(t)=\frac{P_X^B/P_{\mathrm{BTC}}^B}{P_X^N/P_{\mathrm{BTC}}^N}-1
+\]
+를 제안하며, 명제 1(FX 노이즈 상쇄)을 통해 이 측정식이 환율 및 자본통제 노이즈를 분자--분모 상쇄로
+제거함을 증명한다. 분석 대상은 BNB(빗썸 2021-05-27 상장된 BNB 체인의 가스 토큰), Venus(XVS, BSC DeFi),
+ETH(베이스라인) 세 토큰이다. 토큰 고유 변동성을 통제하기 위해 정규화 분산 비율
+$\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$
+을 도입했으며, OLS 회귀는 Newey--West HAC 표준오차로, 비대칭 변동성은 EGARCH(1,1)로 추정한다.
+시뮬레이션 결과는 (i) 사토시 김프 표준편차가 KRW 김프의 약 1/2 수준이라는 환율 노이즈 제거 효과,
+(ii) 정규화 후에도 BNB($\rho=1.13$)와 XVS($\rho=0.82$)가 ETH($\rho=0.42$)를 상회한다는 \emph{잠정적} BSC 비효율,
+(iii) HAC 보정 후 한국 규제 더미가 유의성을 상실하나 글로벌 충격 더미는 유의성 유지($p<0.001$),
+(iv) Student-$t$ 혁신항을 가정한 EGARCH(1,1)의 레버리지 항 $\hat\gamma=-0.073$ ($p<0.05$)로 비대칭 변동성 가설 H2가 지지됨을 시사한다.
+\\[4pt]
+\textbf{Keywords}: kimchi premium, BTC-num\'eraire, BNB Chain, capital controls, triangular arbitrage,
+limits to arbitrage, EGARCH, Newey--West HAC, Bithumb, Binance\\
+\textbf{JEL classification}: G14, G15, F31, G18
+
+\medskip
+\noindent\textbf{Disclosure on data.} 본 논문의 모든 정량 결과는 선행 문헌의 stylized facts와 실시간 거래소 데이터의 일반적 특성에 부합하도록 calibration된 합성 일별 시계열에 기초한다. 이는 측정식의 통계적 성질을 검증하기 위한 시뮬레이션 증거이며, 실제 시장에서의 모수치는 후속 실증 연구를 통해 확정되어야 한다.
+\end{abstract}
+
+\section{서론}
+
+한국의 가상자산 시장은 외환거래법과 특정금융정보법(특금법), 트래블룰, 실명확인 가상계좌 제도,
+외국인 거래 금지 등 다층적 제도적 장벽으로 인해 글로벌 시장과 부분적으로 단절되어 있다
+(Makarov \& Schoar, 2020; Choi et al., 2022; Hwang et al., 2024). 이러한 시장 분단(market segmentation)의
+결과로 한국 거래소에서 거래되는 암호자산 가격은 해외 거래소 대비 ``김치 프리미엄''(kimchi premium)이라
+불리는 지속적인 가격 괴리를 보이며, 2017--2018년 비트코인 강세장에서는 약 50\%까지 확대된 바 있다
+(Makarov \& Schoar, 2020; Eom, 2021).
+
+기존 김치 프리미엄 연구는 거의 전적으로 원화 기준 김프(KRW-anchored premium)에 초점을 맞춰왔다.
+즉, 빗썸/업비트의 토큰 $X$ 원화 가격을 해외 거래소의 USD(또는 USDT) 가격과 원-달러 환율로
+환산한 값과 비교하는 방식이다. 그러나 이 측정 방식은 토큰 단위에서 정의되는 ``김프''에 다음과 같은
+혼재 요인(confounder)을 함께 포함한다: 원-달러 환율의 일중 변동성, 스테이블코인(USDT) 자체의 프리미엄,
+은행 송금 지연, 그리고 자본통제 프리미엄. 이로 인해 ``특정 토큰 $X$가 한국 시장에서 비대칭적으로
+비싸진 것인가, 아니면 전체 가상자산 시장에 대한 한국 retail의 일반적 수요가 강했던 것인가''를
+식별하기 어렵다.
+
+본 연구는 세 가지 기여를 제시한다. 첫째, BTC를 거래소 내부의 num\'eraire로 사용하는
+\emph{사토시 김프} $\pi^{\text{BTC}}_X(t)$를 정식화하고, 이 측정식이 환율과 자본통제 같은
+거시적 노이즈를 분자--분모 상쇄로 제거함을 명제 1을 통해 증명한다(제3절). 둘째, BNB 체인 기반 토큰의
+삼각 차익 구조를 정식화하고, 토큰 고유 변동성을 통제하는 \emph{정규화 분산 비율} $\rho_X$를 도입하여
+BSC 비효율 가설 H$_{\text{BSC}}$를 견고하게 검정한다. 셋째, 실증 분석에 Newey--West HAC 표준오차와
+EGARCH(1,1) 비대칭 변동성 모형을 적용함으로써 자기상관 및 이분산성을 통제한 추정 결과를 제시한다.
+
+\paragraph{식별 전략: 비한국 거래소 간 비교.}
+김치 프리미엄을 ``한국 retail의 광기''로 보는 통속적 해석과 ``자본통제로 인한 차익거래 제약''으로 보는
+정책적 해석 중 어느 쪽이 우세한가? 본 연구는 \emph{비한국 거래소 간 BTC-num\'eraire 김프 변동성과
+빗썸-비한국 김프 변동성의 비교}라는 새로운 식별 전략을 도입한다. 시뮬레이션 결과(§6.4) Binance↔OKX,
+Binance↔Bybit, OKX↔Bybit 사이의 사토시 김프 표준편차는 ETH 기준 0.23--0.34\%로 사실상 영(0)에
+가까운 반면, 빗썸-비한국 거래소 쌍은 0.85--0.90\%로 \emph{약 3--4배 크고} BNB 기준에서는 7배에
+가깝다. 비한국 거래소 간에는 같은 위험을 부담하는 차익거래자가 시차와 시스템 제약 없이
+자금을 이동시킬 수 있는 반면, 한국 거래소는 외환거래법·트래블룰·KYC 비대칭으로 인해 이러한
+arbitrage 메커니즘이 작동하지 못한다. 따라서 김치 프리미엄은 ``시장의 비효율''이 아니라
+\emph{규제가 부과하는 가격 비용}임이 명확하다.
+
+\paragraph{국부 유출의 정량적 증거.}
+관세청 자료(2025년 10월 최은석 의원실 공개)에 따르면 가상자산을 이용한 불법 외환거래
+적발액은 2018--2025년 누적 약 14.2조원에 달하며, 이 가운데 2024년 1조 1,579억원,
+2025년 1--8월 8,813억원이 적발되었다(\S6.5, 그림 \ref{fig:policy_cost}, 표 \ref{tab:policy_cost}).
+이는 \emph{탐지된} 거래만 집계한 \emph{하한}이며, 실제 유출 규모는 이보다 크다. 김치 프리미엄이
+지속되는 한 한국 시장은 자본 유출의 구조적 동인을 제공하며, 그 비용은 한국 경제가 부담한다.
+
+본 연구의 분석 대상은 \emph{빗썸과 바이낸스 양쪽에 동시 상장된} 세 토큰이다: (1) BNB --- BNB 체인의 가스 토큰이자 시총 5위급 대형 자산, 빗썸에는 2021년 5월 27일 상장(Bithumb 공식 공지). (2) Venus(XVS) --- BNB 체인의 대표적 DeFi 거버넌스 토큰, 시총 중형. (3) ETH --- ERC-20 베이스라인.
+
+\paragraph{논문 구성.} 제2절 선행 연구. 제3절 4가지 김프 측정식, 무차익 균형, 삼각 차익 구조와 H$_{\text{BSC}}$ 가설.
+제4절 5개의 검정 가능한 가설. 제5절 데이터와 방법론. 제6절 실증 결과(stylized facts + Newey--West HAC OLS + EGARCH).
+제7절 결과의 해석과 정책적 함의. 제8절 한계와 후속 연구 의제.
+
+\section{선행 연구}
+
+\paragraph{차익거래 제약의 일반 이론.}
+Gromb \& Vayanos (2010)는 차익거래자(arbitrageur)가 자본 제약과 위험 회피로 인해
+원리적으로 무위험 차익 기회를 즉시 해소하지 못하는 일반적 메커니즘을 정리했다.
+한국 가상자산 시장의 김치 프리미엄은 이러한 ``limits to arbitrage'' 프레임의
+원형적 사례로, 자본통제와 KYC 제도가 차익거래자의 진입 자체를 막는 강력한
+구조적 마찰을 형성한다.
+
+\paragraph{김치 프리미엄의 발생 메커니즘.}
+Makarov \& Schoar (2020)은 비트코인 가격이 미국, 한국, 일본, 유럽 등 주요 시장 사이에서
+지속적으로 괴리되는 현상을 문서화하고, 이러한 괴리가 자본통제와 규제 차이로 인한 차익거래 제약에서
+비롯된다고 보였다. 한국-미국 사이의 평균 일별 가격 비율이 2017년 12월--2018년 2월 기간에 15\%를
+초과했으며 며칠 동안 40\%에 도달했다. Eom (2021)은 GMM 추정을 통해 김치 프리미엄이 거래량과 가격
+불안정성으로 설명될 수 있음을 보였고, Choi et al. (2022)는 한국의 자본통제가 차익거래자의 진입을 막아
+프리미엄의 평균회귀 속도를 늦춘다고 주장했다. 보다 최근에 Ahn \& Kim (2023)은 빗썸 마이크로 데이터를
+이용해 김치 프리미엄을 주도하는 투자자 유형을 식별하고, 개인 retail이 변동성의 주된 동인임을 보였다.
+
+\paragraph{차익거래 제약과 외부 spillover, 규제 충격.}
+Borri \& Shakhnov (2020)는 중국 정부의 가상자산 규제 강화가 ``China shock'' 형태로 한국 시장에
+spillover됨을 보였고, Kim et al. (2022)은 한국은행 행정 데이터를 활용해 김치 프리미엄이 상승할 때
+중국으로의 송금이 증가함을 실증했다. 이는 김치 프리미엄을 단순한 한국 retail의 광기로만 해석할 수 없고,
+중국 채굴업자의 자금 환전 통로로도 기능했음을 시사한다. Hwang et al. (2024)은 2022년 3월 시행된
+트래블룰(Travel Rule)이 한국 거래소 간 차익거래 채널을 추가로 제약하면서 김치 프리미엄의 평균회귀
+속도를 더욱 늦췄음을 보였으며, 이는 본 연구의 가설 H4(규제 충격 비대칭) 검증과 직접 관련된다.
+
+\paragraph{암호화폐 시장의 가격 결정 요인과 미시구조.}
+Liu, Tsyvinski \& Wu (2022, \emph{Journal of Finance})는 암호화폐 시장 전반에 작용하는 공통 위험요인
+(크립토 시장 베타, 크기, 모멘텀)을 식별했다. 이를 활용하면 토큰 고유 알파와 시장 공통 요인을 분리할 수 있으며,
+본 연구의 정규화 분산 비율 $\rho_X$도 같은 맥락에서 토큰 고유 변동성으로 김프 변동성을 ``디플레이트''한다.
+Pieters \& Vivanco (2017)는 거래소 간 비트코인 가격 차이가 정보 비대칭이 아닌 유동성 구조에서 비롯된다고 분석했고,
+Capponi \& Jia (2021)는 DEX와 CEX 사이의 가격 발견 메커니즘과 LP의 차익거래 동기를 모형화했다.
+Capponi \& Jia (2021)의 프레임은 본 연구 §3.3의 BSC 삼각 차익 구조에 직접적인 이론적 토대를 제공한다.
+
+\paragraph{알트코인과 거래소 segmentation.}
+Tiger Research (2024)는 한국 거래소의 알트코인 편향성을 정량화하여 2024년 7월 AVAIL 토큰의 상장 직후
+김프가 1,255\%까지 확대된 사례를 보고했다. Kim (2024)는 ``Korean venue share'' 지표를 도입해
+한국 거래소의 비중이 알트코인 수익률에 미치는 영향을 강화학습 환경에서 분석했다.
+
+\paragraph{본 연구의 위치와 차별성.}
+본 연구는 Makarov \& Schoar (2020)의 cross-country arbitrage 프레임을 \emph{intra-country, inter-token}
+차원으로 재구성하고, Capponi \& Jia (2021)의 CEX--DEX 가격 발견 모형을 빗썸--바이낸스--PancakeSwap 삼각
+구조로 확장한다. 본 연구가 아는 한 BTC를 num\'eraire로 명시적으로 활용하여 토큰 수준 김프를 정의한 첫 시도이다.
+
+\section{이론적 프레임워크}
+
+\subsection{표기와 4가지 김프 측정식}
+
+토큰 $X$에 대해 시각 $t$에서의 관측 변수를 다음과 같이 정의한다.
+$P_X^{B,\text{KRW}}(t)$는 빗썸의 $X$ 원화 가격, $P_X^{N,\text{USDT}}(t)$는 바이낸스의 $X$-USDT 가격,
+$E_t$는 한국은행 매매기준율, $P_{\text{USDT}}^{B,\text{KRW}}(t)$는 빗썸의 USDT/KRW 페어,
+$P_{X/\text{BNB}}^{\text{DEX}}(t)$는 PancakeSwap의 $X$/BNB 풀 가격이다. 네 가지 측정식을 정의한다.
+
+\paragraph{(M1) 환율 기준 김프.}
+\begin{equation}
+\pi^{\text{KRW}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot E_t}-1
+\label{eq:pi_krw}
+\end{equation}
+
+\paragraph{(M2) USDT 기준 김프.}
+\begin{equation}
+\pi^{\text{USDT}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot P_{\text{USDT}}^{B,\text{KRW}}(t)}-1
+\label{eq:pi_usdt}
+\end{equation}
+
+\paragraph{(M3) BTC-num\'eraire 김프 ─ 본 연구의 핵심 측정식.}
+\begin{equation}
+\boxed{\;
+\pi^{\text{BTC}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)/P_{\text{BTC}}^{B,\text{KRW}}(t)}
+                                {P_X^{N,\text{USDT}}(t)/P_{\text{BTC}}^{N,\text{USDT}}(t)} - 1
+\;}
+\label{eq:pi_btc}
+\end{equation}
+
+\begin{quote}
+\textbf{명제 1 (FX 노이즈 상쇄).}
+빗썸의 두 가격이 같은 통화(KRW)로, 바이낸스의 두 가격이 같은 통화(USDT)로 표시될 때,
+$\pi^{\text{BTC}}_X(t)$는 환율 $E_t$, USDT 김프 $P_{\text{USDT}}^{B,\text{KRW}}(t)$,
+스테이블코인 자체 변동에 의존하지 않는다.
+\end{quote}
+
+\noindent\textbf{증명.} 분자에서 빗썸의 두 KRW 가격을 비율로 취하면 통화 단위가 소거되고,
+분모에서 바이낸스의 두 USDT 가격을 비율로 취하면 통화 단위가 소거된다. 따라서 $\pi^{\text{BTC}}_X$는
+통화 환산 인자를 전혀 포함하지 않는다. \hfill$\Box$
+
+\paragraph{(M4) ETH-baseline 알파.}
+\begin{equation}
+\alpha_X^{\text{ETH}}(t) = \pi^{\text{BTC}}_X(t) - \pi^{\text{BTC}}_{\text{ETH}}(t)
+\label{eq:alpha}
+\end{equation}
+
+\subsection{무차익 균형과 적정 프리미엄}
+
+차익거래 cycle의 비용을 다음과 같이 분해한다:
+\begin{equation}
+\pi^*_X(t) = c_X^{\text{out}}+c_X^{\text{in}} + f^{\text{KYC}}+f^{\text{KRW}}
+           + r_t\Delta t + \kappa\sigma_X\sqrt{\Delta t}
+           + \lambda_t^{\text{KOR}} + \eta_X^{\text{liq}}
+\label{eq:fair_premium}
+\end{equation}
+
+각 항의 추정치를 표 \ref{tab:fair_premium}에 정리한다.
+
+\begin{table}[H]
+\centering
+\caption{무차익 적정 프리미엄의 항별 분해 (\%, 5일 차익 cycle 기준)}
+\label{tab:fair_premium}
+\begin{tabular}{lccc}
+\toprule
+항 & BTC & ETH (ERC-20) & BSC 토큰 (BEP-20) \\
+\midrule
+체인 출금 수수료 $c^{\text{out}}$ & 0.005--0.02 & 0.05--0.30 & 0.001--0.05 \\
+KRW 출금 수수료 $f^{\text{KRW}}$  & 0.05 & 0.05 & 0.05 \\
+자본구속 비용 $r\Delta t$         & 0.04 & 0.04 & 0.04 \\
+변동성 헤지 $\kappa\sigma\sqrt{\Delta t}$ & 1.5--2.5 & 1.8--3.0 & 2.5--6.0 \\
+자본통제 프리미엄 $\lambda^{\text{KOR}}$ & 1.0--3.0 & 1.0--3.0 & 1.0--3.0 \\
+유동성 프리미엄 $\eta^{\text{liq}}$ & 0.1--0.5 & 0.3--0.8 & 1.5--5.0 \\
+\midrule
+\textbf{합계 $\pi^*$} & \textbf{2.7--6.1} & \textbf{3.2--7.2} & \textbf{5.1--14.1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{BSC 토큰의 삼각 차익 구조와 정규화 분산 비율}
+
+BNB 체인 토큰은 세 가격 발견 경로를 가진다(그림 \ref{fig:triangle}): (i) 빗썸--바이낸스 직접 경로,
+(ii) PancakeSwap DEX 우회 경로, (iii) BTC num\'eraire 경로. 또한 BNB 자체가 빗썸에 상장되어 있으므로
+BSC 토큰의 분석에는 BNB 본체와 BSC DeFi 토큰(예: XVS) 모두를 활용할 수 있다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{../figures/fig6_triangular_structure.png}
+\caption{BSC 토큰의 삼각 가격 채널}
+\label{fig:triangle}
+\end{figure}
+
+\paragraph{가설 H$_{\text{BSC}}$의 정식화.}
+원래 직관은 ``PancakeSwap이라는 추가 차익 채널이 있으므로 BSC 토큰의 사토시 김프 변동성이
+ERC-20 토큰보다 작아야 한다''는 것이다. 그러나 단순 변동성 비교는 \emph{토큰 고유 변동성} 차이를
+교란 변수로 포함한다(BSC DeFi 토큰은 대체로 ETH보다 가격 변동성 자체가 크다). 따라서 본 연구는
+\emph{정규화 분산 비율}
+\begin{equation}
+\rho_X \;\equiv\; \frac{\operatorname{Var}[\pi^{\text{BTC}}_X]}{\operatorname{Var}[\Delta\log P_X]}
+\label{eq:rho}
+\end{equation}
+을 도입한다. 이는 ``토큰 자체 가격이 1\%씩 움직일 때 김프가 평균적으로 얼마나 함께 흔들리는가''를
+측정하는 단위-자유(unit-free) 지표이다. 가설 H$_{\text{BSC}}$는 다음과 같이 재정식화된다:
+\begin{equation}
+\rho_X^{\text{BSC}} < \rho_X^{\text{ERC20}}.
+\label{eq:hbsc}
+\end{equation}
+
+\section{검정 가능한 가설}
+
+\begin{description}
+\item[H1 (사토시 anchoring).] $\mathbb{E}[\pi^{\text{BTC}}_X(t)] \approx 0$. 평균이 유의하게 0과 다르면 빗썸 내부의 X/BTC 차익 채널 부재(BTC 페어 마켓 비활성)를 시사한다.
+\item[H2 (비대칭 변동성).] $\Delta\pi^{\text{BTC}}_X$에 EGARCH(1,1)을 적용했을 때 레버리지 항 $\gamma < 0$, $p<0.05$.
+\item[H3$=$H$_{\text{BSC}}$ (정규화 BSC 우월성).] $\rho_X^{\text{BSC}} < \rho_X^{\text{ERC20}}$.
+\item[H4 (규제 충격 비대칭).] 한국 발 규제 충격은 $\pi^{\text{BTC}}_X$를 음으로, 글로벌 충격은 일시적으로 음 또는 0 근방으로 이동시킨다.
+\item[H5 (자본통제 프리미엄의 시간불변성).] $\mathbb{E}[\pi^{\text{KRW}}_X(t)] - \mathbb{E}[\pi^{\text{BTC}}_X(t)] \approx \lambda$, 국면 변화에 대해 상대적으로 안정.
+\end{description}
+
+\section{데이터와 방법론}
+
+\paragraph{표본과 데이터 성격.}
+본 연구는 2020-01-01부터 2025-12-31까지 총 $T=2{,}192$일의 합성 일별 시계열(synthetic dataset)을 사용한다.
+이 데이터는 Makarov \& Schoar (2020), Eom (2021), Choi et al. (2022), Tiger Research (2024)에 보고된
+stylized facts(2021년 4월 spring peak, 2022년 LUNA/FTX 충격, 2024년 7월 가상자산이용자보호법, 2024년 12월
+계엄 사태)에 부합하도록 calibration되었다. 본 연구의 정량 결과는 \emph{시뮬레이션 증거}이며,
+모수치는 후속 실증 연구에서 실제 거래소 데이터로 확정되어야 한다.
+\paragraph{Calibration 메커니즘.}
+합성 시계열은 다음 생성 과정으로 구성된다(상세 사양은 부록 A 표 \ref{tab:cal_spec}; 모멘트 적합성은 표 \ref{tab:moment_match}).
+USD/KRW는 사인 추세 + 두 가우시안 충격 커널(2022-Q4 강달러; 2024-12 계엄) + N(0,4) IID 노이즈로 생성한다.
+BTC/USDT 로그가격은 14개 역사적 앵커 점 사이의 선형 보간 + N(0,0.018) 누적 가우시안 랜덤워크로 생성하며,
+ETH·BNB·XVS는 토큰별 앵커와 변동성으로 동일 방식으로 생성한다.
+KRW 김프 $\pi^{\text{KRW}}_X(t)$는 베이스라인 추세 + Gaussian event bump $h\cdot\exp(-((t-t_0)/\sigma_d)^2)$ 형태의 8개 이벤트 충격(2021-04 봉우리 +18\%,
+2021-04-22 FSC 발언 −4\%, 2022-11 FTX −4\%, 2024-03 ATH +6\%, 2024-07-19 VAUPA 단절 −2.5\%, 2024-12-03 계엄 −32\% 등) + N(0,0.006) IID 노이즈로 구성한다.
+난수 시드는 \texttt{numpy.random.default\_rng(20260513)}로 고정되어 완전히 재현 가능하다.
+
+
+\paragraph{대상 토큰.}
+세 토큰을 분석한다: \textbf{BNB}는 BNB 체인의 가스 토큰이자 시총 5위급 대형 자산으로,
+빗썸에 2021년 5월 27일 KRW 페어 상장. 따라서 BNB 자체의 빗썸--바이낸스 사토시 김프는 2021-05-27 이후 측정 가능.
+\textbf{Venus(XVS)}는 BNB 체인의 대표 DeFi 거버넌스 토큰으로, 빗썸 KRW 페어로 상장되어 있어
+BSC DeFi 시장의 한국 retail 수요 채널을 측정한다. \textbf{ETH}는 ERC-20 베이스라인 자산이다.
+
+\paragraph{변수.}
+식 \eqref{eq:pi_krw}--\eqref{eq:alpha}에 따라 일별로 네 가지 김프를 계산하고,
+식 \eqref{eq:rho}에 따라 정규화 분산 비율 $\rho_X$를 계산한다. 회귀 분석을 위해
+BTC 7일 실현변동성 $\text{RV}_{\text{BTC}}(t)$, 빗썸/바이낸스 거래량 비율 $\log(V^B/V^N)$,
+BTC 일별 로그수익률 $\Delta\log P_{\text{BTC}}$, 한국 규제 이벤트 더미 $D^{\text{KR}}_t$
+(2021-04-22 FSC 발언, 2022-03-25 트래블룰 시행, 2024-07-19 VAUPA, 2024-12-03 계엄),
+글로벌 충격 이벤트 더미 $D^{\text{GL}}_t$ (LUNA, FTX)를 구성한다.
+
+\paragraph{실증 모형.}
+주 실증식은 다음과 같다.
+\begin{multline}
+\pi^{\text{BTC}}_X(t) = \beta_0 + \beta_1\pi^{\text{BTC}}_{\text{ETH}}(t) + \beta_2\text{RV}_{\text{BTC}}(t)
+                       + \beta_3\log\!\tfrac{V_X^B(t)}{V_X^N(t)} \\
+                       + \beta_4\Delta\log P_{\text{BTC}}(t)
+                       + \beta_5 D^{\text{KR}}_t + \beta_6 D^{\text{GL}}_t + u_t.
+\label{eq:reg}
+\end{multline}
+금융 시계열의 자기상관 및 이분산성을 통제하기 위해 \textbf{Newey--West HAC 표준오차}를 사용하며,
+Bartlett 커널의 절단 시차는 $L=\lfloor 4(N/100)^{2/9}\rfloor$로 설정한다 (Newey \& West, 1987).
+
+비대칭 변동성 가설 H2 검정을 위해 $\Delta\pi^{\text{BTC}}_X$에 EGARCH(1,1)을 적합한다.
+종속변수는 일별 변화량을 백분율 단위($\times 100$)로 표현하며, 극단치의 영향을 제한하기 위해
+$\pm 20\%$ 윈저화를 적용한 후 추정한다(이 전처리의 시사점은 §8 한계 3에서 논의):
+\begin{equation}
+\log\sigma_t^2 \;=\; \omega + \alpha\!\left(|z_{t-1}|-\sqrt{2/\pi}\right) + \gamma z_{t-1} + \beta\log\sigma_{t-1}^2,
+\label{eq:egarch}
+\end{equation}
+여기서 $z_t=e_t/\sigma_t$, $e_t=\Delta\pi^{\text{BTC}}_X(t)-\mu$이며, 혁신항 $z_t$가 자유도 $\nu$의 Student-$t$ 분포를 따른다고 가정하고 모수는 quasi-MLE로 추정한다. 종속변수는 백분율 단위로 표준화하여 로그 우도가 통상적인 음수 범위에 들어오도록 한다.
+레버리지 항 $\gamma$가 통계적으로 음의 값을 가지면 음의 충격이 양의 충격보다 변동성을 더 크게
+증대시킴을 의미하며, 이는 가설 H2를 지지한다.
+
+\section{실증 결과}
+
+\subsection{Stylized facts}
+
+\paragraph{F1. KRW 김프의 시계열 패턴.}
+그림 \ref{fig:krw_ts}는 BTC, ETH, BNB(2021-05-27 이후), XVS의 원화 김프 시계열을 보여준다.
+2021년 4월 spring peak(약 22\%), 2024년 3월 BTC ATH 시점의 두 번째 봉우리(약 10\%),
+2024년 7월 가상자산이용자보호법(VAUPA) 시행 이후의 구조적 역프 진입, 2024년 12월 3일 계엄 선포 시
+$-32\%$ 수준의 극단적 음의 김프가 관측된다. 표 \ref{tab:summary}에서 KRW 김프 표준편차는
+BTC 2.7\%, BNB 3.5\%, XVS 4.6\%이다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig1_krw_premium_timeseries.png}
+\caption{Bithumb--Binance KRW 김프 (BNB 포함), 2020--2025}
+\label{fig:krw_ts}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{김프 측정량 요약 통계}
+\label{tab:summary}
+\input{tab_summary.tex}
+\end{table}
+
+\paragraph{F2. 사토시 김프의 FX 노이즈 제거 효과.}
+그림 \ref{fig:satoshi_compare}는 BSC 측 두 토큰의 KRW 김프와 BTC-num\'eraire 김프를 동일 시간축에서
+비교한다. 2022년 4분기 원-달러 환율 급등 구간과 2024년 12월 계엄 구간에서 KRW 김프가 큰 폭으로 발산하는
+반면, 사토시 김프는 비교적 안정적이다. 표 \ref{tab:summary}에서 사토시 김프 표준편차는 BNB 2.2\%, XVS 2.5\%로
+KRW 김프 대비 약 1/2 수준이다(BTC 자체는 사토시 김프가 정의상 0).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig2_satoshi_vs_krw.png}
+\caption{BSC 토큰의 KRW 김프(상단) vs BTC-num\'eraire 김프(하단)}
+\label{fig:satoshi_compare}
+\end{figure}
+
+\paragraph{F3. 이벤트 스터디: 2024년 12월 계엄 충격.}
+그림 \ref{fig:event_martiallaw}는 $t=0$을 계엄 선포일로 한 $[-15,+15]$일 윈도우의 일별 김프를 보여준다.
+한국 시장에 국한된 충격 특성상, 자본 깊이가 가장 큰 BTC보다 BNB·XVS의 음의 김프가 더 깊고 회복도 느리다.
+이는 가설 H4를 지지한다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../figures/fig3_event_study_martiallaw.png}
+\caption{2024-12-03 비상계엄 선포 사건 ($\pm15$일 윈도우)}
+\label{fig:event_martiallaw}
+\end{figure}
+
+\paragraph{F4. 알파 분포의 fat-tail.}
+그림 \ref{fig:alpha_dist}는 $\alpha_{\text{XVS}}^{\text{ETH}}$의 분포와 Q-Q plot이다.
+표본 첨도가 정규분포를 크게 상회하며, 양쪽 꼬리에서 이탈이 두드러진다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../figures/fig4_alpha_distribution.png}
+\caption{ETH-baseline 알파의 분포(좌)와 Q-Q plot(우)}
+\label{fig:alpha_dist}
+\end{figure}
+
+\paragraph{F5. 변동성-김프 관계의 비대칭.}
+그림 \ref{fig:vol_scatter}: KRW 김프는 BTC 실현변동성과 정의 상관을 보이는 반면,
+사토시 김프는 거의 무상관이다. 환율 자체가 변동성과 동조하는 거시 채널이
+KRW 김프 측정에 혼재되어 있었음을 시사한다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig5_volatility_scatter.png}
+\caption{BTC 실현변동성 vs 김프 측정량}
+\label{fig:vol_scatter}
+\end{figure}
+
+\paragraph{F6. 정규화 분산 비율 ─ H$_{\text{BSC}}$ 가설의 견고한 검정.}
+그림 \ref{fig:rho}와 표 \ref{tab:summary}는 식 \eqref{eq:rho}의 정규화 분산 비율 $\rho_X$를 보여준다.
+ETH가 $\rho=0.42$로 가장 낮고, XVS가 $\rho=0.82$, BNB가 $\rho=1.13$이다. 토큰 자체 변동성을 통제한
+후에도 두 BSC측 토큰이 ETH 베이스라인보다 \emph{각각 약 2배, 2.7배 높은} 정규화 분산 비율을 보이며,
+따라서 H$_{\text{BSC}}$는 \emph{(시뮬레이션상) 기각}된다. 다만 본 연구는 토큰 펀더멘털·시총·체인 활동도
+같은 비변동성 요인이 추가 교란 변수일 가능성을 배제하지 못함을 명시한다(§7, §8).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/fig7_variance_ratio.png}
+\caption{정규화 분산 비율 $\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$}
+\label{fig:rho}
+\end{figure}
+
+\subsection{회귀 분석 (OLS + Newey--West HAC)}
+
+표 \ref{tab:regression}는 식 \eqref{eq:reg}의 OLS 추정 결과를 \emph{classical} 표준오차와
+\textbf{Newey--West HAC}($L=7$) 표준오차로 함께 보고한다.
+
+\begin{table}[H]
+\centering
+\caption{식 \eqref{eq:reg}의 OLS 추정 결과 ($N=1{,}904$, 종속변수 $\pi^{\text{BTC}}_{\text{XVS}}$)}
+\label{tab:regression}
+\input{tab_regression.tex}
+\end{table}
+
+\paragraph{핵심 발견 ─ HAC 보정이 결론을 바꾼다.}
+ETH 사토시 김프 계수 $\beta_1=1.40$은 두 표준오차 모두에서 매우 유의하며 ($t_{\text{OLS}}=25.0$,
+$t_{\text{HAC}}=12.5$), XVS의 사토시 김프가 ETH 사토시 김프를 1:1 이상 추종한다.
+그러나 한국 규제 더미 $\beta_5$는 OLS에서 $t=3.1$ ($p<0.01$)로 유의했으나 HAC 보정 후 $t=1.12$로
+\emph{유의성을 상실}한다. 이는 한국 규제 이벤트가 며칠에 걸친 자기상관 패턴을 가지므로,
+OLS의 독립성 가정이 표준오차를 과소추정했음을 의미한다. 반면 글로벌 충격 더미 $\beta_6=-0.019$는
+HAC 보정 후에도 $t=-3.81$ ($p<0.001$)로 강하게 유의하며, 글로벌 충격이 김프에 미치는 영향은
+보다 즉각적이고 자기상관이 약한 형태로 작용함을 시사한다. $R^2=0.27$.
+
+\subsection{EGARCH(1,1) ─ 비대칭 변동성 검정 (H2)}
+
+표 \ref{tab:egarch}는 $\Delta\pi^{\text{BTC}}_{\text{XVS}}$에 적합한 EGARCH(1,1) 추정 결과이다.
+
+\begin{table}[H]
+\centering
+\caption{EGARCH(1,1) 추정 결과 ($N=1{,}903$, 종속변수 $\Delta\pi^{\text{BTC}}_{\text{XVS}}$)}
+\label{tab:egarch}
+\input{tab_egarch.tex}
+\end{table}
+
+레버리지 항 $\hat\gamma = -0.073$ ($t=-2.10$, $p<0.05$)는 음으로 통계적으로 유의하며, 가설 H2를 지지한다. Student-$t$ 자유도 추정치 $\hat\nu=37.4$는 윈저화된 데이터 표본에서 혁신항이 사실상 정규분포에 가깝게 식별되었음을 의미하나, $\nu$가 명시적으로 추정되어 정규성을 \emph{사전 가정으로 강제하지 않았다}는 점에서 견고성이 확보된다. 정보 기준은 AIC = 9{,}244.72, BIC = 9{,}278.03이며, 그림 \ref{fig:egarch_diag}의 표준화 잔차 $z_t$ 진단(Student-$t$ Q--Q plot 및 $z_t^2$ ACF)은 모형이 변동성 클러스터링을 잘 제거함을 보여준다. 즉, 음의 충격(가격 하락)이 동일 크기의 양의 충격보다 김프 변동성을 더 크게
+증대시킨다. 변동성 클러스터링 항 $\hat\alpha=0.500$ ($p<0.001$)은 강하게 유의하며, 한국 시장의
+김프 변동성이 사건 직후 며칠간 군집화되는 패턴을 잘 포착한다.
+그림 \ref{fig:egarch}는 적합 잔차 시계열과 조건부 변동성 $\hat\sigma_t$를 보여주며,
+2021년 spring peak, 2022년 LUNA, 2022년 FTX, 2024년 12월 계엄 구간에서 변동성이 크게 상승함을
+시각적으로 확인할 수 있다.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig8_egarch_volatility.png}
+\caption{EGARCH(1,1) 잔차와 조건부 변동성}
+\label{fig:egarch}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig9_egarch_diagnostics.png}
+\caption{EGARCH(1,1) 표준화 잔차의 분포·Q--Q plot·자기상관 진단}
+\label{fig:egarch_diag}
+\end{figure}
+
+
+\subsection{교차 거래소 비교 ─ 김프는 시장 비효율인가, 규제 비용인가}
+\label{sec:cross}
+
+본 절은 본 연구의 새로운 식별 전략을 \emph{시뮬레이션 증거}로 뒷받침한다.
+김치 프리미엄의 발생 원인을 ``한국 retail의 비합리적 수요''로 볼 것인가,
+``자본통제와 트래블룰이 부과하는 차익거래 제약''으로 볼 것인가는 정책적으로 매우 다른
+함의를 갖는다. 본 연구가 제안하는 식별 전략은 단순하다:
+\emph{비한국 거래소 사이의 BTC-num\'eraire 김프 변동성과 빗썸-비한국 쌍의 변동성을 직접
+비교한다}. 만약 김프가 본질적으로 ``retail 광기''에서 비롯된다면 그 광기는 모든 거래소에
+작용해야 하고, 거래소 간 가격은 광범위하게 분산되어야 한다. 반대로 김프가
+\emph{한국 시장에 국한된 자본통제 비용}이라면, 한국 거래소가 포함된 쌍에서만 변동성이
+크고 비한국 쌍에서는 작아야 한다.
+
+\noindent\textbf{읽기 주의.} 다음의 정량 결과는 합성 데이터에 기초한다.
+OKX와 Bybit의 가격 시계열은 ``규제 마찰 없는 미시구조 노이즈''만으로 모델링되었으며
+(부록 A 표 \ref{tab:cal_spec}의 단서 참조), 따라서 비한국 쌍의 김프가 작게 나오는 것은
+\emph{부분적으로} 본 연구의 모델링 가정의 함수이다. 실제 시장에서 OKX·Bybit가 정확히
+0.2--0.3\% 표준편차를 보일 것이라고 단정할 수는 없으며, 본 결과는 \emph{식별 가설이
+주어진 calibration에서 어떻게 부각되는지}를 보여주는 \emph{시뮬레이션 시범}으로 해석되어야
+한다. 정확한 실증 검증은 후속 연구의 과제이다(§8 후속연구 의제 7).
+
+\begin{table}[H]
+\centering
+\caption{교차 거래소 BTC-num\'eraire 김프 요약 통계 (2020-01-01--2025-12-31)}
+\label{tab:cross_exchange}
+\small
+\input{tab_cross_exchange.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig10_cross_exchange.png}
+\caption{비한국 거래소 간 vs 빗썸 포함 쌍의 BTC-num\'eraire 김프 비교}
+\label{fig:cross_exchange}
+\end{figure}
+
+표 \ref{tab:cross_exchange}와 그림 \ref{fig:cross_exchange}는 동일한 BTC-num\'eraire 측정식 \eqref{eq:pi_btc}를
+Binance--OKX--Bybit 사이의 모든 쌍에 적용한 결과이다. 핵심 결과는 다음과 같다.
+\begin{itemize}
+\item \textbf{비한국 거래소 간 사토시 김프는 사실상 영(0)이다.} ETH 기준으로 Binance↔OKX는
+표준편차 0.23\%, Binance↔Bybit는 0.25\%, OKX↔Bybit는 0.34\%이다. BNB 기준에서도
+0.22--0.32\% 수준이며, 99\%-1\% 범위가 $\pm 0.8\%$ 이내이다.
+\item \textbf{빗썸이 포함된 쌍의 사토시 김프는 자릿수가 다르다.} ETH 기준으로 Bithumb↔Binance,
+Bithumb↔OKX, Bithumb↔Bybit는 모두 0.85--0.90\% 표준편차로, 비한국 쌍의 약 3--4배. BNB 기준은
+1.59--1.63\%로 약 7배에 달한다.
+\item \textbf{빗썸과 비한국 거래소 \emph{어느 쌍을 선택해도} 결과가 동일하다.} 즉 김프의 ``한쪽''은
+빗썸 단독이고 ``다른 쪽''이 무엇이든 큰 차이가 없다. 이는 김프의 원천이 빗썸 측, 즉 한국 시장에
+국한된 비대칭임을 추가로 지지한다.
+\end{itemize}
+
+이 비대칭은 본 연구의 핵심 정책적 발견이다. 비한국 거래소 사이에는 차익거래자가
+크립토 자산을 시차 없이 자유롭게 이동시킬 수 있으므로, 일시적 가격 괴리는 분 단위로
+해소된다(Makarov \& Schoar, 2020 Table 3과 일치). 반면 한국 거래소는 외환거래법,
+트래블룰, 실명확인 가상계좌 제도, 외국인 거래 금지 등 \emph{차익거래 채널 자체를 막는
+규제}로 인해 가격 괴리가 며칠에서 수 주간 지속된다. 따라서 김치 프리미엄은 ``시장이
+풀어내지 못한 비효율''이 아니라 ``규제가 부과하는 분단 비용''으로 해석되어야 한다.
+
+\subsection{국부 유출의 정량적 증거 ─ 김프의 정책 비용}
+\label{sec:policy}
+
+식별 전략이 보여주듯 김치 프리미엄이 규제가 만든 가격 비대칭이라면, 그 가격 비대칭은
+누군가에게 \emph{차익기회}로 작용한다. 그리고 그 차익기회를 노린 자금 이동은 한국의
+외환규제를 우회하므로 \emph{불법 외환거래}로 분류될 가능성이 높다. 본 연구는
+김치 프리미엄과 적발된 불법 외환거래 사이의 \emph{구조적 연관성}을 제시하되,
+\emph{인과관계를 단정하지는 않는다}. 가상자산을 이용한 불법 외환거래에는 재산 도피,
+단순 송금규제 회피, 자금세탁 등 다양한 유형이 혼재되어 있으며, 김치 프리미엄 차익거래는
+이러한 채널들 가운데 \emph{가장 주요한 구조적 동인 중 하나}로 추정된다. 적발 통계는
+정책 비용의 직접 측정이라기보다 \emph{김프가 부재했다면 발생하지 않았을 자본 유출 행위의
+상한 지표}로 해석되어야 한다.
+
+표 \ref{tab:policy_cost}와 그림 \ref{fig:policy_cost}는 관세청이 2025년 10월에
+공개한 최근 9년간(2018--2025) 가상자산 이용 불법 외환거래 적발 자료이다.
+
+\begin{table}[H]
+\centering
+\caption{관세청 적발 ─ 가상자산 이용 불법 외환거래 (2018--2025)}
+\label{tab:policy_cost}
+\small
+\input{tab_policy_cost.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig11_policy_cost.png}
+\caption{관세청 적발 자료 ─ 가상자산을 매개로 한 불법 외환거래 규모}
+\label{fig:policy_cost}
+\end{figure}
+
+9년간 누적 적발액이 약 14.2조원, 그 중 2024년 1조 1,579억원과 2025년 1--8월
+8,813억원(2024--2025년 부분 누계 약 2조 392억원)이 \emph{탐지}되었다. 적발 유형은
+무역대금 위장 송금, 무등록 외국환업무(``환치기''), 페이퍼컴퍼니 활용 등이며,
+대법원은 2025년 9월 4일 선고(2024도16540)에서 ``규제 회피를 목적으로 한 위계적 송금''을
+무등록 외국환업무로 포섭하는 등 형사적 책임을 명확히 했다. 한편 \emph{탐지율은
+일부에 불과}하다는 점과 \emph{모든 적발이 김프 차익거래에서 기인한 것은 아니라는 점}을
+동시에 고려해야 한다. 그럼에도 김치 프리미엄과 \S\ref{sec:cross}에서 확인된 차익 기회의
+구조적 성격을 함께 두면, 본 통계는 김프가 한국 경제에 부과하는 \emph{경제적 비용의
+간접 지표}로 활용 가능하다.
+
+
+\section{논의}
+
+\paragraph{측정 도구로서의 사토시 김프.}
+본 연구의 가장 견고한 발견은 BTC-num\'eraire 측정식이 기존 KRW 측정식보다 \emph{체계적으로
+우월한 통계적 성질}을 가진다는 점이다. 2024년 12월 계엄 같은 국내 외환·정치 충격이 발생할 때
+KRW 김프는 폭발적으로 발산하지만 사토시 김프는 비교적 안정적이며, 역으로 LUNA(2022.5), FTX(2022.11)
+같은 글로벌 충격에는 사토시 김프가 민감하게 반응한다. 두 측정식을 \emph{함께} 모니터링하면
+국내 충격과 글로벌 충격을 분해할 수 있다.
+
+\paragraph{$\rho_{\text{BNB}}>\rho_{\text{XVS}}$의 미시구조적 해석.}
+정규화 분산 비율에서 BNB($\rho=1.13$)가 XVS($\rho=0.82$)보다 더 크다는 결과는,
+\emph{DEX 접근 장벽 하나의 가설로는 즉시 설명되지 않는다}. BNB는 시총 5위급 대형 자산이고
+빗썸·바이낸스 양쪽에서 유동성이 풍부하므로, 직관적으로는 김프가 더 빠르게 평균회귀되어
+$\rho$가 작아야 한다. 본 연구는 두 가지 보완 가설을 제시한다.
+(i) \emph{베이시스 트레이딩 유발 교란}. BNB는 바이낸스 무기한 선물의 핵심 페어이므로
+현물--선물 베이시스 거래가 빗썸 BNB/KRW 가격에 미세한 교란을 가하여
+분자(김프 분산)를 키운다(Capponi \& Jia, 2021의 LP 차익거래 모형과 연결).
+(ii) \emph{미시구조 노이즈 증폭}. BNB는 자체 가격 변동성이 ETH보다 다소 낮으므로
+정규화 분자가 작은 가격 괴리에도 민감하게 반응한다. 즉 $\rho_X$의 비교는
+큰 변동성 자산과 작은 변동성 자산 사이에서 비대칭적 해석을 야기할 수 있다.
+이는 본 연구가 후속 연구로 무차익 밴드 \emph{이탈 지속 시간}(duration) 분석을
+별도로 권고하는 이유이며(§8 후속 연구 의제 6), 결정적 결론은 유보된다.
+
+\paragraph{HAC 보정의 함의.}
+표 \ref{tab:regression}에서 한국 규제 더미가 HAC 보정 후 유의성을 상실한 점은 학술적·정책적으로
+중요한 시사점을 제공한다. 한국 규제 이벤트는 발표 직후 며칠에서 수 주에 걸쳐 김프에 잔존 효과를
+미치므로(자기상관 형태), OLS의 독립성 가정에 의존한 단순 이벤트 스터디는 효과의 통계적 유의성을
+과대평가할 수 있다.
+
+\paragraph{거래소 상장 자문 응용.}
+적정 김프 공식 \eqref{eq:fair_premium}는 다음 단순화된 추정식으로 응용 가능하다:
+\begin{equation}
+\hat{\pi}_X^* \approx 1.8\% + 0.6\sigma_X^{\text{wk}} + 1.2\cdot\mathbb{1}_{\text{retail-heavy}} + 0.4\log(V_N/V_B)
+\end{equation}
+일반적 BSC 메이저 토큰의 정상 시장 적정 김프는 약 4--6\%, 알트시즌에는 8--12\%로,
+이를 명백히 초과하면 비효율의 정량적 증거가 된다. 다만 이 식의 모수는 시뮬레이션 기반 추정치임을
+재차 강조한다.
+
+
+
+\paragraph{정책적 함의 ─ 자율 경쟁과 외국인 접근 자율화.}
+\emph{본 시뮬레이션이 실제 시장 구조의 일차 근사를 반영한다는 가정 하에서},
+\S\ref{sec:cross}와 \S\ref{sec:policy}의 분석은 다음과 같은 정책 방향을 시사한다.
+
+첫째, KYC/AML/CFT 체계는 \emph{현재의 강도를 유지하거나 강화하는 방향}이 적절해 보인다.
+가상자산이 자금세탁이나 테러자금조달 통로로 악용될 가능성은 트래블룰과 무관하게 별도로
+통제되어야 하며, 이는 글로벌 표준(FATF Recommendation 16)에도 부합한다.
+
+둘째, 그러나 \emph{외국인의 한국 거래소 이용과 거래에 대한 제한은 점진적 자율화를 검토할
+수 있다}. 현재 외국인 거래 금지 규제가 차익거래자의 진입을 봉쇄하여 김프를 지속시키는
+주요 메커니즘 가운데 하나일 가능성이 높으며, 이로 인해 (i) 한국 retail은 비효율적
+가격에 거래해 일정한 후생 손실을 입고, (ii) 차익 기회를 노린 자금은 위장 송금·환치기 같은
+불법 채널을 거쳐 유출되며, (iii) 그 경제적 비용의 \emph{간접 지표}로서 적발된 불법
+외환거래 누계가 9년간 약 14.2조원에 달한다는 것이 본 연구의 정량적 발견이다.
+
+세 번째로 \emph{원화 기반 스테이블코인 인프라의 정비}는 자연스러운 보완책으로 보인다.
+트래블룰이 차익거래의 ``시간''을 차단한다면, 원화 스테이블코인은 ``경로''를 제공함으로써
+같은 KYC 표준 안에서 정상 차익 채널을 만들 수 있다. 본 시뮬레이션의 모델에서
+이러한 패키지가 실시되면 빗썸-비한국 거래소 사이의 김프 표준편차는 비한국 쌍 수준
+(0.2--0.3\%)으로 \emph{수렴할 가능성}이 있으며, 한국 시장이 자본 유출의 구조적 동인을
+제공하는 폭은 의미 있게 축소될 것으로 \emph{기대}된다. 다만 이러한 시사점은
+시뮬레이션의 calibration 가정에 의존하므로, 실제 정책 결정 시에는 본 연구의 모델을
+실증 데이터로 검증·보정한 후 활용해야 한다(\S8).
+
+\section{한계와 후속 연구 의제}
+
+\paragraph{한계 1: 데이터의 합성 성격.}
+본 연구의 모든 정량 수치는 합성 시계열에 기초하며, 실제 시장에서의 모수치는 다를 수 있다.
+표본 크기, 사건의 정확한 위치와 강도, 모수 추정치(예: $\beta_1=1.40$, $\gamma=-0.082$,
+$\rho_X$ 비율)는 calibration 가정에 의존한다. \emph{후속 실증 연구의 첫 번째 과제는 빗썸/바이낸스
+공식 API의 1분봉 또는 일봉 데이터로 동일 파이프라인을 재실행하여 모수치를 재추정하는 것이다.}
+
+\paragraph{한계 2: H$_{\text{BSC}}$ 가설 검정의 횡단면 통제 부족.}
+정규화 분산 비율 $\rho_X$는 토큰 가격 변동성만을 통제했으며, 시총·거래량·토큰 펀더멘털 같은
+다른 횡단면 요인을 통제하지 못했다. BSC와 ERC-20 토큰이 다른 \emph{유형}의 자산일 수 있고,
+이로 인한 잠재적 선택 편향(selection bias)이 존재한다.
+
+\paragraph{후속 연구 의제 1: BTCB vs WBTC 자연 실험.}
+가장 깔끔한 H$_{\text{BSC}}$ 검정은 \emph{같은 자산의 두 체인 버전}을 비교하는 것이다.
+BTCB(BSC 기반 비트코인)와 WBTC(ERC-20 기반 비트코인)는 모두 BTC 1:1 페그를 목표로 하며
+펀더멘털이 사실상 동일하다. 만약 두 자산이 빗썸과 바이낸스에 모두 상장되어 있다면,
+$\rho_{\text{BTCB}}$와 $\rho_{\text{WBTC}}$의 비교는 ``체인 효과''를 펀더멘털 변동성과 무관하게
+식별하는 자연 실험을 제공한다. 현재 빗썸에는 BTCB가 직접 상장되어 있지 않으나,
+PancakeSwap의 BTCB/USDT 풀과 빗썸의 wrapped BTC 페어를 결합한 합성 분석이 가능하다.
+
+\paragraph{후속 연구 의제 2: 다종 BSC 토큰 패널 분석.}
+본 연구는 BNB·XVS 두 토큰만 분석했으나, CAKE, BAKE, ALPACA, ALPHA 등 빗썸 또는 업비트에 상장된
+다수의 BSC 토큰을 패널 데이터로 확장하면 $\rho_X$의 횡단면 변동을 토큰 특성(시총, 유동성,
+한국 retail venue share)으로 설명할 수 있다.
+
+\paragraph{후속 연구 의제 3: 트래블룰 효과의 명시적 분석.}
+Hwang et al. (2024)이 보인 트래블룰의 차익거래 채널 제약 효과를 본 연구의 사토시 김프
+프레임에서 재검증하면, 2022년 3월 25일 시행일을 단절점(structural break)으로 갖는
+regime-switching 모형을 적합할 수 있다.
+
+\paragraph{후속 연구 의제 4: DEX-CEX 가격 발견의 미시구조 분석.}
+Capponi \& Jia (2021) 모형에 기반하여 PancakeSwap LP의 차익거래 동기와 한국 retail의
+DEX 접근 비용을 명시적으로 모형화한 구조 추정(structural estimation)을 수행한다면,
+H$_{\text{BSC}}$ 기각의 기제를 단순한 가설 검정을 넘어 정량적으로 분해할 수 있다.
+
+\paragraph{후속 연구 의제 5: 패닉/유포리아 비대칭의 행동경제학적 해석.}
+EGARCH 레버리지 항 $\gamma<0$이 시뮬레이션과 실제 데이터 모두에서 견고하게 음으로 나온다면,
+이는 한국 retail의 손실 회피(loss aversion)와 처분 효과(disposition effect)가 거시 충격 시점에
+김프 비대칭으로 발현됨을 시사한다. Ahn \& Kim (2023)의 투자자 유형별 분석과 결합하여
+행동경제학적 미시 토대를 제공할 수 있다.
+
+\paragraph{한계 3: EGARCH 분포 가정과 윈저화.}
+본 연구는 EGARCH(1,1) 혁신항을 Student-$t$로 가정하여 추정했으나, $\hat\nu=37.4$는
+사실상 정규분포 수준이다. 이는 $\pm20\%$ 윈저화로 인해 극단치가 제거된 결과로,
+원시 데이터에 GED 분포 또는 비대칭 t 분포(Hansen, 1994)를 적용하면 더 두꺼운 꼬리가
+포착될 수 있다. 또한 EGARCH(1,1)은 1차 GARCH 항만 포함하므로, GJR-GARCH 또는 EGARCH(2,1)
+같은 대안 사양과의 LR/AIC/BIC 비교가 견고성 점검 차원에서 권고된다.
+
+\paragraph{후속 연구 의제 6: 무차익 밴드 이탈 지속 시간 분석.}
+$\rho_{\text{BNB}}>\rho_{\text{XVS}}$의 해석상 모호성(§7)은
+\emph{시점 가설}이 아닌 \emph{기간 가설}을 도입함으로써 더 잘 식별할 수 있다.
+즉, 어떤 임계값(예: 적정 김프 5\%) 초과 상태가 지속된 시간의 분포를 비교하면,
+``DEX 접근 장벽''과 ``미시구조 노이즈''라는 두 가설이 서로 다른 예측을 한다(전자는 긴 꼬리,
+후자는 짧고 빈번한 이탈). Survival analysis 또는 Hawkes 과정 적합이 적합한 도구이다.
+
+\paragraph{사용 데이터 및 코드 공개.}
+본 연구의 합성 데이터 생성, 차트, 표, OLS·HAC·EGARCH 추정 절차는 Python으로 작성되었으며,
+재현 가능한 형태로 공개되었다. 전체 데이터(CSV), 차트(PNG), 그리고 빌드 스크립트는
+GitHub 저장소 \href{https://github.com/gameworkerkim/vibe-investing/tree/main/Paper\%20\%EB\%85\%BC\%EB\%AC\%B8}%
+{\texttt{github.com/gameworkerkim/vibe-investing}}의 \texttt{Paper 논문} 디렉토리에서 확인할 수 있다.
+
+
+
+\paragraph{후속 연구 의제 7: 비한국 거래소 spread의 실증 검증.}
+본 연구의 식별 전략(\S\ref{sec:cross})은 OKX·Bybit가 ``규제 마찰 없는 미시구조 노이즈''만으로
+모델링된다는 가정에 의존한다. 이 가정의 실증 검증은 핵심 과제이다. 구체적으로
+(i) Binance·OKX·Bybit의 동시 1분봉 BTC 데이터를 수집하여 pairwise BTC-num\'eraire 김프를
+실측 계산하고, (ii) 빗썸-비한국 페어와 \emph{자릿수} 차이가 실제로 관측되는지 검증해야 한다.
+만약 실측 자릿수 차이가 본 시뮬레이션과 부합한다면, 본 연구의 정책 시사점은 강한 실증적
+기반을 확보한다.
+
+\section{결론}
+
+본 연구는 빗썸과 바이낸스 사이에 형성되는 가격 괴리를 BTC를 num\'eraire로 한 사토시 김프
+$\pi^{\text{BTC}}_X(t)$로 재정의하고, 빗썸에 상장된 BNB와 Venus(XVS)를 사례로 한 calibrated
+simulation 증거를 제시했다. 이 측정식은 환율, 자본통제, 스테이블코인 김프, 송금지연 등
+기존 KRW 김프에 혼재되어 있던 거시 노이즈를 측정 단계에서 제거하며, ``빗썸 내부에서 토큰 $X$가
+BTC 대비 얼마나 상대적으로 비싸게 거래되는가''라는 순수한 토큰 수준 비대칭만을 식별한다.
+
+시뮬레이션 결과는 (i) 사토시 김프의 표준편차가 KRW 김프의 약 1/2 수준이라는 환율 노이즈 제거 효과,
+(ii) 정규화 분산 비율로 측정한 BSC 토큰의 김프 변동성이 ETH 베이스라인을 상회하여
+H$_{\text{BSC}}$가 (잠정적으로) 기각됨, (iii) Newey--West HAC 보정 시 한국 규제 더미의 유의성이
+사라지나 글로벌 충격 더미는 강하게 유의함, (iv) EGARCH(1,1) 레버리지 항이 음으로 유의하여
+비대칭 변동성이 확인됨을 시사한다.
+
+본 연구의 기여는 두 가지로 요약된다. 첫째, BTC-num\'eraire 측정식이라는 새로운
+\emph{측정 도구}를 도입하고 명제 1을 통해 그 통계적 우월성을 이론적으로 입증했다.
+둘째, BSC 토큰의 삼각 차익 구조와 정규화 분산 비율 $\rho_X$라는 \emph{검정 도구}를 제시했다.
+이 두 도구는 거래소 상장 자문, 차익거래 시스템 설계, 그리고 정책적으로는 금융위원회·KoFIU의
+김치 프리미엄 모니터링 분석에 직접 응용 가능하다.
+
+\paragraph{시뮬레이션이 시사하는 정책 방향.}
+본 연구는 \emph{교차 거래소 비교}(\S\ref{sec:cross})를 통해, 시뮬레이션 차원에서
+김치 프리미엄이 ``시장의 일반 비효율''이라기보다 ``한국에 특화된 규제 마찰의 가격 비용''에
+더 가까울 가능성을 시사했다. Binance--OKX--Bybit 사이의 BTC-num\'eraire 김프 표준편차가
+0.2--0.3\%인 반면 빗썸-비한국 쌍이 0.9--1.6\%로 자릿수가 다르다는 시뮬레이션 결과는,
+차익거래 채널이 살아있는 시장에서는 김프가 사실상 사라진다는 것을 \emph{개념적으로}
+보여준다. 또한 가상자산을 이용한 불법 외환거래 적발액(9년 누계 약 14.2조원,
+2024--2025년 누계 약 2조원)은 김프가 한국 경제에 부과하는 비용의 \emph{하한 추정치}로
+해석할 수 있다. KYC/AML/CFT의 강도는 유지하면서 외국인 접근 규제의 점진적 자율화와
+원화 스테이블코인 인프라 정비를 결합한 정책 패키지는, 시뮬레이션의 모델 안에서
+김치 프리미엄을 구조적으로 축소시키는 방향성을 시사한다. \emph{실제 정책 결정은
+본 연구의 모델을 빗썸·바이낸스·OKX·Bybit의 실제 API 데이터로 재추정한 후속 실증
+연구의 결과를 토대로 이루어져야 한다.}
+
+
+
+\appendix
+\section{부록 A: Calibration 메커니즘과 모멘트 적합성}
+\label{app:calibration}
+
+본 연구의 모든 정량 수치는 합성 일별 시계열에서 도출되었으므로,
+이 시계열의 통계적 특성이 선행 문헌에서 보고된 한국 가상자산 시장의
+stylized facts에 부합하는지 점검하는 것이 핵심적인 견고성 검정이다.
+
+\paragraph{Calibration 사양.}
+표 \ref{tab:cal_spec}은 합성 데이터의 각 구성 요소(환율, 토큰 가격, 김프, 거래량)가
+어떤 확률적 메커니즘으로 생성되었는지 기술한다. 모든 난수는 시드 \texttt{20260513}으로
+고정되어 완전히 재현 가능하다.
+
+\paragraph{핵심 모델링 가정 ─ 비한국 거래소의 spread.}
+교차 거래소 비교(\S\ref{sec:cross})의 결과는 다음과 같은 \emph{결정적} 가정에 의존한다.
+OKX와 Bybit의 가격 시계열은 Binance 가격에 AR(1) 미시구조 노이즈만을 더해서 생성된다
+($\phi=0.55$, $\sigma_{\varepsilon}\in[0.0012, 0.0016]$). 즉, 비한국 거래소들 사이에는
+\emph{환율 잡음, 자본통제, KYC 비대칭이 없다고 가정}했으며, 이는 ``규제 마찰이 없는
+거래소 사이의 무차익 균형''이라는 이론적 baseline을 모델링하는 것이다. 따라서 비한국
+쌍의 시뮬레이션 김프가 0.2--0.3\% 수준으로 나오는 것은 \emph{부분적으로} 이 가정의
+\emph{직접적 함수}이다. 그럼에도 (i) Binance--OKX 페어의 실제 거래소 데이터에서
+관측되는 BTC 가격 차이는 통상 50 basis points 미만이며 (Pieters \& Vivanco 2017),
+(ii) 비한국 메이저 거래소 사이에는 시차 없는 자본 이동이 가능하므로 본 가정은
+실제 시장의 일차 근사로 합리적이다. 가정의 검증은 후속 실증 연구의 우선 과제이다
+(\S8 후속연구 의제 7).
+
+\begin{table}[H]
+\centering
+\caption{합성 데이터 생성 메커니즘 (요약)}
+\label{tab:cal_spec}
+\small
+\begin{tabular}{p{4cm}p{11cm}}
+\toprule
+구성 요소 & 메커니즘 \\
+\midrule
+USD/KRW 환율 & 사인 추세 + 두 가우시안 충격 커널(2022-Q4 강달러, 2024-12 계엄) + N(0,4) IID 노이즈 \\
+BTC, ETH, BNB, XVS USDT 로그가격 & 14개 역사적 앵커 점 선형 보간 + 토큰별 누적 가우시안 랜덤워크(BTC σ=0.018, ETH σ=0.022, BNB σ=0.025, XVS σ=0.045) \\
+$\pi^{\text{KRW}}_{\text{BTC}}$ & 베이스라인 1.2\% 드리프트 + 8개 가우시안 이벤트 범프 + N(0, 0.006) IID \\
+$\pi^{\text{KRW}}_{\text{ETH/BNB/XVS}}$ & $\pi^{\text{KRW}}_{\text{BTC}}$ + 토큰별 알파(IID N + 알트시즌·패닉 범프) \\
+USDT/KRW (빗썸) & $E_t\cdot(1+0.01)$ + N(0, 0.003) \\
+거래량 비율 $\log(V^B/V^N)$ & N($-$2.0, 0.7), VAUPA 이후 $-0.4$ 단절 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{모멘트 적합성.}
+표 \ref{tab:moment_match}는 합성 시계열의 주요 모멘트(평균, 표준편차, 초과첨도, AR(1) 계수)를
+선행 문헌의 보고치와 비교한다. 4가지 핵심 모멘트 모두 문헌 범위에 부합하며,
+특히 $\pi^{\text{KRW}}_{\text{BTC}}$의 자기상관 계수 0.911은
+Choi et al. (2022)이 보고한 ``high persistence'' 범위(0.85--0.95)와 정확히 일치한다.
+초과첨도 29.4($\pi^{\text{KRW}}_{\text{BTC}}$)와 16.3($\pi^{\text{KRW}}_{\text{XVS}}$)은
+정규분포의 0보다 크게 높은 fat-tail 분포를 나타내며,
+Eom (2021)과 Tiger Research (2024)의 정성적 보고치와 부합한다.
+
+\begin{table}[H]
+\centering
+\caption{모멘트 적합성: 합성 데이터 vs 선행 문헌 보고치}
+\label{tab:moment_match}
+\small
+\input{tab_moment_match.tex}
+\end{table}
+
+\paragraph{Caveat.}
+모멘트 매칭은 \emph{필요조건}이지 충분조건이 아니다. 즉, 모멘트가 일치한다고 해서
+실제 거래소 데이터의 모든 미시구조 특성(체결 단위 변동, 호가 비대칭, 일중 패턴 등)이
+재현되는 것은 아니다. 실증 연구의 첫 번째 검정은 본 연구의 모수 추정치
+($\beta_1=1.40$, $\hat\gamma=-0.073$, $\rho_{\text{BNB}}=1.13$, $\rho_{\text{XVS}}=0.82$)가
+실제 1분봉 또는 일봉 데이터에서 동일한 부호와 통계적 유의성을 보이는지 확인하는 것이다.
+
+
+\section*{References}
+\begin{description}\itemsep4pt
+\item[{[1]}] Ahn, Y., \& Kim, D. (2023). Who drives the Kimchi premium?
+\emph{Economics Letters}, 226, 111100.
+\item[{[2]}] Borri, N., \& Shakhnov, K. (2020). Regulation spillovers across cryptocurrency markets.
+\emph{Finance Research Letters}, 36, 101333.
+\item[{[3]}] Capponi, A., \& Jia, R. (2021). The adoption of blockchain-based decentralized exchanges.
+\emph{arXiv preprint} arXiv:2103.08842.
+\item[{[4]}] Choi, S., Lehar, A., \& Stauffer, R. (2022). Bitcoin microstructure and the kimchi premium.
+\emph{Working Paper}, University of Calgary.
+\item[{[5]}] Eom, Y. (2021). Kimchi premium and speculative trading in bitcoin.
+\emph{Finance Research Letters}, 38, 101505.
+\item[{[6]}] Gromb, D., \& Vayanos, D. (2010). Limits of arbitrage.
+\emph{Annual Review of Financial Economics}, 2, 251--275.
+\item[{[7]}] Hwang, S., Kim, I., \& Park, S. (2024). The impact of the Travel Rule on the Korean cryptocurrency market.
+\emph{Working Paper}.
+\item[{[8]}] Kim, S., Park, H., \& Cho, M. (2022). The kimchi premium and bitcoin-cashing outlets.
+\emph{Finance Research Letters}, 47, 102785.
+\item[{[9]}] Kim, J. (2024). Enhancing reinforcement learning-based crypto asset trading: focusing on the Korean venue share indicator.
+\emph{Journal of Financial Data Science}, 6(2), 45--64.
+\item[{[10]}] Liu, Y., Tsyvinski, A., \& Wu, X. (2022). Common risk factors in cryptocurrency.
+\emph{Journal of Finance}, 77(2), 1133--1177.
+\item[{[11]}] Makarov, I., \& Schoar, A. (2020). Trading and arbitrage in cryptocurrency markets.
+\emph{Journal of Financial Economics}, 135(2), 293--319.
+\item[{[12]}] Newey, W., \& West, K. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix.
+\emph{Econometrica}, 55(3), 703--708.
+\item[{[13]}] Pieters, G., \& Vivanco, S. (2017). Financial regulations and price inconsistencies across bitcoin markets.
+\emph{Information Economics and Policy}, 39, 1--14.
+\item[{[14]}] Tiger Research (2024). Kimchi premium 101: Korea's crypto market characteristics and causes.
+\emph{Tiger Research Reports}, November.
+\end{description}
+
+\end{document}

@@ -1,0 +1,21 @@
+\begin{tabular}{lrrrrr}
+\toprule
+& \multicolumn{2}{c}{Classical OLS} & \multicolumn{2}{c}{Newey--West HAC} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Variable & Coef. & $t_{\text{OLS}}$ & SE$_{\text{HAC}}$ & $t_{\text{HAC}}$ \\
+\midrule
+Intercept $\beta_0$ & 0.0041$^{*}$ & 1.84 & 0.0026 & 1.59 \\
+$\pi^{\text{BTC}}_{\text{ETH}}\ (\beta_1)$ & 1.4047$^{***}$ & 25.03 & 0.1128 & 12.46$^{***}$ \\
+$\text{RV}_{\text{BTC}}\ (\beta_2)$ & -0.0079 & -0.13 & 0.0827 & -0.10 \\
+$\log(V^B/V^N)\ (\beta_3)$ & 0.0012$^{*}$ & 1.75 & 0.0007 & 1.74$^{*}$ \\
+$\Delta\log P_{\text{BTC}}\ (\beta_4)$ & -0.0355 & -0.85 & 0.0581 & -0.61 \\
+$D^{\text{KR}}_t\ (\beta_5)$ & 0.0068$^{***}$ & 3.11 & 0.0060 & 1.12 \\
+$D^{\text{GL}}_t\ (\beta_6)$ & -0.0188$^{***}$ & -5.22 & 0.0049 & -3.81$^{***}$ \\
+\midrule
+$R^2$ & \multicolumn{4}{r}{0.266} \\
+Observations $N$ & \multicolumn{4}{r}{1,904} \\
+NW lag $L$ & \multicolumn{4}{r}{7} \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize $^{*}\,p<0.1$, $^{**}\,p<0.05$, $^{***}\,p<0.01$.}\\
+\multicolumn{5}{l}{\footnotesize HAC stars use HAC standard errors.}\\
+\end{tabular}

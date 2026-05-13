@@ -1,0 +1,25 @@
+series,moment,synthetic,lit_source,lit_range
+pi_btc_krw,mean,0.0089,Makarov-Schoar 2020 (2020-21 sub-sample),0.5-3% range
+pi_btc_krw,std,0.0269,Makarov-Schoar 2020 / Eom 2021,2-5%
+pi_btc_krw,skew,0.9451,—,—
+pi_btc_krw,kurt,29.3628,Eom 2021 Table 1,>3 (leptokurtic)
+pi_btc_krw,p99,0.1261,—,—
+pi_btc_krw,p01,-0.0294,—,—
+pi_btc_krw,acf1,0.9106,Choi et al. 2022 Fig. 3,0.85-0.95 (high persistence)
+pi_btc_krw,acf5,0.8053,—,—
+pi_xvs_krw,mean,0.0110,—,—
+pi_xvs_krw,std,0.0449,Tiger Research 2024 (alt-token range),3-6%
+pi_xvs_krw,skew,1.6115,—,—
+pi_xvs_krw,kurt,16.3172,Tiger Research 2024 / stylised,>5 (fat tail)
+pi_xvs_krw,p99,0.2154,—,—
+pi_xvs_krw,p01,-0.0571,—,—
+pi_xvs_krw,acf1,0.7525,—,—
+pi_xvs_krw,acf5,0.6889,—,—
+pi_xvs_btc,mean,0.0026,—,—
+pi_xvs_btc,std,0.0246,New measure — first paper to define,smaller than KRW
+pi_xvs_btc,skew,0.7221,—,—
+pi_xvs_btc,kurt,3.0111,—,—
+pi_xvs_btc,p99,0.0844,—,—
+pi_xvs_btc,p01,-0.0481,—,—
+pi_xvs_btc,acf1,0.3409,—,—
+pi_xvs_btc,acf5,0.3095,—,—

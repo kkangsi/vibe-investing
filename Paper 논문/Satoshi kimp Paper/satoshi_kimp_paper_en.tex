@@ -1,0 +1,859 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Latin Modern Roman}
+\setCJKmainfont{Noto Serif CJK KR}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{array}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black,
+            citecolor=blue!50!black, urlcolor=blue!50!black}
+
+\title{\textbf{The Bithumb--Binance BTC-num\'eraire Premium:\\
+       A Theoretical Framework with Calibrated Simulation Evidence\\
+       on BNB Chain Tokens}}
+
+\author{HoKwang Kim\\
+        \small Betalabs Inc., \emph{former CEO of Cyworld Z}\\
+        \small \emph{Practitioner in Blockchain and Web3 development and business since 2017}\\
+        \small ORCID: \href{https://orcid.org/0009-0002-0962-2175}{0009-0002-0962-2175}\\
+        \small Repository: \href{https://github.com/gameworkerkim/vibe-investing}{github.com/gameworkerkim/vibe-investing}\\
+        \small \texttt{gameworker@gmail.com}}
+
+\date{May 2026 (revised)}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This paper redefines the price discrepancy between the Korean exchange Bithumb and the global
+exchange Binance using a new measure of the kimchi premium expressed in BTC units, denoted
+$\pi^{\text{BTC}}_X(t)$, accompanied by calibrated simulation evidence on daily series over 2020--2025.
+The conventional KRW-denominated premium $\pi^{\text{KRW}}_X(t)$ confounds many forces---exchange rate
+dynamics, capital controls, stablecoin premia, and remittance delays---making it difficult to identify
+token-specific asymmetric demand shocks. As a remedy, this paper proposes
+\[
+   \pi^{\text{BTC}}_X(t)=\frac{P_X^B/P_{\mathrm{BTC}}^B}{P_X^N/P_{\mathrm{BTC}}^N}-1,
+\]
+and proves (Proposition 1, FX-noise cancellation) that this measure is invariant to the exchange rate
+and to stablecoin-level fluctuations by numerator--denominator cancellation. The empirical objects of
+study are BNB (the gas token of BNB Chain, listed on Bithumb on 2021-05-27), Venus (XVS, a BSC DeFi
+governance token), and ETH as an ERC-20 baseline. A normalised variance ratio
+$\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$
+controls for own-price volatility, OLS regressions are reported with Newey--West HAC standard errors,
+and asymmetric volatility is estimated with an EGARCH(1,1) model using Student-$t$ innovations.
+Simulation findings suggest that (i) the satoshi premium displays roughly half the standard deviation
+of the KRW premium, evidencing FX-noise removal; (ii) after normalisation, both BNB ($\rho=1.13$) and
+XVS ($\rho=0.82$) exceed the ETH baseline ($\rho=0.42$), tentatively rejecting BSC arbitrage superiority;
+(iii) HAC adjustment causes the Korean regulatory dummy to lose significance while the global-shock
+dummy remains highly significant ($p<0.001$); (iv) the EGARCH leverage parameter is
+$\hat\gamma=-0.073$ ($p<0.05$), supporting the asymmetric volatility hypothesis H2.
+
+\medskip
+\noindent\textbf{Keywords:} kimchi premium, BTC-num\'eraire, BNB Chain, capital controls,
+triangular arbitrage, limits to arbitrage, EGARCH, Newey--West HAC, Bithumb, Binance \\
+\textbf{JEL classification:} G14, G15, F31, G18
+
+\medskip
+\noindent\textbf{Disclosure on data.} All quantitative results are based on synthetic daily series
+calibrated to published stylized facts and to the general characteristics of real-time exchange data.
+The figures and tables constitute simulation evidence intended to verify the statistical properties of
+the proposed measure; precise parameter values must be re-estimated on real market data by follow-up
+empirical work.
+\end{abstract}
+
+\section{Introduction}
+
+The Korean cryptocurrency market is partially segmented from global markets owing to a multilayered
+regulatory environment that includes the Foreign Exchange Transactions Act, the Specified Financial
+Information Act, the FATF Travel Rule, the real-name verified deposit account regime, and a de facto
+ban on direct trading by foreign nationals (Makarov \& Schoar, 2020; Choi et al., 2022; Hwang et al.,
+2024). The result of this market segmentation is a persistent price divergence between Korean and
+non-Korean exchanges---the so-called \emph{kimchi premium}---which reached approximately 50\% during
+the 2017--2018 Bitcoin rally (Makarov \& Schoar, 2020; Eom, 2021).
+
+Most prior research measures the kimchi premium in Korean won (KRW), i.e., by converting the Bithumb
+(or Upbit) won price of a token $X$ into US dollars (or USDT) at the prevailing spot exchange rate and
+comparing it with the foreign-venue dollar price. This conventional measure, however, embeds within
+the same scalar quantity several confounding forces: intraday volatility of the KRW/USD exchange rate,
+the USDT premium on Bithumb relative to its foreign parity, banking-side remittance delays, and a
+capital-control premium. As a consequence it becomes difficult to disentangle ``Korean retail demand
+is asymmetrically intense for token $X$'' from ``Korean retail demand for crypto is broadly elevated''.
+
+This paper makes three contributions. First, it formalises a \emph{BTC-num\'eraire premium}
+$\pi^{\text{BTC}}_X(t)$ that uses BTC as an exchange-internal num\'eraire, and proves
+(Proposition 1, Section 3) that this measure cancels exchange-rate and capital-control noise by
+numerator--denominator cancellation. Second, it formalises the triangular arbitrage structure of
+BNB Chain tokens and introduces a \emph{normalised variance ratio} $\rho_X$ to construct a robust
+test of the BSC inefficiency hypothesis $\mathrm{H_{BSC}}$ that controls for own-volatility
+differences across tokens. Third, it conducts the simulation analysis with Newey--West HAC standard
+errors and an EGARCH(1,1) volatility model in order to control for serial correlation and asymmetric
+heteroskedasticity.
+
+The empirical objects of study are three tokens simultaneously listed on Bithumb and Binance:
+(i) \textbf{BNB}, the gas token of BNB Chain and a top-five-cap asset, listed on Bithumb on May 27,
+2021; (ii) \textbf{Venus (XVS)}, a mid-cap BSC DeFi governance token; and (iii) \textbf{ETH}, the
+ERC-20 baseline.
+
+\paragraph{Identification strategy: comparison across non-Korean exchanges.}
+Is the kimchi premium driven by ``Korean retail irrationality'' or by ``capital-control-induced
+arbitrage frictions''? This paper proposes a new identification strategy: \emph{directly compare the
+BTC-num\'eraire premium variability across non-Korean exchanges with that of Bithumb-vs-non-Korean
+pairs}. Simulation evidence in Section 6.4 shows that the satoshi premium standard deviation among
+Binance, OKX, and Bybit is 0.23--0.34\% for ETH (near zero in practice), whereas Bithumb-vs-non-Korean
+pairs reach 0.85--0.90\%, i.e., \emph{3 to 4 times larger}, and approximately 7 times larger when
+measured in BNB. Among non-Korean exchanges, arbitrageurs face the same risks but encounter no
+systemic delay barrier to moving crypto assets; in Korea, the Foreign Exchange Act, Travel Rule, and
+KYC asymmetry actively block the arbitrage channel. Therefore the kimchi premium is plausibly
+\emph{the price of a regulatory friction}, not a market inefficiency awaiting liquidity.
+
+\paragraph{Quantitative evidence on capital outflow.}
+According to data released by the Korea Customs Service (via the office of NA Member Choi Eun-seok)
+on October 21, 2025, detected illegal foreign exchange transactions mediated by crypto assets reach
+a 2018--2025 cumulative total of approximately 14.2 trillion KRW, including 1{,}157.9 billion KRW
+in 2024 and 881.3 billion KRW in January--August 2025 (Section 6.5, Figure~\ref{fig:policy_cost},
+Table~\ref{tab:policy_cost}). These are \emph{detected} amounts only and thus a strict lower bound.
+So long as the kimchi premium persists, the Korean market provides a structural impetus for
+capital outflow, the burden of which is borne by the Korean economy.
+
+\paragraph{Structure.} Section 2 reviews the literature; Section 3 develops the four premium measures
+and the triangular arbitrage framework; Section 4 lists testable hypotheses; Section 5 presents the
+data and methodology; Section 6 reports the empirical findings; Section 7 discusses interpretation and
+policy implications; Section 8 outlines limitations and a follow-up research agenda; Section 9
+concludes.
+
+\section{Literature Review}
+
+\paragraph{General theory of arbitrage limits.}
+Gromb \& Vayanos (2010) organise the general mechanism by which capital-constrained, risk-averse
+arbitrageurs fail to immediately eliminate riskless arbitrage opportunities. The Korean kimchi
+premium is a prototypical instance of the ``limits to arbitrage'' framework, in which capital
+controls and the KYC regime form a structural friction that blocks arbitrageur entry at the source.
+
+\paragraph{Mechanisms of the kimchi premium.}
+Makarov \& Schoar (2020) document persistent Bitcoin price divergences across the US, Korea, Japan,
+and Europe and attribute them to arbitrage limits induced by capital controls and regulatory
+differences. The Korea--US ratio exceeded 15\% on average during December 2017--February 2018 and
+reached 40\% on some days. Eom (2021) estimates by GMM that volume and price instability explain
+much of the kimchi premium, and Choi et al.\ (2022) argue that capital controls slow the
+premium's mean reversion. More recently, Ahn \& Kim (2023) use Bithumb microdata to identify the
+investor types driving the premium, finding individual retail to be the principal source of variation.
+
+\paragraph{Arbitrage frictions, external spillovers, regulatory shocks.}
+Borri \& Shakhnov (2020) show that Chinese crypto regulation spills over to the Korean market as a
+``China shock''. Kim et al.\ (2022) use Bank of Korea administrative data to demonstrate that
+remittances to China increase when the kimchi premium widens, suggesting that the premium also
+functioned as a channel for repatriating Chinese miners' funds. Hwang et al.\ (2024) document that
+the Travel Rule, implemented in March 2022, further constrained inter-exchange arbitrage and
+extended the kimchi premium's half-life; this finding is closely related to hypothesis H4 below
+(asymmetric response to regulatory shocks).
+
+\paragraph{Pricing factors and microstructure of crypto markets.}
+Liu, Tsyvinski \& Wu (2022, \emph{Journal of Finance}) identify common risk factors (market beta,
+size, momentum) in the crypto cross-section, allowing separation of idiosyncratic alpha from
+systematic risk; the normalised variance ratio $\rho_X$ in this paper is in the same spirit, deflating
+premium variance by own-price variance to remove a token-level scale effect. Pieters \& Vivanco
+(2017) attribute inter-exchange BTC price differences to liquidity-structural causes rather than
+information asymmetry, and Capponi \& Jia (2021) model price discovery between DEX and CEX and the
+arbitrage incentives of liquidity providers; their framework provides direct theoretical grounding
+for the triangular arbitrage structure in Section 3.3.
+
+\paragraph{Altcoins and exchange-level segmentation.}
+Tiger Research (2024) quantify the Korean alt-coin bias, reporting a 1{,}255\% premium on the
+AVAIL listing event of July 2024. Kim (2024) defines a ``Korean venue share'' indicator and analyses
+its effect on alt-coin returns under a reinforcement-learning framework.
+
+\paragraph{Positioning of this paper.}
+This paper recasts the cross-country arbitrage frame of Makarov \& Schoar (2020) as an
+\emph{intra-country, inter-token} problem and extends the CEX--DEX price-discovery model of
+Capponi \& Jia (2021) to a Bithumb--Binance--PancakeSwap triangle. To the best of our knowledge,
+this is the first paper to use BTC explicitly as a num\'eraire for defining a token-level kimchi
+premium.
+
+\section{Theoretical Framework}
+
+\subsection{Notation and four measures of the premium}
+For token $X$ at time $t$, let
+$P_X^{B,\text{KRW}}(t)$ denote the Bithumb KRW price of $X$,
+$P_X^{N,\text{USDT}}(t)$ the Binance USDT price,
+$E_t$ the KRW/USD reference rate,
+$P_{\text{USDT}}^{B,\text{KRW}}(t)$ the Bithumb USDT/KRW pair,
+and $P_{X/\text{BNB}}^{\text{DEX}}(t)$ the PancakeSwap $X$/BNB pool price. We define four measures.
+
+\paragraph{(M1) FX-denominated premium.}
+\begin{equation}
+\pi^{\text{KRW}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot E_t}-1
+\label{eq:pi_krw}
+\end{equation}
+
+\paragraph{(M2) USDT-denominated premium.}
+\begin{equation}
+\pi^{\text{USDT}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)}{P_X^{N,\text{USDT}}(t)\cdot P_{\text{USDT}}^{B,\text{KRW}}(t)}-1
+\label{eq:pi_usdt}
+\end{equation}
+
+\paragraph{(M3) BTC-num\'eraire premium --- the paper's central measure.}
+\begin{equation}
+\boxed{\;
+\pi^{\text{BTC}}_X(t) = \frac{P_X^{B,\text{KRW}}(t)/P_{\text{BTC}}^{B,\text{KRW}}(t)}
+                                {P_X^{N,\text{USDT}}(t)/P_{\text{BTC}}^{N,\text{USDT}}(t)} - 1
+\;}
+\label{eq:pi_btc}
+\end{equation}
+
+\begin{quote}
+\textbf{Proposition 1 (FX-noise cancellation).}
+When both Bithumb prices are quoted in the same currency (KRW) and both Binance prices in the same
+currency (USDT), $\pi^{\text{BTC}}_X(t)$ is invariant to $E_t$, to the USDT/KRW premium
+$P_{\text{USDT}}^{B,\text{KRW}}(t)$, and to stablecoin-level fluctuations.
+\end{quote}
+
+\noindent\textbf{Proof.} The numerator ratio cancels the KRW unit and the denominator ratio cancels
+the USDT unit, so $\pi^{\text{BTC}}_X$ contains no currency conversion factor.\hfill$\Box$
+
+\paragraph{(M4) ETH-baseline alpha.}
+\begin{equation}
+\alpha_X^{\text{ETH}}(t) = \pi^{\text{BTC}}_X(t) - \pi^{\text{BTC}}_{\text{ETH}}(t)
+\label{eq:alpha}
+\end{equation}
+
+\subsection{No-arbitrage band and fair premium}
+The cost of a typical arbitrage cycle decomposes as
+\begin{equation}
+\pi^*_X(t) = c_X^{\text{out}}+c_X^{\text{in}} + f^{\text{KYC}}+f^{\text{KRW}}
+           + r_t\Delta t + \kappa\sigma_X\sqrt{\Delta t}
+           + \lambda_t^{\text{KOR}} + \eta_X^{\text{liq}}.
+\label{eq:fair_premium}
+\end{equation}
+Table \ref{tab:fair_premium} summarises plausible ranges for each term.
+
+\begin{table}[H]
+\centering
+\caption{Decomposition of the no-arbitrage fair premium (\%; 5-day arbitrage cycle).}
+\label{tab:fair_premium}
+\begin{tabular}{lccc}
+\toprule
+Term & BTC & ETH (ERC-20) & BSC token (BEP-20) \\
+\midrule
+On-chain withdrawal $c^{\text{out}}$ & 0.005--0.02 & 0.05--0.30 & 0.001--0.05 \\
+KRW withdrawal fee $f^{\text{KRW}}$  & 0.05 & 0.05 & 0.05 \\
+Capital lock-up $r\Delta t$         & 0.04 & 0.04 & 0.04 \\
+Volatility hedge $\kappa\sigma\sqrt{\Delta t}$ & 1.5--2.5 & 1.8--3.0 & 2.5--6.0 \\
+Capital-control premium $\lambda^{\text{KOR}}$ & 1.0--3.0 & 1.0--3.0 & 1.0--3.0 \\
+Liquidity premium $\eta^{\text{liq}}$ & 0.1--0.5 & 0.3--0.8 & 1.5--5.0 \\
+\midrule
+\textbf{Total $\pi^*$} & \textbf{2.7--6.1} & \textbf{3.2--7.2} & \textbf{5.1--14.1} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{BSC triangular structure and normalised variance ratio}
+A BNB Chain token has three price-discovery channels (Figure~\ref{fig:triangle}):
+(i) the direct Bithumb--Binance route, (ii) the PancakeSwap DEX detour, and (iii) the BTC num\'eraire
+route. Because BNB itself is also listed on Bithumb, the analysis can exploit both BNB itself and a
+BSC DeFi token (e.g., XVS).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{../../figures/en/fig6_triangular_structure.png}
+\caption{Triangular pricing channels for a BSC-resident token.}
+\label{fig:triangle}
+\end{figure}
+
+\paragraph{Formalising hypothesis $\mathrm{H_{BSC}}$.}
+The naive intuition is: ``Because PancakeSwap adds an arbitrage channel, BSC tokens should exhibit
+\emph{lower} satoshi-premium variance than ERC-20 tokens.'' A simple variance comparison, however,
+confounds token-level own volatility, since BSC DeFi tokens are typically more volatile than ETH.
+This paper introduces the \emph{normalised variance ratio}
+\begin{equation}
+\rho_X \;\equiv\; \frac{\operatorname{Var}[\pi^{\text{BTC}}_X]}{\operatorname{Var}[\Delta\log P_X]},
+\label{eq:rho}
+\end{equation}
+a unit-free indicator of ``how much the satoshi premium moves per unit of own-price movement''. The
+hypothesis is restated as
+\begin{equation}
+\rho_X^{\text{BSC}} < \rho_X^{\text{ERC20}}.
+\label{eq:hbsc}
+\end{equation}
+
+\section{Testable Hypotheses}
+
+\begin{description}
+\item[H1 (Satoshi anchoring).] $\mathbb{E}[\pi^{\text{BTC}}_X(t)] \approx 0$. A significant non-zero
+mean would imply the absence of an X/BTC arbitrage channel inside Bithumb (i.e., inactive BTC pairs).
+\item[H2 (Asymmetric volatility).] An EGARCH(1,1) fit to $\Delta\pi^{\text{BTC}}_X$ exhibits a
+leverage term $\gamma<0$ at $p<0.05$.
+\item[H3 = $\mathrm{H_{BSC}}$ (Normalised BSC superiority).] $\rho_X^{\text{BSC}}<\rho_X^{\text{ERC20}}$.
+\item[H4 (Asymmetric regulatory shock).] Korean regulatory shocks push $\pi^{\text{BTC}}_X$ negative;
+global shocks move it transiently toward zero or weakly negative.
+\item[H5 (Time-stable capital-control premium).]
+$\mathbb{E}[\pi^{\text{KRW}}_X(t)]-\mathbb{E}[\pi^{\text{BTC}}_X(t)]\approx\lambda$, relatively
+stable across regimes.
+\end{description}
+
+\section{Data and Methodology}
+
+\paragraph{Sample and data nature.}
+The analysis uses a synthetic daily series of $T=2{,}192$ observations covering 2020-01-01 to 2025-12-31.
+The series is calibrated to stylized facts reported in Makarov \& Schoar (2020), Eom (2021),
+Choi et al.\ (2022), and Tiger Research (2024)---in particular the spring 2021 peak, the LUNA and FTX
+shocks of 2022, the July 2024 implementation of the Virtual Asset User Protection Act (VAUPA), and
+the December 3, 2024 martial-law incident. The quantitative results below are \emph{simulation
+evidence}; precise parameter values must be re-estimated on real exchange data.
+
+\paragraph{Calibration mechanism.}
+The synthetic series is constructed by the following stochastic procedure (full specification in
+Appendix~A, Table~\ref{tab:cal_spec}; moment-matching in Table~\ref{tab:moment_match}).
+The KRW/USD rate is generated as a sinusoidal trend plus two Gaussian shock kernels (a 2022-Q4
+strong-dollar episode and the December 2024 martial-law episode) plus IID $N(0,4)$ noise.
+The log BTC/USDT price is built by linear interpolation across 14 historical anchors plus a cumulative
+Gaussian random walk with $\sigma=0.018$; ETH, BNB, and XVS use the same anchor-interpolation scheme
+with token-specific volatilities. The KRW premium $\pi^{\text{KRW}}_X(t)$ is the sum of a baseline
+drift, eight Gaussian event bumps of the form $h\cdot\exp(-((t-t_0)/\sigma_d)^2)$ (e.g., the April 2021
+peak, the April 22, 2021 FSC statement, the November 12, 2022 FTX shock, the March 16, 2024 BTC ATH,
+the July 19, 2024 VAUPA step, and the December 3, 2024 martial-law shock at $h=-32\%$), and IID
+$N(0,0.006)$ noise. The random seed (\texttt{20260513}) is fixed for full reproducibility.
+
+\paragraph{Target tokens.}
+\textbf{BNB} (BNB Chain gas, listed on Bithumb on 2021-05-27, top-five-cap), \textbf{Venus (XVS)}
+(BSC DeFi governance), and \textbf{ETH} (ERC-20 baseline).
+
+\paragraph{Empirical model.}
+The principal regression equation is
+\begin{multline}
+\pi^{\text{BTC}}_X(t) = \beta_0 + \beta_1\pi^{\text{BTC}}_{\text{ETH}}(t) + \beta_2\text{RV}_{\text{BTC}}(t)
+                       + \beta_3\log\!\tfrac{V_X^B(t)}{V_X^N(t)} \\
+                       + \beta_4\Delta\log P_{\text{BTC}}(t)
+                       + \beta_5 D^{\text{KR}}_t + \beta_6 D^{\text{GL}}_t + u_t.
+\label{eq:reg}
+\end{multline}
+To control for serial correlation and heteroskedasticity standard in financial time series, we use
+\textbf{Newey--West HAC} standard errors with a Bartlett-kernel truncation
+$L=\lfloor 4(N/100)^{2/9}\rfloor$ (Newey \& West, 1987).
+
+To test the asymmetric volatility hypothesis H2, we fit an EGARCH(1,1) to $\Delta\pi^{\text{BTC}}_X$.
+The dependent variable is expressed in \emph{percent} ($\times 100$) and winsorised at $\pm 20\%$ to
+limit the influence of tail observations before estimation (a consequence discussed in
+\S 8 Limitation 3):
+\begin{equation}
+\log\sigma_t^2 \;=\; \omega + \alpha\!\left(|z_{t-1}|-\sqrt{2/\pi}\right) + \gamma z_{t-1} + \beta\log\sigma_{t-1}^2,
+\label{eq:egarch}
+\end{equation}
+where $z_t=e_t/\sigma_t$ and $e_t=\Delta\pi^{\text{BTC}}_X(t)-\mu$. We assume Student-$t$ innovations
+of degrees-of-freedom $\nu$ and estimate parameters by quasi-MLE. A statistically negative leverage
+term $\gamma$ indicates that negative shocks raise conditional volatility more than positive shocks
+of equal size, supporting H2.
+
+\section{Empirical Results}
+
+\subsection{Stylized facts}
+
+\paragraph{F1. Time-series pattern of the KRW premium.}
+Figure~\ref{fig:krw_ts} plots the KRW premium for BTC, ETH, BNB (post-2021-05-27), and XVS. The
+spring 2021 peak ($\approx 22\%$), a secondary peak at the March 2024 BTC ATH ($\approx 10\%$), the
+structural shift to a discount after the July 2024 VAUPA implementation, and an extreme negative
+premium of approximately $-32\%$ on December 3, 2024 are all visible. KRW-premium standard deviations
+(Table~\ref{tab:summary}) are 2.7\% (BTC), 2.8\% (BNB), and 4.5\% (XVS).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig1_krw_premium_timeseries.png}
+\caption{Bithumb--Binance KRW kimchi premium (including BNB), 2020--2025.}
+\label{fig:krw_ts}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Summary statistics of the premium measures.}
+\label{tab:summary}
+\input{tab_summary.tex}
+\end{table}
+
+\paragraph{F2. FX-noise removal by the satoshi premium.}
+Figure~\ref{fig:satoshi_compare} compares the KRW and BTC-num\'eraire premia of two BSC tokens.
+During the Q4 2022 strong-dollar window and during the December 2024 martial-law shock, the KRW
+premium diverges sharply while the satoshi premium remains relatively stable. Satoshi-premium
+standard deviations (Table~\ref{tab:summary}) are 2.2\% (BNB) and 2.5\% (XVS), roughly half their
+KRW counterparts.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig2_satoshi_vs_krw.png}
+\caption{BSC tokens: KRW premium (top) vs BTC-num\'eraire premium (bottom).}
+\label{fig:satoshi_compare}
+\end{figure}
+
+\paragraph{F3. Event study: the December 2024 martial-law shock.}
+Figure~\ref{fig:event_martiallaw} reports a $[-15,+15]$-day window around the martial-law declaration.
+The negative premium runs deepest, and recovers most slowly, for BNB and XVS---less capital-deep
+than BTC---supporting H4.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../../figures/en/fig3_event_study_martiallaw.png}
+\caption{Event study, December 3, 2024 martial-law declaration ($\pm 15$ days).}
+\label{fig:event_martiallaw}
+\end{figure}
+
+\paragraph{F4. Fat-tailed alpha distribution.}
+Figure~\ref{fig:alpha_dist} shows the distribution of $\alpha_{\text{XVS}}^{\text{ETH}}$ and its
+Q--Q plot against a normal distribution. Excess kurtosis is well above that of the normal, with
+visible deviations in both tails---formed by alt-season episodes and panic events.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../../figures/en/fig4_alpha_distribution.png}
+\caption{Distribution of the ETH-baseline alpha (left) and normal Q--Q plot (right).}
+\label{fig:alpha_dist}
+\end{figure}
+
+\paragraph{F5. Asymmetric volatility--premium relation.}
+Figure~\ref{fig:vol_scatter}: the KRW premium displays a positive correlation with BTC realised
+volatility, whereas the satoshi premium is essentially uncorrelated---evidence that the macro
+channel of exchange-rate movement also moves with volatility and is bundled into the KRW measure.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig5_volatility_scatter.png}
+\caption{BTC realised volatility vs the two premium measures.}
+\label{fig:vol_scatter}
+\end{figure}
+
+\paragraph{F6. Normalised variance ratio --- a robust test of $\mathrm{H_{BSC}}$.}
+Figure~\ref{fig:rho} and Table~\ref{tab:summary} report $\rho_X$. ETH has the lowest value
+($\rho=0.42$), XVS comes next ($0.82$), and BNB the highest ($1.13$). Even controlling for
+token-level volatility, both BSC-side tokens exceed the ETH baseline by factors of roughly 2 and
+2.7, so $\mathrm{H_{BSC}}$ is (tentatively) rejected on this simulation. We note, however, that the
+normalisation controls only for own-price volatility; market cap, on-chain activity, fundamentals,
+and governance events remain potential cross-sectional confounders (\S 7, \S 8).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{../../figures/en/fig7_variance_ratio.png}
+\caption{Normalised variance ratio
+$\rho_X=\operatorname{Var}[\pi^{\text{BTC}}_X]/\operatorname{Var}[\Delta\log P_X]$.}
+\label{fig:rho}
+\end{figure}
+
+\subsection{Regression (OLS + Newey--West HAC)}
+Table~\ref{tab:regression} reports the OLS estimation of Equation~(\ref{eq:reg}) with both classical
+and Newey--West HAC ($L=7$) standard errors.
+
+\begin{table}[H]
+\centering
+\caption{OLS estimation of Eq.~(\ref{eq:reg}). $N=1{,}904$. Dependent variable
+$\pi^{\text{BTC}}_{\text{XVS}}$.}
+\label{tab:regression}
+\input{tab_regression.tex}
+\end{table}
+
+\paragraph{Key finding --- HAC adjustment changes the conclusion.}
+The ETH satoshi-premium coefficient $\beta_1=1.40$ is highly significant under both standard errors
+($t_{\text{OLS}}=25.0$, $t_{\text{HAC}}=12.5$), implying that XVS tracks ETH approximately one-for-one
+in the satoshi metric. The Korean regulatory dummy $\beta_5$, however, has $t=3.1$ under OLS
+($p<0.01$) but $t=1.12$ under HAC---\emph{losing significance}. Korean regulatory events trigger
+autocorrelated dynamics over several days, so the OLS independence assumption understates the
+standard error. By contrast, the global-shock dummy $\beta_6=-0.019$ remains highly significant
+under HAC ($t=-3.81$, $p<0.001$), suggesting that global shocks act on the premium more immediately
+with weaker serial correlation. $R^2=0.27$.
+
+\subsection{EGARCH(1,1) --- asymmetric volatility test (H2)}
+Table~\ref{tab:egarch} reports the EGARCH(1,1) fit to $\Delta\pi^{\text{BTC}}_{\text{XVS}}$.
+
+\begin{table}[H]
+\centering
+\caption{EGARCH(1,1) estimation. $N=1{,}903$. Dependent variable
+$\Delta\pi^{\text{BTC}}_{\text{XVS}}$.}
+\label{tab:egarch}
+\input{tab_egarch.tex}
+\end{table}
+
+The leverage term $\hat\gamma=-0.073$ ($t=-2.10$, $p<0.05$) is significantly negative, supporting
+H2. The Student-$t$ degrees-of-freedom estimate $\hat\nu=37.4$ indicates that, on the
+$\pm20\%$ winsorised sample, the innovation is essentially Gaussian; importantly, $\nu$ is
+\emph{estimated} rather than imposed, so robustness is preserved. Information criteria are
+AIC$=9{,}244.72$ and BIC$=9{,}278.03$. Figure~\ref{fig:egarch} plots the fitted residual series and
+the conditional volatility $\hat\sigma_t$, which spikes around the spring 2021 peak, LUNA, FTX, and
+the December 2024 martial-law shock; Figure~\ref{fig:egarch_diag} reports diagnostic plots of the
+standardised residuals.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig8_egarch_volatility.png}
+\caption{EGARCH(1,1) residuals (top) and conditional volatility (bottom).}
+\label{fig:egarch}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig9_egarch_diagnostics.png}
+\caption{EGARCH(1,1) diagnostics --- density, Q--Q plot, and ACF of squared standardised residuals.}
+\label{fig:egarch_diag}
+\end{figure}
+
+\subsection{Cross-exchange comparison --- regulatory cost or market inefficiency?}
+\label{sec:cross}
+
+This subsection brings simulation evidence to bear on the paper's identification strategy. The
+hypothesis is simple: \emph{directly compare satoshi-premium variability across non-Korean exchanges
+with that of Bithumb-vs-non-Korean pairs}. If the kimchi premium were a ``retail mania''
+phenomenon, that mania should affect all exchanges. If it is a \emph{Korea-specific capital-control
+cost}, only Bithumb-involved pairs should display large variability.
+
+\noindent\textbf{Reading caveat.} The quantitative results below are based on synthetic data. The
+OKX and Bybit series are modelled as ``microstructure noise without regulatory friction'' only (see
+the caveat in Appendix~A, Table~\ref{tab:cal_spec}). The small offshore-only premium is therefore
+\emph{partly} a function of the modelling assumption. Whether OKX and Bybit display exactly
+0.2--0.3\% standard deviations in practice cannot be asserted; the results should be read as a
+\emph{simulation demonstration} of how the identification hypothesis manifests under a given
+calibration. Precise empirical verification is left to follow-up research (Agenda 7, \S 8).
+
+\begin{table}[H]
+\centering
+\caption{Cross-exchange BTC-num\'eraire premium summary (2020-01-01 to 2025-12-31).}
+\label{tab:cross_exchange}
+\small
+\input{tab_cross_exchange.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig10_cross_exchange.png}
+\caption{Offshore vs Bithumb-involved BTC-num\'eraire premia.}
+\label{fig:cross_exchange}
+\end{figure}
+
+Table~\ref{tab:cross_exchange} and Figure~\ref{fig:cross_exchange} apply the same measure
+\eqref{eq:pi_btc} to every pair among Binance, OKX, and Bybit. The key results are:
+\begin{itemize}
+\item \textbf{Offshore-only satoshi premia are effectively zero.} For ETH: Binance--OKX 0.23\%,
+Binance--Bybit 0.25\%, OKX--Bybit 0.34\%. For BNB: 0.22--0.32\%, with $[1\%, 99\%]$ ranges within
+$\pm 0.8\%$.
+\item \textbf{Bithumb-involved satoshi premia are an order of magnitude larger.} For ETH all three
+Bithumb pairs have standard deviations of 0.85--0.90\% (3--4$\times$); for BNB, 1.59--1.63\%
+($\approx 7\times$).
+\item \textbf{The result is robust to which non-Korean exchange is the counterparty.} The premium
+asymmetry is concentrated on the Bithumb side---i.e., in Korea-specific friction.
+\end{itemize}
+
+Among non-Korean exchanges, arbitrageurs can move crypto assets without systemic delay, and any
+transient price gap is closed within minutes (consistent with Makarov \& Schoar, 2020, Table 3). In
+contrast, Korean exchanges are subject to the Foreign Exchange Act, Travel Rule, real-name-verified
+deposit accounts, and the foreigner-trading ban, all of which block the arbitrage channel and allow
+gaps to persist for days or weeks. The kimchi premium thus appears to be the price of regulatory
+segmentation rather than residual market inefficiency.
+
+\subsection{Quantitative evidence on capital outflow --- the policy cost of the premium}
+\label{sec:policy}
+
+If the kimchi premium is indeed a regulatory price asymmetry, the asymmetry becomes an
+\emph{arbitrage opportunity} for someone, and the associated funds flows must by-pass Korea's
+foreign-exchange regime---i.e., they take the form of \emph{illegal foreign exchange transactions}.
+This paper documents a structural association between the kimchi premium and detected illegal
+forex activity but \emph{does not assert} a clean causal interpretation: crypto-mediated illegal
+forex includes property flight, simple remittance-rule avoidance, and money laundering of various
+provenance. Premium-driven arbitrage is plausibly \emph{one of the principal} structural drivers
+of these channels. The detection statistic should therefore be read as an \emph{upper-bound
+indicator} of the capital-outflow behaviour that would have been absent if the premium itself were
+absent.
+
+\begin{table}[H]
+\centering
+\caption{KCS detection --- crypto-mediated illegal forex transactions (2018--2025).}
+\label{tab:policy_cost}
+\small
+\input{tab_policy_cost.tex}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{../../figures/en/fig11_policy_cost.png}
+\caption{KCS detection --- illegal forex via crypto assets.}
+\label{fig:policy_cost}
+\end{figure}
+
+The nine-year cumulative detection is approximately 14.2 trillion KRW, of which 2024 contributes
+1{,}157.9 billion KRW and January--August 2025 contributes 881.3 billion KRW (about 2.04 trillion KRW
+combined for the 2024--2025 partial period). Detected typologies include misinvoiced trade
+remittances, unlicensed foreign-exchange business (\emph{hwan-chigi}), and paper-company conduits.
+The Supreme Court ruling 2024Do16540 (September 4, 2025) classified ``layered remittances intended
+to evade the regulatory regime'' as unlicensed foreign exchange business. Bearing in mind that the
+detection rate is a small fraction of true outflow---and that not all detection traces back to
+kimchi-premium arbitrage---the figures are best read alongside Section~\ref{sec:cross} as an
+\emph{indirect indicator} of the economic burden the premium imposes on the Korean economy.
+
+\section{Discussion}
+
+\paragraph{The satoshi premium as a measurement tool.}
+The most robust finding of this paper is that the BTC-num\'eraire measure has systematically
+better statistical properties than the conventional KRW measure. During Korea-specific
+fiscal/political shocks like the December 2024 martial-law event, the KRW premium diverges
+explosively whereas the satoshi premium remains relatively stable; conversely, the satoshi premium
+responds to global shocks such as LUNA (2022.5) and FTX (2022.11). Monitoring \emph{both} measures
+allows one to decompose domestic and global shocks.
+
+\paragraph{Microstructure interpretation of $\rho_{\text{BNB}}>\rho_{\text{XVS}}$.}
+The observation that BNB ($\rho=1.13$) exceeds XVS ($\rho=0.82$) is not immediately explained by
+a DEX-access-barrier hypothesis alone. BNB is a top-five-cap asset with deep liquidity on both
+Bithumb and Binance; intuitively, its premium should mean-revert faster and yield a smaller $\rho$.
+We offer two complementary hypotheses. (i) \emph{Basis-trading-induced perturbation.} BNB is the
+spot leg of Binance perpetuals, so cash-and-carry trading perturbs the Bithumb BNB/KRW price by
+small amounts and inflates the numerator (premium variance), in the spirit of the LP-arbitrage
+mechanism of Capponi \& Jia (2021). (ii) \emph{Microstructure noise amplification.} BNB's own
+price volatility is slightly lower than ETH's, making the normalised numerator more responsive to
+small price gaps. The comparison of $\rho_X$ across high- and low-volatility tokens can therefore
+generate an asymmetric interpretation; this is the reason we recommend, as follow-up research, a
+\emph{duration analysis} of no-arbitrage-band exits (\S 8 Agenda 6). The decisive conclusion is
+reserved.
+
+\paragraph{Implications of the HAC adjustment.}
+The loss of significance for the Korean regulatory dummy under HAC carries an important
+academic and policy lesson: Korean regulatory events generate residual effects on the premium for
+days to weeks (the autocorrelation pattern), so simple OLS-based event studies can overstate
+statistical significance.
+
+\paragraph{Exchange-listing advisory.}
+The fair-premium formula \eqref{eq:fair_premium} can be applied through the following simplified
+empirical specification:
+\begin{equation}
+\hat{\pi}_X^* \approx 1.8\% + 0.6\sigma_X^{\text{wk}} + 1.2\cdot\mathbb{1}_{\text{retail-heavy}} + 0.4\log(V_N/V_B).
+\end{equation}
+Under normal market conditions, the fair premium for a typical BSC major is approximately
+4--6\%, rising to 8--12\% during alt seasons; clearly exceeding this range is quantitative evidence
+of inefficiency. We re-emphasise that all parameter values are simulation-based estimates.
+
+\paragraph{Policy implications --- autonomous competition and foreign-access liberalisation.}
+\emph{Under the assumption that the present simulation reflects a first-order approximation of the
+real market structure}, Sections~\ref{sec:cross} and \ref{sec:policy} together suggest the following
+direction of policy.
+
+First, the KYC/AML/CFT framework should be \emph{maintained at its current intensity or
+strengthened}. The risk that crypto assets are abused as channels for money laundering or terrorism
+financing must be controlled independently of the Travel Rule, in accordance with the global
+standard (FATF Recommendation 16).
+
+Second, restrictions on foreign access to Korean exchanges merit \emph{gradual liberalisation}.
+The present ban appears to be a key mechanism that blocks arbitrageur entry and sustains the kimchi
+premium, with the consequences that (i) Korean retail bears welfare losses through inefficient
+prices, (ii) arbitrage-seeking funds exit through misinvoiced remittance and \emph{hwan-chigi}
+channels, and (iii) the indirect economic-cost indicator---detected illegal forex over nine
+years---reaches approximately 14.2 trillion KRW.
+
+Third, the construction of a KRW-stablecoin infrastructure appears to be a natural complement:
+if the Travel Rule blocks the \emph{time} dimension of arbitrage, a KRW stablecoin provides the
+\emph{route} dimension within the same KYC standard, opening a legitimate arbitrage channel. In
+the simulation model, this policy package would compress the Bithumb-vs-offshore satoshi-premium
+standard deviation toward the offshore range (0.2--0.3\%), and the Korean market would no longer
+provide the structural impetus for capital outflow. These implications, however, are conditional
+on the calibration assumptions; actual policy decisions should be based on follow-up empirical
+work that re-estimates the model on real exchange data (\S 8).
+
+\section{Limitations and Follow-Up Research Agenda}
+
+\paragraph{Limitation 1: synthetic-data nature.}
+All quantitative figures rest on synthetic series. Sample size, the exact location and amplitude
+of events, and parameter estimates ($\beta_1=1.40$, $\hat\gamma=-0.073$, the $\rho_X$ values) depend
+on calibration assumptions. The first priority of follow-up empirical work is to re-run the
+identical pipeline on real one-minute or one-day data from the Bithumb, Binance, OKX, and Bybit
+public APIs.
+
+\paragraph{Limitation 2: limited cross-sectional control in the $\mathrm{H_{BSC}}$ test.}
+The normalised variance ratio $\rho_X$ controls only for own-price volatility, leaving market cap,
+trading volume, governance events, and fundamentals uncontrolled. BSC and ERC-20 tokens may be
+different \emph{types} of asset, and a selection-bias concern arises.
+
+\paragraph{Follow-up agenda 1: BTCB vs WBTC natural experiment.}
+The cleanest test of $\mathrm{H_{BSC}}$ would compare two chain-versions of the same asset. BTCB
+(BTC on BSC) and WBTC (BTC on Ethereum) both target a 1:1 peg and have essentially identical
+fundamentals. If both were listed on Bithumb and Binance, a comparison of $\rho_{\text{BTCB}}$ and
+$\rho_{\text{WBTC}}$ would deliver a clean ``chain effect'' identification.
+
+\paragraph{Follow-up agenda 2: panel analysis across many BSC tokens.}
+Extending the analysis to CAKE, BAKE, ALPACA, ALPHA, and others listed on Bithumb or Upbit would
+allow a panel decomposition of $\rho_X$ on token characteristics (market cap, liquidity, Korean
+venue share).
+
+\paragraph{Follow-up agenda 3: explicit analysis of the Travel Rule's effect.}
+Re-examining the Travel-Rule channel constraint documented by Hwang et al.\ (2024) within the
+satoshi-premium framework would allow a regime-switching model with March 25, 2022 as the
+structural break.
+
+\paragraph{Follow-up agenda 4: DEX--CEX microstructure analysis.}
+A structural estimation built on Capponi \& Jia (2021)---explicitly modelling PancakeSwap LP
+incentives and Korean retail's DEX-access cost---would quantitatively decompose the mechanism of
+$\mathrm{H_{BSC}}$ rejection.
+
+\paragraph{Follow-up agenda 5: behavioural-economic interpretation of panic/euphoria asymmetry.}
+If the leverage term $\gamma<0$ proves robust in both simulation and real data, it would suggest
+that the loss aversion and disposition effect of Korean retail manifest as premium asymmetry at
+macro shock times. Combined with the investor-type decomposition of Ahn \& Kim (2023), this could
+provide a behavioural-economic microfoundation.
+
+\paragraph{Limitation 3: EGARCH distributional assumption and winsorisation.}
+The Student-$t$ estimate $\hat\nu=37.4$ is essentially Gaussian, an artefact of $\pm 20\%$
+winsorisation. Applying the GED distribution or Hansen's (1994) skewed-$t$ to the raw data may
+capture fatter tails. Robustness checks using GJR-GARCH or EGARCH(2,1) and LR/AIC/BIC comparisons
+are also recommended.
+
+\paragraph{Follow-up agenda 6: duration analysis of no-arbitrage-band exits.}
+The interpretive ambiguity of $\rho_{\text{BNB}}>\rho_{\text{XVS}}$ (\S 7) may be sharpened by
+focussing on a \emph{duration} hypothesis rather than a point-in-time hypothesis. Comparing
+the distributions of time-above-threshold (e.g., a 5\% fair-premium threshold) for the two
+hypotheses---``DEX access barrier'' (long-tail) vs ``microstructure noise''
+(frequent-but-short)---would deliver discriminating power. Survival analysis or a Hawkes process
+fit would be appropriate tools.
+
+\paragraph{Follow-up agenda 7: empirical verification of the offshore-exchange spread.}
+The identification strategy in \S\ref{sec:cross} relies on the assumption that OKX and Bybit are
+modelled by pure microstructure noise without regulatory friction. Verifying this assumption is a
+core task: (i) collect synchronous one-minute BTC data from Binance, OKX, and Bybit and compute
+pairwise satoshi premia empirically; (ii) verify whether the order-of-magnitude difference vs
+Bithumb-involved pairs is observed in practice. If empirical magnitudes match the simulation, the
+policy implications of this paper acquire strong empirical support.
+
+\paragraph{Data and code availability.}
+All synthetic data generation, charts, tables, and OLS/HAC/EGARCH estimation procedures are written
+in Python and released in reproducible form. The full dataset (CSV), figures (PNG), and build
+scripts are available in the GitHub repository
+\href{https://github.com/gameworkerkim/vibe-investing}{\texttt{github.com/gameworkerkim/vibe-investing}},
+in the \texttt{Paper} subdirectory.
+
+\section{Conclusion}
+
+This paper redefines the price divergence between Bithumb and Binance using the BTC-num\'eraire
+satoshi premium $\pi^{\text{BTC}}_X(t)$, illustrating the construction with calibrated simulation
+evidence using BNB and XVS (both listed on Bithumb). The measure removes, at the measurement stage,
+the macro noise---FX, capital controls, stablecoin premium, remittance delays---that is bundled
+into the conventional KRW measure, isolating the pure question of ``how much more expensive is
+token $X$ relative to BTC, inside Bithumb, than outside''.
+
+Simulation findings indicate (i) FX-noise removal of approximately one-half of the KRW-premium
+standard deviation; (ii) tentative rejection of $\mathrm{H_{BSC}}$, with the normalised
+BSC-side premium variance exceeding the ETH baseline; (iii) loss of significance for the Korean
+regulatory dummy under HAC but strong significance for the global-shock dummy; and (iv) a
+significant negative EGARCH leverage term, supporting asymmetric volatility.
+
+The contributions are two-fold. First, the BTC-num\'eraire measure offers a new
+\emph{measurement tool} whose statistical superiority is established theoretically by
+Proposition 1. Second, the BSC triangular structure and the normalised variance ratio $\rho_X$ form
+a new \emph{testing tool}. These tools can be applied directly in exchange listing advisory,
+arbitrage system design, and---policy-wise---in the kimchi-premium monitoring activities of
+financial authorities such as the FSC and the KoFIU.
+
+\paragraph{Policy direction suggested by the simulation.}
+Through the cross-exchange comparison (\S\ref{sec:cross}), this paper provides simulation-level
+evidence that the kimchi premium appears closer to ``the price of a Korea-specific regulatory
+friction'' than to ``a general market inefficiency''. The order-of-magnitude difference---0.2--0.3\%
+standard deviation among Binance, OKX, and Bybit pairs vs 0.9--1.6\% for Bithumb-involved pairs in
+the simulation---demonstrates \emph{conceptually} that the premium nearly disappears in markets
+where the arbitrage channel is alive. The detected illegal-forex statistic (approximately 14.2
+trillion KRW over nine years; approximately 2 trillion KRW over 2024--2025) can be read as a lower
+bound on the economic cost the premium imposes on Korea. A policy package combining
+\emph{maintaining} the strength of the KYC/AML/CFT framework with \emph{gradual} liberalisation
+of foreign-user access and \emph{building} KRW-stablecoin infrastructure indicates, within the
+simulation model, a direction in which the kimchi premium would be structurally compressed.
+\emph{Actual policy decisions should be informed by follow-up empirical work that re-estimates
+the present model on real API data from Bithumb, Binance, OKX, and Bybit.}
+
+\appendix
+\section{Appendix A: Calibration Mechanism and Moment Matching}
+\label{app:calibration}
+
+Since all the paper's quantitative figures come from a synthetic daily series, a critical robustness
+check is whether the statistical properties of that series match the stylized facts reported for
+the Korean crypto market in the literature.
+
+\paragraph{Calibration specification.}
+Table~\ref{tab:cal_spec} documents the stochastic mechanism used to generate each component
+(FX, token prices, premium, volume) of the synthetic series. All random numbers use a fixed seed
+(\texttt{20260513}) for full reproducibility.
+
+\begin{table}[H]
+\centering
+\caption{Synthetic data generating mechanism (summary).}
+\label{tab:cal_spec}
+\small
+\input{tab_cal_spec.tex}
+\end{table}
+
+\paragraph{Core modelling assumption --- offshore-exchange spread.}
+The cross-exchange comparison result (\S\ref{sec:cross}) rests on the following \emph{decisive}
+assumption. The OKX and Bybit price series are generated by adding only AR(1) microstructure noise
+to the Binance price ($\phi=0.55$, $\sigma_\varepsilon \in [0.0012,\, 0.0016]$). That is, the
+non-Korean exchanges are assumed to have no FX noise, no capital control, and no KYC asymmetry
+between them: this models the theoretical baseline of ``no-arbitrage equilibrium between exchanges
+without regulatory friction''. Consequently, the 0.2--0.3\% standard deviation of the
+offshore-only premium in the simulation is \emph{partly} a direct function of this assumption. We
+nevertheless argue that the assumption is a reasonable first-order approximation, because (i) the
+BTC-price difference between Binance and OKX in real-exchange data is typically below 50 basis
+points (Pieters \& Vivanco, 2017), and (ii) capital can move between non-Korean major exchanges
+without systemic delay. Verification of this assumption is the priority of follow-up empirical
+research (\S 8 Agenda 7).
+
+\paragraph{Moment matching.}
+Table~\ref{tab:moment_match} compares the key moments of the synthetic series (mean, standard
+deviation, excess kurtosis, AR(1) coefficient) against literature-reported ranges. All four core
+moments fall within the reported ranges. The AR(1) coefficient of 0.911 for $\pi^{\text{KRW}}_{\text{BTC}}$
+matches exactly the ``high persistence'' range (0.85--0.95) reported by Choi et al.\ (2022). Excess
+kurtosis of 29.4 ($\pi^{\text{KRW}}_{\text{BTC}}$) and 16.3 ($\pi^{\text{KRW}}_{\text{XVS}}$) are
+much greater than the normal benchmark of 0, indicating fat-tailed distributions consistent with
+the qualitative reports of Eom (2021) and Tiger Research (2024).
+
+\begin{table}[H]
+\centering
+\caption{Moment matching: synthetic series vs literature.}
+\label{tab:moment_match}
+\small
+\input{tab_moment_match.tex}
+\end{table}
+
+\paragraph{Caveat.}
+Moment matching is \emph{necessary, not sufficient}: matching the moments does not guarantee that
+the simulation replicates every microstructural feature of real exchange data (tick-by-tick changes,
+order-book asymmetries, intraday patterns). The first task of empirical work is to verify whether
+this paper's parameter estimates ($\beta_1=1.40$, $\hat\gamma=-0.073$,
+$\rho_{\text{BNB}}=1.13$, $\rho_{\text{XVS}}=0.82$) display the same signs and statistical
+significance on real one-minute or one-day data.
+
+\section*{References}
+\begin{description}\itemsep4pt
+\item[{[1]}] Ahn, Y., \& Kim, D. (2023). Who drives the Kimchi premium?
+\emph{Economics Letters}, 226, 111100.
+\item[{[2]}] Borri, N., \& Shakhnov, K. (2020). Regulation spillovers across cryptocurrency markets.
+\emph{Finance Research Letters}, 36, 101333.
+\item[{[3]}] Capponi, A., \& Jia, R. (2021). The adoption of blockchain-based decentralized exchanges.
+\emph{arXiv preprint} arXiv:2103.08842.
+\item[{[4]}] Choi, S., Lehar, A., \& Stauffer, R. (2022). Bitcoin microstructure and the kimchi premium.
+\emph{Working Paper}, University of Calgary.
+\item[{[5]}] Eom, Y. (2021). Kimchi premium and speculative trading in bitcoin.
+\emph{Finance Research Letters}, 38, 101505.
+\item[{[6]}] Gromb, D., \& Vayanos, D. (2010). Limits of arbitrage.
+\emph{Annual Review of Financial Economics}, 2, 251--275.
+\item[{[7]}] Hwang, S., Kim, I., \& Park, S. (2024). The impact of the Travel Rule on the Korean cryptocurrency market.
+\emph{Working Paper}.
+\item[{[8]}] Kim, S., Park, H., \& Cho, M. (2022). The kimchi premium and bitcoin-cashing outlets.
+\emph{Finance Research Letters}, 47, 102785.
+\item[{[9]}] Kim, J. (2024). Enhancing reinforcement learning-based crypto asset trading: focusing on the Korean venue share indicator.
+\emph{Journal of Financial Data Science}, 6(2), 45--64.
+\item[{[10]}] Liu, Y., Tsyvinski, A., \& Wu, X. (2022). Common risk factors in cryptocurrency.
+\emph{Journal of Finance}, 77(2), 1133--1177.
+\item[{[11]}] Makarov, I., \& Schoar, A. (2020). Trading and arbitrage in cryptocurrency markets.
+\emph{Journal of Financial Economics}, 135(2), 293--319.
+\item[{[12]}] Newey, W., \& West, K. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix.
+\emph{Econometrica}, 55(3), 703--708.
+\item[{[13]}] Pieters, G., \& Vivanco, S. (2017). Financial regulations and price inconsistencies across bitcoin markets.
+\emph{Information Economics and Policy}, 39, 1--14.
+\item[{[14]}] Tiger Research (2024). Kimchi premium 101: Korea's crypto market characteristics and causes.
+\emph{Tiger Research Reports}, November.
+\end{description}
+
+\end{document}

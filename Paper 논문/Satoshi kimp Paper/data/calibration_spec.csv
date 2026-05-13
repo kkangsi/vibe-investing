@@ -1,0 +1,10 @@
+component,mechanism
+USD/KRW exchange rate,"Quasi-periodic mean (sin terms, period ~10 yr) + two Gaussian shock kernels (2022-Q4 strong-dollar; 2024-12 martial-law); daily IID N(0,4) noise."
+BTC/USDT log price,"Piecewise-linear interpolation between 14 historical anchor points (2020-01 to 2025-12) + cumulative Gaussian random walk increments N(0, 0.018)."
+"ETH/USDT, BNB/USDT, XVS/USDT log prices","Same anchor-interpolation scheme with token-specific anchors and random-walk volatilities (0.022 for ETH, 0.025 for BNB, 0.045 for XVS)."
+BTC KRW premium π^KRW_BTC,"Baseline drift 1.2% + low-frequency sinusoid; superposed Gaussian event bumps h·exp(-((t-t_0)/σ_d)²) for: 2021-04 peak (h=+18%, σ=18d), 2021-05 BTC -30% (h=+6%, σ=5d), 2021-04-22 FSC remarks (h=-4%, σ=4d), 2021-01-28 GameStop drain (h=-4%, σ=5d), 2022-11-12 FTX (h=-4%, σ=6d), 2024-03-16 BTC ATH (h=+6%, σ=14d), 2024-07-19 VAUPA step down (-2.5%), 2024-12-03 martial law (h=-32%, σ=2d); + IID N(0, 0.006) daily."
+"ETH, BNB, XVS KRW premium","π^KRW_BTC(t) + token-specific α_X(t) where α_X is IID Gaussian (std 0.008 for ETH, 0.012 for BNB, 0.018 for XVS) plus token-specific alt-season and panic bumps; BNB series starts on 2021-05-27 (Bithumb listing)."
+USDT/KRW on Bithumb,"E_t · (1 + 1% USDT premium) + N(0, 0.003) daily."
+Bithumb-implied KRW prices,"P^B_X = P^N_X · E_t · (1 + π^KRW_X(t)), enforcing identity by construction."
+Volume ratio log(V^B/V^N),"IID N(-2.0, 0.7) with -0.4 step down after 2024-07-19 (VAUPA)."
+Stochastic seed,"numpy.random.default_rng(20260513), fully reproducible."
