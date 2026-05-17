@@ -1,0 +1,26 @@
+Tier,Ticker,Name,Beta_1Y,Downside_Capture_Pct,Upside_Capture_Pct,Sortino_Ratio,Vol_60D_Pct,MDD_24M_Pct,Above_200MA,Dividend_Yield_Pct,Recession_Composite_Pct,Counter_Cyclical_Strength,D1_RecessionFit_40w,D2_CounterCyclical_17p5w,D3_QualityFactor_17p5w,D4_VolDrawdown_17p5w,D5_MacroFit_7p5w,Total_Score,Signal,Recommended_Weight_Pct,Stop_Loss_Pct,Entry_Rationale
+T1,XLP,Consumer Staples Sector SPDR,0.55,58,62,0.95,14.0,-12.0,Y,,62.25,78,82,78,85,80,70,80.6,FLIGHT_TO_QUALITY,8.0,-10%,비탄력 소비재 핵심. SPX -2% 이상 하락일 60일중 11회 양수 수익. FTQ 활성.
+T1,XLU,Utilities Sector SPDR,0.50,55,58,1.05,15.0,-13.0,Y,,62.25,82,80,82,78,82,72,79.8,FLIGHT_TO_QUALITY,8.0,-10%,금리인하 사이클 + 채권프록시. CPI 3.8% 서프라이즈로 단기 추격 약점 존재.
+T1,VPU,Vanguard Utilities ETF,0.50,56,58,1.02,15.0,-13.0,Y,,62.25,80,79,80,77,81,71,78.6,FLIGHT_TO_QUALITY,5.0,-10%,XLU 보완 분산. 운용보수 0.09%로 비용 우위.
+T1,XLV,Health Care Sector SPDR,0.65,62,70,0.85,16.0,-14.0,Y,,62.25,72,75,72,82,75,65,75.0,FLIGHT_TO_QUALITY,6.0,-10%,헬스케어 디펜시브. 약가 정책 노이즈 잔존하나 카운터사이클 강세.
+T1,VHT,Vanguard Healthcare ETF,0.66,63,70,0.83,16.0,-14.0,Y,,62.25,70,74,70,81,74,64,73.8,SATELLITE,3.0,-10%,XLV 보완. CORE 진입 임계 미달로 비중 축소.
+T2,GLD,SPDR Gold Shares,0.10,30,50,1.20,16.0,-10.0,Y,,62.25,85,88,85,75,78,88,83.5,FLIGHT_TO_QUALITY,9.0,-10%,호르무즈 봉쇄 지정학 + 침체 헤지 이중 촉매. DXY 약세 동반.
+T2,IAU,iShares Gold Trust,0.10,30,50,1.20,16.0,-10.0,Y,,62.25,84,87,84,75,78,87,82.8,FLIGHT_TO_QUALITY,3.0,-10%,GLD 보완. 보수 0.25%로 저렴하나 유동성은 GLD 우위.
+T2,TLT,iShares 20+ Year Treasury Bond,-0.15,25,35,0.45,18.0,-22.0,Y,,62.25,88,85,88,65,60,80,77.3,FLIGHT_TO_QUALITY,8.0,-10%,침체기 듀레이션 헤지. 2026.04 CPI 재가속으로 단기 변동성 확대 — 강한 손절 준수 필요.
+T2,IEF,iShares 7-10 Year Treasury Bond,-0.10,22,30,0.55,10.0,-12.0,Y,,62.25,82,78,82,70,78,75,77.1,FLIGHT_TO_QUALITY,6.0,-10%,중기 듀레이션. TLT 대비 변동성/MDD 절반 수준 안정성.
+T2,SHV,iShares Short Treasury Bond,-0.02,5,8,1.50,1.0,-1.0,Y,,62.25,65,65,65,55,95,55,67.75,SATELLITE,2.0,-10%,단기 안전판. 캐시 부근 수익률 + 듀레이션 리스크 제로.
+T2,BIL,SPDR 1-3 Month T-Bill,0.00,0,0,2.00,0.3,0.0,Y,,62.25,60,60,60,50,98,50,64.15,SATELLITE,2.0,-10%,현금성. 4%+ FFR 캐리 활용.
+T3,WMT,Walmart Inc,0.55,58,70,1.15,17.0,-13.0,Y,1.0,62.25,75,80,75,86,78,70,79.1,FLIGHT_TO_QUALITY,3.0,-10%,침체기 trade-down 수혜. 그로서리 시장점유율 + e-com 성장.
+T3,JNJ,Johnson & Johnson,0.55,60,65,0.85,15.0,-13.0,Y,3.2,62.25,74,78,74,88,80,68,78.65,FLIGHT_TO_QUALITY,2.5,-10%,Dividend Aristocrat 60+년. Kenvue 분사 후 pure-play 파마.
+T3,PG,Procter & Gamble,0.48,55,60,0.95,14.0,-12.0,Y,2.5,62.25,76,76,76,86,80,68,77.85,FLIGHT_TO_QUALITY,2.5,-10%,비탄력 소비재 + Quality. 가격 결정력 입증.
+T3,KO,Coca-Cola Co,0.50,56,62,0.95,14.0,-11.0,Y,3.1,62.25,75,76,75,85,80,68,77.5,FLIGHT_TO_QUALITY,2.0,-10%,글로벌 비탄력 소비. BRK-B 주요 보유 신뢰 시그널.
+T3,COST,Costco Wholesale,0.70,65,80,1.05,19.0,-14.0,Y,0.5,62.25,68,72,68,85,75,65,73.6,SATELLITE,1.0,-10%,Quality 우수하나 PER 50배 valuation 부담. 침체기 traffic 양호.
+T3,NEE,NextEra Energy,0.65,65,70,0.85,18.0,-16.0,Y,3.0,62.25,70,74,70,78,72,70,73.35,SATELLITE,0.5,-10%,Utility + 재생E. 금리민감 듀얼익스포저.
+T3,ABBV,AbbVie Inc,0.55,60,70,0.90,17.0,-14.0,Y,3.5,62.25,70,72,70,80,75,65,73.05,SATELLITE,1.0,-10%,Humira LOE 후 Skyrizi/Rinvoq 회복 궤도. 파이프라인 안정.
+T3,BRK-B,Berkshire Hathaway B,0.85,75,90,1.00,18.0,-15.0,Y,0.0,62.25,65,70,65,88,72,65,72.25,SATELLITE,1.5,-10%,Buffett 현금 $300B+ 보유 = built-in defensiveness. 베타 다소 높음.
+T3,PEP,PepsiCo Inc,0.55,60,65,0.80,16.0,-16.0,N,3.5,62.25,68,72,68,80,70,65,71.825,SATELLITE,0.5,-10%,200MA 하회 약점. GLP-1 수요 둔화 노이즈.
+T3,VZ,Verizon Communications,0.45,50,50,0.65,16.0,-18.0,N,6.5,62.25,72,70,72,70,70,65,69.975,SATELLITE,0.5,-10%,고배당 6.5% but secular decline 우려. 부채 부담.
+T4,PSQ,ProShares Short QQQ,-1.05,-100,-100,N/A,18.0,-52.0,N,,62.25,100,78,100,50,65,78,74.675,SATELLITE,3.0,-15%,테크 crowding + Nasdaq concentration risk 헤지. Daily reset 30일 청산.
+T4,SH,ProShares Short S&P 500,-1.00,-100,-100,N/A,16.0,-45.0,N,,62.25,100,75,100,50,65,75,73.25,SATELLITE,3.0,-15%,SPX 베타 헤지. Phase 3 진입 기준 신규 활성.
+T4,DOG,ProShares Short Dow30,-1.00,-100,-100,N/A,15.0,-42.0,N,,62.25,100,70,100,50,60,72,70.15,SATELLITE,2.0,-15%,가치주 약세 대비. SH 대비 종목수 적어 path-dependency 더 강함.
+T4,VIXY,ProShares VIX Short-Term Futures,-3.00,-300,-300,N/A,65.0,-85.0,N,,62.25,100,80,100,30,50,85,69.875,TACTICAL,2.0,-15%,호르무즈 단기 VIX 스파이크 capture. Contango 월 5-8% — 30일 강제 청산.
