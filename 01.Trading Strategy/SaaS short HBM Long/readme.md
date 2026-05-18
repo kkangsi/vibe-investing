@@ -8,6 +8,19 @@ A long/short investment thesis triggered by AI's disruption of subscription-base
 
 ## English
 
+### Theoretical foundation — the source column
+
+This strategy is derived from the following market analysis column. The trading playbook in this folder is the operational translation of the column's thesis through an LLM extraction process.
+
+**Title**: *AI Memory Supercycle vs. SaaSpocalypse — What Nomura's P/E Re-rating Means: A Market Map Beyond Black Monday*
+**Author**: Dennis Kim (김호광), May 18, 2026
+
+- Korean: [AI_Memory_Supercycle_vs_SaaSpocalypse_KR.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_KR.md)
+- English: [AI_Memory_Supercycle_vs_SaaSpocalypse_EN.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_EN.md)
+- Chinese: [AI_Memory_Supercycle_vs_SaaSpocalypse_CN.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_CN.md)
+
+The column dissects the simultaneous occurrence of (1) Nomura's P/E re-rating of Samsung/SK Hynix, (2) Japan's record US Treasury selling and the 19-year high in the 30-year yield, (3) the $285B SaaS market-cap evaporation in 48 hours ("SaaSpocalypse"), and (4) the capital recycling into Korean semiconductors. Reading the column first will make the rest of this folder more meaningful.
+
 ### What this strategy is trying to do (in plain language)
 
 The thesis has two parts:
@@ -86,6 +99,19 @@ The author is not a registered investment advisor. This content reflects persona
 ---
 
 ## 한국어 버전
+
+### 이론적 근거 — 출처 칼럼
+
+본 전략은 아래의 시장 분석 칼럼을 기반으로 도출되었습니다. 이 폴더의 트레이딩 플레이북은 칼럼의 논제를 LLM 추출 과정을 거쳐 실행 가능한 형태로 변환한 결과물입니다.
+
+**제목**: *AI 메모리 슈퍼사이클 vs. SaaSpocalypse — 노무라의 PER 재평가가 의미하는 것: 검은 월요일 너머의 시장 지형도*
+**저자**: Dennis Kim (김호광), 2026년 5월 18일
+
+- 한국어: [AI_Memory_Supercycle_vs_SaaSpocalypse_KR.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_KR.md)
+- 영어: [AI_Memory_Supercycle_vs_SaaSpocalypse_EN.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_EN.md)
+- 중국어: [AI_Memory_Supercycle_vs_SaaSpocalypse_CN.md](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long/AI_Memory_Supercycle_vs_SaaSpocalypse_CN.md)
+
+이 칼럼은 (1) 노무라의 삼성·SK하이닉스 PER 재평가, (2) 일본의 사상 최대 미 국채 매도와 30년물 금리의 19년 만의 최고치, (3) 48시간 만에 2,850억 달러가 증발한 'SaaSpocalypse', (4) 한국 반도체로 자본이 회수되는 네 가지 사건이 동시에 일어나는 구조를 분석합니다. 칼럼을 먼저 읽으면 이 폴더의 나머지 문서들이 훨씬 잘 이해됩니다.
 
 ### 이 전략이 노리는 것 (쉽게 설명)
 
