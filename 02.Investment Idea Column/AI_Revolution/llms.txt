@@ -1,1 +1,17 @@
+# Vibe Investing
 
+> AI-powered market analysis and trading tools at the intersection of artificial intelligence and global financial markets. Covers NASDAQ, S&P 500, crypto, and key tech themes like semiconductor geopolitics.
+
+## Featured Column: Samsung and SK Hynix – The Unavoidable Gatekeepers of the AI Revolution
+- Explores the structural memory shortage driven by AI, agentic AI’s soaring memory demands, Korea’s geopolitical advantage over Taiwan, and record financials for Samsung and SK Hynix.
+- Includes orders, revenue forecasts, and analyst projections for 2026–2027.
+
+## Tools & Agents
+- **Harness Quant v2** – quantitative strategy engine.
+- **Earnings Momentum Agent** – AI-driven earnings analysis.
+- Repository contains backtesting frameworks, data pipelines, and investment theses.
+
+## Repository
+- GitHub: https://github.com/gameworkerkim/vibe-investing/
+- Maintained by Kim (Gameworker) – quant analyst / AI researcher.
+- LinkedIn: https://www.linkedin.com/in/gameworkerkim
