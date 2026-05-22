@@ -2953,6 +2953,66 @@ async def single_pred_resolve_due(timer: func.TimerRequest) -> None:
 
 
 # ---------------------------------------------------------------------
+# §SIGNAL — AI 메모리 공급망 상관 분석 (NVDA/Hynix/Samsung/Micron/Sandisk)
+#   30분 cron으로 yfinance batch fetch → 상관/z-score/신호 계산 → blob 캐시
+# ---------------------------------------------------------------------
+
+@app.route(route="gamification/memory_signal/today", auth_level=func.AuthLevel.ANONYMOUS, methods=["GET", "OPTIONS"])
+async def memory_signal_today(req: func.HttpRequest) -> func.HttpResponse:
+    """Return the latest cached memory-chain signal snapshot.
+    Auth optional — anonymous viewers see same data (educational tool)."""
+    if req.method == "OPTIONS":
+        return func.HttpResponse(status_code=204, headers=_CORS_HEADERS)
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return func.HttpResponse(json.dumps({"available": False, "reason": "not_configured"}),
+            status_code=200, mimetype="application/json", headers=_CORS_HEADERS)
+
+    from dataclasses import asdict
+    from services.memory_signal_service import (
+        get_cached_signal, refresh_memory_signal,
+    )
+
+    snap = await get_cached_signal(_config.storage_account_name)
+    if snap is None:
+        # Lazy first-run refresh
+        try:
+            snap = await refresh_memory_signal(_config.storage_account_name)
+        except Exception:
+            logger.exception("memory_signal lazy refresh failed")
+            return func.HttpResponse(
+                json.dumps({"available": False, "reason": "refresh_failed"}),
+                status_code=200, mimetype="application/json", headers=_CORS_HEADERS,
+            )
+
+    payload = {"available": True, **asdict(snap)}
+    payload["disclaimer"] = (
+        "교육·연구용 보조 도구입니다. 투자 자문이 아니며, "
+        "상관관계는 공급사슬·실적·거시 충격으로 깨질 수 있습니다."
+    )
+    headers = dict(_CORS_HEADERS)
+    headers["Cache-Control"] = "public, max-age=300"
+    return func.HttpResponse(json.dumps(payload, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers)
+
+
+# Timer: every 30 min — refresh memory signal snapshot
+@app.timer_trigger(schedule="0 */30 * * * *", arg_name="timer",
+                   run_on_startup=False, use_monitor=True)
+async def memory_signal_refresh_timer(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return
+    from services.memory_signal_service import refresh_memory_signal
+    try:
+        snap = await refresh_memory_signal(_config.storage_account_name)
+        logger.info("memory_signal_refresh health=%s pairs=%d gaps=%d",
+                    snap.correlation_health, len(snap.pairs), len(snap.data_gaps))
+    except Exception:
+        logger.exception("memory_signal_refresh failed")
+
+
+# ---------------------------------------------------------------------
 # §DONATION — TON/TRON USDT donation intents + on-chain verification
 # ---------------------------------------------------------------------
 

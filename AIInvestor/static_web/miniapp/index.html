@@ -779,11 +779,56 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   </div>
 </section>
 
+<!-- ─────────────── SIGNAL (AI 메모리 공급망 상관 분석) ─────────────── -->
+<section class="section" id="tab-signal" style="display:none;">
+  <div class="section-title">📡 AI 메모리 공급망 시그널</div>
+  <p class="meta" style="margin-bottom:8px; line-height:1.55;">
+    NVDA(선행) → 하이닉스·마이크론(동행) → 삼성·샌디스크(후행) 공급망 시계로
+    상관관계·스프레드 기반 매매 신호를 산출합니다. <strong>교육·연구용 보조 도구.</strong>
+  </p>
+
+  <!-- Health badge + as-of -->
+  <div class="card" style="border-left:4px solid var(--accent);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <div class="meta">상관관계 상태</div>
+        <div class="title" id="signal-health" style="font-size:18px;">로딩 중…</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="meta" style="font-size:11px;">갱신</div>
+        <div style="font-size:12px;" id="signal-asof">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-ticker signals -->
+  <div class="section-title" style="margin-top:18px;">종목 시그널</div>
+  <div id="signal-tickers">로딩 중…</div>
+
+  <!-- Spread gauges -->
+  <div class="section-title" style="margin-top:18px;">스프레드 z-score</div>
+  <div class="card" id="signal-spreads">로딩 중…</div>
+
+  <!-- Active pair trades -->
+  <div class="section-title" style="margin-top:18px;">활성 페어 거래</div>
+  <div id="signal-pairs">로딩 중…</div>
+
+  <!-- 5×5 correlation heatmap -->
+  <div class="section-title" style="margin-top:18px;">상관 행렬 (60일)</div>
+  <div id="signal-matrix" class="card">로딩 중…</div>
+
+  <!-- Disclaimer -->
+  <div class="card" style="border-left:4px solid #888; margin-top:14px;">
+    <div class="meta" style="font-size:11px; line-height:1.5;" id="signal-disclaimer">—</div>
+  </div>
+</section>
+
 <!-- ─────────────── TAB BAR ─────────────── -->
 <nav class="tab-bar">
   <a href="#" class="tab active" data-tab="home"><i class="fa-solid fa-house"></i><span data-i18n="home">홈</span></a>
   <a href="#" class="tab" data-tab="persona"><i class="fa-solid fa-user-tie"></i><span data-i18n="persona">페르소나</span></a>
   <a href="#" class="tab" data-tab="predict"><i class="fa-solid fa-chart-line"></i><span data-i18n="predict">예측</span></a>
+  <a href="#" class="tab" data-tab="signal"><i class="fa-solid fa-wave-square"></i><span>시그널</span></a>
   <a href="#" class="tab" data-tab="saju"><i class="fa-solid fa-yin-yang"></i><span>사주</span></a>
   <a href="#" class="tab" data-tab="invite"><i class="fa-solid fa-user-plus"></i><span data-i18n="invite">초대</span></a>
   <a href="#" class="tab" data-tab="rank"><i class="fa-solid fa-trophy"></i><span data-i18n="rank">랭킹</span></a>
@@ -2058,6 +2103,161 @@ document.querySelectorAll(".predv2-tab").forEach(btn => {
 
 // ─────────────── §6 — Ranking tab logic ───────────────
 
+// ─────────────── §Signal — AI 메모리 공급망 시그널 ───────────────
+
+const _SIGNAL_LABELS = {
+  NVDA: "NVDA",
+  Hynix: "SK하이닉스",
+  Micron: "마이크론",
+  Samsung: "삼성전자",
+  Sandisk: "샌디스크",
+};
+const _SIGNAL_ROLES = {
+  LEADER: { txt: "선행", color: "#7CFC9B" },
+  COINCIDENT: { txt: "동행", color: "#5BC8FF" },
+  LAGGING: { txt: "후행", color: "#FFB454" },
+};
+
+async function loadMemorySignal() {
+  // Endpoint is unauthenticated (educational tool) — fetch directly w/o api()
+  try {
+    const r = await fetch(`${FUNC_BASE}/memory_signal/today`, { mode: "cors" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if (!d.available) {
+      document.getElementById("signal-tickers").innerHTML =
+        `<div class="card meta">시그널 데이터를 준비 중입니다 (30분 주기 갱신).</div>`;
+      return;
+    }
+    renderMemorySignal(d);
+  } catch (e) {
+    document.getElementById("signal-tickers").innerHTML =
+      `<div class="card meta">시그널 로딩 실패: ${escapeHtml(e.message || "")}</div>`;
+  }
+}
+
+function renderMemorySignal(d) {
+  // Health badge
+  const healthMap = {
+    stable:     { txt: "✓ STABLE (상관 안정)",  color: "var(--good)" },
+    weakening:  { txt: "⚠ WEAKENING (약화 중)", color: "#FFB454" },
+    broken:     { txt: "✗ BROKEN (붕괴)",       color: "var(--bad)" },
+  };
+  const h = healthMap[d.correlation_health] || healthMap.weakening;
+  const healthEl = document.getElementById("signal-health");
+  healthEl.textContent = h.txt;
+  healthEl.style.color = h.color;
+  document.getElementById("signal-asof").textContent =
+    (d.as_of || "").replace("T", " ").substring(0, 16);
+
+  // Per-ticker signal cards
+  const actColor = a => a === "BUY" ? "var(--good)"
+                     : a === "SELL" ? "var(--bad)" : "#9AA0A6";
+  const ticHtml = (d.signals || []).map(s => {
+    const role = _SIGNAL_ROLES[s.role] || _SIGNAL_ROLES.COINCIDENT;
+    const ret1 = s.ret_1d_pct >= 0
+      ? `<span style="color:var(--good);">+${s.ret_1d_pct.toFixed(2)}%</span>`
+      : `<span style="color:var(--bad);">${s.ret_1d_pct.toFixed(2)}%</span>`;
+    const ret20 = s.ret_20d_pct >= 0
+      ? `<span style="color:var(--good);">+${s.ret_20d_pct.toFixed(1)}%</span>`
+      : `<span style="color:var(--bad);">${s.ret_20d_pct.toFixed(1)}%</span>`;
+    return `<div class="card" style="border-left:4px solid ${role.color};">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div class="title" style="font-size:14px;">
+            ${escapeHtml(_SIGNAL_LABELS[s.label] || s.label)}
+            <span style="font-size:10px; padding:2px 6px; border-radius:4px;
+                         background:${role.color}; color:#0a0e0a; margin-left:6px; font-weight:700;">${role.txt}</span>
+          </div>
+          <div class="meta" style="margin-top:4px;">
+            1일 ${ret1} · 20일 ${ret20} · $${(s.last_price || 0).toFixed(2)}
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px; font-weight:700; color:${actColor(s.action)};">${s.action}</div>
+          <div class="meta" style="font-size:10px;">신뢰도 ${s.confidence}%</div>
+        </div>
+      </div>
+      <div style="background:#1f1f2e; height:6px; border-radius:3px; overflow:hidden; margin-top:8px;">
+        <div style="height:100%; background:${actColor(s.action)}; width:${s.confidence}%; opacity:.6;"></div>
+      </div>
+      <div class="meta" style="margin-top:6px; line-height:1.5; font-size:11px;">${escapeHtml(s.rationale || "")}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("signal-tickers").innerHTML = ticHtml || "<div class='meta'>없음</div>";
+
+  // Spread gauges
+  const gaugeHtml = `
+    ${_zGauge("삼성 / 하이닉스", d.z_samsung_hynix)}
+    ${_zGauge("샌디스크 / 마이크론", d.z_sandisk_micron)}`;
+  document.getElementById("signal-spreads").innerHTML = gaugeHtml;
+
+  // Active pairs
+  if ((d.pairs || []).length === 0) {
+    document.getElementById("signal-pairs").innerHTML =
+      `<div class="card meta">활성 페어 없음 (|z| ≥ 1.5 충족 안 함)</div>`;
+  } else {
+    document.getElementById("signal-pairs").innerHTML = d.pairs.map(p =>
+      `<div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div class="title" style="font-size:13px;">
+              <span style="color:var(--good);">LONG ${escapeHtml(_SIGNAL_LABELS[p.long] || p.long)}</span>
+              <span style="margin:0 8px; color:#888;">·</span>
+              <span style="color:var(--bad);">SHORT ${escapeHtml(_SIGNAL_LABELS[p.short] || p.short)}</span>
+            </div>
+            <div class="meta" style="margin-top:4px;">${escapeHtml(p.rationale || "")}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:16px; font-weight:700; color:#FFB454;">z=${p.z_score.toFixed(2)}</div>
+            <div class="meta" style="font-size:10px;">신뢰도 ${p.confidence}%</div>
+          </div>
+        </div>
+      </div>`
+    ).join("");
+  }
+
+  // 5×5 correlation matrix
+  const labels = ["NVDA", "Hynix", "Micron", "Samsung", "Sandisk"];
+  const lblShort = ["NV", "SK", "MU", "SS", "SN"];
+  let mtxHtml = `<table style="width:100%; border-collapse:collapse; font-size:11px;">
+    <thead><tr><th></th>${lblShort.map(l => `<th style="padding:4px; color:#888; font-weight:400;">${l}</th>`).join("")}</tr></thead>
+    <tbody>`;
+  (d.matrix || []).forEach((row, i) => {
+    mtxHtml += `<tr><th style="padding:4px; color:#aaa; font-weight:500; text-align:left;">${lblShort[i]}</th>`;
+    row.forEach(v => {
+      const g = (v + 1) / 2;
+      const bg = `rgba(91,200,255,${(0.08 + g * 0.5).toFixed(2)})`;
+      mtxHtml += `<td style="text-align:center; padding:6px 3px; background:${bg};
+                  border:1px solid #0a0e0a; font-variant-numeric:tabular-nums;">${v.toFixed(2)}</td>`;
+    });
+    mtxHtml += `</tr>`;
+  });
+  mtxHtml += `</tbody></table>`;
+  document.getElementById("signal-matrix").innerHTML = mtxHtml;
+
+  // Disclaimer
+  document.getElementById("signal-disclaimer").textContent = d.disclaimer || "";
+}
+
+function _zGauge(label, z) {
+  const v = Math.max(-3, Math.min(3, z || 0));
+  const pos = ((v + 3) / 6) * 100;
+  const hot = Math.abs(z) > 1.5;
+  const color = hot ? "#FFB454" : "#5BC8FF";
+  return `<div style="margin-bottom:12px;">
+    <div class="meta" style="margin-bottom:6px;">${escapeHtml(label)} · z = <span style="color:${color}; font-weight:700;">${(z || 0).toFixed(2)}</span></div>
+    <div style="position:relative; height:8px; background:#1f1f2e; border-radius:4px;">
+      <div style="position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:#555;"></div>
+      <div style="position:absolute; left:calc(${pos}% - 6px); top:-3px; width:12px; height:14px; border-radius:2px; background:${color}; ${hot ? "box-shadow:0 0 8px " + color : ""};"></div>
+    </div>
+    <div class="meta" style="font-size:10px; margin-top:4px; display:flex; justify-content:space-between;">
+      <span>-3σ</span><span>0</span><span>+3σ</span>
+    </div>
+  </div>`;
+}
+
+
 let _rankKind = "predictions";
 let _rankPeriod = "daily";
 
@@ -3160,8 +3360,9 @@ function _switchToTab(target) {
   document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
   const tabBtn = document.querySelector(`.tab[data-tab="${target}"]`);
   if (tabBtn) tabBtn.classList.add("active");
-  ["home", "predict", "saju", "invite", "rank", "persona"].forEach(k => {
-    document.getElementById(`tab-${k}`).style.display = k === target ? "block" : "none";
+  ["home", "predict", "signal", "saju", "invite", "rank", "persona"].forEach(k => {
+    const el = document.getElementById(`tab-${k}`);
+    if (el) el.style.display = k === target ? "block" : "none";
   });
   tg?.HapticFeedback?.impactOccurred("light");
   if (target === "invite") loadInvitePack();
@@ -3170,6 +3371,7 @@ function _switchToTab(target) {
     loadPredictionsV2();  // §4 — generic ticker prediction history
     loadSinglePred();     // §Single — hourly UP/DOWN top-10 stock + coin
   }
+  if (target === "signal") loadMemorySignal();
   if (target === "rank") {
     loadBragCards();
     loadRanking();  // §6 — multi-axis ranking
