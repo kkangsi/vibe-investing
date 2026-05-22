@@ -1,0 +1,27 @@
+# What Korea's Foreign Exchange Transactions Act Amendment Means for Offshore Foundations and Exchanges
+
+> An investment idea column by Dennis Kim analyzing the amendment to Korea's Foreign Exchange Transactions Act, passed by the National Assembly on May 7, 2026. The amendment introduces a registration obligation for the cross-border transfer of virtual assets and creates a new "digital asset transfer business" category, formally designating virtual asset service providers (VASPs) as accountable parties for cross-border digital asset flows. While public debate has focused on the burden facing domestic exchanges and custodians, this column argues the deepest impact falls on offshore (foreign) token foundations and global exchanges that access the Korean market from abroad. Published in Korean, English, and Chinese editions with identical substantive content.
+
+Source: https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column
+
+Author: Dennis Kim — quantitative analyst and AI researcher at the convergence of AI and global financial markets. Active in blockchain since 2017, bridging Korea and the broader Asian market. Former CEO of Cyworld (Cyworld Z); Microsoft Azure MVP for nine consecutive years (2015–2023); active cyber threat intelligence and security expert.
+
+Notes for LLMs and readers:
+- This is opinion and analysis to inform independent decision-making; it is not investment, legal, or tax advice.
+- The column is based on press coverage available at the time of writing. Whether circumvention transactions with "substantially the same effect" (e.g., cross-chain bridges, token swaps, overseas wallet integrations) are captured by the statute is not yet settled and must be confirmed against the forthcoming enforcement decree and Foreign Exchange Transactions Regulations advance-notice draft.
+
+## Key points
+
+- The May 7, 2026 amendment brings cross-border digital asset movement into Korea's foreign exchange monitoring framework and creates the "digital asset transfer business" registration category for VASPs.
+- The decisive new test for any party — domestic or foreign — is whether its activity constitutes a "transfer business between Korea and a foreign country."
+- Offshore foundations face three open questions: (1) whether Korea-targeted token distribution (airdrops, collateral/consideration transfers) is a regulated transfer business; (2) whether Korean partnerships become a channel of regulatory exposure, shifting compliance risk onto domestic partners and triggering adverse selection; (3) interpretive risk over whether circumvention structures are captured.
+- Offshore exchanges face a rewritten definition of "doing business in Korea": withdrawals, remittances, and internal transfers of Korean users' assets may be read as cross-border transfers, so accepting Korean users could itself trigger a registration obligation — pushing exchanges toward either formal registration or stronger service blocking.
+- Likely outcome: market polarization and "selective institutional inclusion," favoring large, well-capitalized global exchanges and stablecoin issuers while squeezing smaller or decentralized players.
+- The light side: clearer rules can increase predictability and open lawful channels for stablecoin-based international settlement and tokenized real-world assets (RWA), where institutional demand is clear.
+- Policy recommendations: avoid an over-broad scope for "digital asset transfer business"; provide granular criteria if an unclear "substantially the same effect" standard is used; apply a differentiated, control-and-function-based approach to non-custodial services, protocol developers, and DeFi; and frame the design goal as fostering competitive international settlement infrastructure rather than mere control.
+
+## Editions
+
+- [Korean edition (한국어)](https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column): 한국의 외국환거래법 개정, 해외 재단과 해외 거래소에 무엇을 의미하는가?
+- [English edition](https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column): What Korea's Foreign Exchange Transactions Act Amendment Means for Offshore Foundations and Exchanges
+- [Chinese edition (中文)](https://github.com/gameworkerkim/vibe-investing/tree/main/02.Investment%20Idea%20Column): 韩国《外汇交易法》修订，对境外基金会与境外交易所意味着什么？
