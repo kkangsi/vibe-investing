@@ -1,0 +1,61 @@
+# vibe-investing
+
+> AI-powered Vibe Investing repository by HoKwang Kim (Dennis Kim). Curation, trading strategies, market-analysis columns, and SSRN papers on using LLMs as tools (not oracles) to find alpha in disruptive-innovation markets: US NASDAQ/S&P500, crypto, the luxury sector, and crypto-equity correlation.
+> 인공지능을 도구로 활용한 바이브 투자(Vibe Investing) 레포 (저자: 김호광 / Dennis Kim). LLM을 만능 신탁이 아닌 도구로 보고, 미국 나스닥·S&P500, 가상화폐, 명품 섹터, 크립토-주식 상관관계 등 파괴적 혁신 시장에서 알파를 찾는 큐레이션·트레이딩 전략·시장 분석 칼럼·SSRN 논문을 다룹니다.
+
+Core thesis / 핵심 명제:
+- AI is a tool like Excel; the human insight reading the model matters most. / AI는 엑셀 같은 도구이며, 모델을 읽는 인간의 통찰이 가장 중요하다.
+- The next stage is a multi-LLM "investment committee": run Claude, Gemini, ChatGPT, DeepSeek as PMs of different character and cross-validate. / 다음 단계는 멀티-LLM "투자위원회" — Claude·Gemini·ChatGPT·DeepSeek를 서로 다른 개성의 PM으로 운용하고 교차검증한다.
+- Evidence (ARDS study): macro diagnosis converges (CV 3.7%) but execution diverges (weight CV 52%, ~14x); each model forms a distinct PM persona. / 근거(ARDS 연구): 거시 진단은 수렴(CV 3.7%)하나 실행은 분산(비중 CV 52%, 약 14배)되며, 각 모델이 고유한 PM 페르소나를 형성한다.
+
+Author / 저자: HoKwang Kim (Dennis Kim), CEO of Betalabs Inc., Microsoft Azure ex-MVP, former CEO of CyworldZ. ORCID 0009-0002-0962-2175. Email gameworker@gmail.com. GitHub @gameworkerkim.
+License / 라이선스: MIT (code), CC-BY-4.0 (paper preprints). Cite as "HoKwang Kim (Dennis Kim) / vibe-investing" or the relevant SSRN DOI.
+
+## Main docs / 주요 문서
+
+- [README (Korean) / 한국어 README](https://github.com/gameworkerkim/vibe-investing/blob/main/README.md): Repo overview, multi-LLM committee thesis, genre curation, directory map. / 레포 개요, 멀티-LLM 위원회 명제, 장르별 큐레이션, 디렉토리 구조.
+- [README (English) / 영어 README](https://github.com/gameworkerkim/vibe-investing/blob/main/Readme%20en.MD): English version of the main README. / 메인 README의 영어판.
+
+## Awesome series (author-written curation) / 어썸 시리즈 (직접 집필 큐레이션)
+
+- [Awesome Claude Quant Scripts](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Awesome%20claude%20quant%20scripts.MD): Flagship. 8 quant strategies (Value, Growth, Quality, Momentum, Multi-Factor, Trend Following, Statistical Arbitrage, Machine Learning) bound across 3 layers — academic primary sources -> Python skeletons -> Claude prompt templates. 30+ primary papers, 13 prompt templates. / 핵심 자산. 8대 퀀트 전략을 학계 원전 → Python 골격 → Claude 프롬프트 3레이어로 묶음. 원전 30+편, 프롬프트 13종.
+- [Awesome Vibe Invest — Stocks](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest.MD): 30+ NASDAQ/S&P500 AI investing tools scored on 5 axes (activity, maturity, learning curve, Korea-market fit, license). / NASDAQ/S&P500 AI 투자 도구 30+종 5축 평가.
+- [Awesome Vibe Invest — Crypto](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest%20crypto.MD): Benchmark-centric LLM crypto trading curation (Alpha Arena: DeepSeek +46%, GPT-5 -75% — model IQ != trading IQ). / 벤치마크(Alpha Arena) 중심 크립토 LLM 트레이딩 큐레이션.
+- [Awesome Vibe Trading Bot](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20Vibe%20Trading%20Bot.MD): Analysis of open-source coin trading bots on GitHub (AI-bot expansion). / GitHub 오픈소스 코인 트레이딩 봇 분석.
+- [Awesome AI Quant Prompt Repos](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20AI%20Quant%20Prompt%20github%20repos%20evaluation%20kr.MD): User-rating and reliability analysis of AI/LLM quant-prompt GitHub repos. / AI/LLM 퀀트 프롬프트 GitHub 레포 사용자 평가·신뢰성 분석.
+
+## Trading strategies (01.Trading Strategy/) / 트레이딩 전략
+
+- [Trading Strategy index (KR)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme.MD) | [index (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme%20EN.md): Strategy folder index. / 전략 폴더 인덱스.
+- [ARDS — Adaptive Recession-Defensive Strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/ARDS%3A%20Adaptive%20Recession-Defensive%20Strategy/readme.md): The multi-LLM investment-committee study. 4-LLM cross-validation, 5-Factor recession composite, 4-Tier 25-ticker universe, 4-Phase regime. Read this for the repo's core design philosophy. / 멀티-LLM 투자위원회 연구. 4-LLM 교차검증, 5-Factor 침체 컴포지트, 4-Tier 25종목, 4-Phase 레짐. 레포 핵심 철학.
+- [Nasdaq-BTC Coupling strategy + bot](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/): BTC-QQQ 30-day rolling correlation, 6-regime classification, 547-line Python signal bot. / BTC-QQQ 30일 상관관계, 6 regime 분류, 547줄 Python 신호 봇.
+- [Luxury investment strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Luxury%20investment%20strategy/Luxury%20investment%20strategy.md): LVMH/Hermès/Kering, 225 backtests, 3-tier risk portfolio, 4 CSV datasets. / 명품 섹터 전략, 225건 백테스트, 3단계 포트폴리오, CSV 4종.
+
+## Columns (02.Investment Idea Column/) / 칼럼
+
+- [Column index](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/Readme.MD): 7 empirical columns; statistical commentary that names no specific party. / 실증 칼럼 7편 통합 인덱스; 특정 주체 비지목 통계 논평 원칙.
+- [Reading the model — lessons from LTCM](https://github.com/gameworkerkim/vibe-investing/blob/main/Vibe%20Investing%20Risk%20Management.MD): 1998 LTCM collapse applied to 2026 AI vibe investing; functional homogenization risk. / LTCM 사태와 2026 AI 바이브 투자 리스크; 기능적 동질화.
+- [Microsoft Fintool acquisition](https://github.com/gameworkerkim/vibe-investing/blob/main/Microsoft%20fintool%20acquisition%20column.MD): Microsoft's entry into the $37B financial-terminal market. / 마이크로소프트의 370억 달러 금융 터미널 시장 진입.
+- [Crypto perp manipulation — Invisible hand or planned fraud?](https://github.com/gameworkerkim/vibe-investing/blob/main/Crypto%20perp%20manipulation%20column.MD): VTCLR pattern, Benford's law, Bayesian analysis of crypto perpetual-futures pump-dump. / VTCLR 패턴, 벤포드 법칙, 무기한 선물 pump-dump 베이지안 분석.
+- [Does the market open when it closes? (After Market Close)](https://github.com/gameworkerkim/vibe-investing/blob/main/AfterMarketClose/After_Market_Close_Column.md): 91.2% of market-moving disclosures cluster at AMC; 34 NASDAQ-100 cases. / 시장 충격 공시 91.2%가 장 마감 후 집중; 나스닥100 34건.
+- [DAT mNAV arbitrage strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/mNAV(Market-to-Net-Asset-Value)%20arbitrage/Dat%20mnav%20arbitrage%20strategy.MD): mNAV arbitrage across 15 digital-asset-treasury firms (MSTR, BMNR, SBET); Chanos pair trade. / 15개 DAT 기업 mNAV 아비트리지; Chanos 페어 트레이드.
+
+## Tools / 도구
+
+- [Harness Quant v2](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quant%20v2%20readme%20.MD): 6-scenario-matrix LLM trading platform (backtest + MCP + multi-agent debate). In development. / 6 시나리오 매트릭스 LLM 트레이딩 플랫폼. 개발 중.
+- [Earnings Momentum Agent](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quantv2/Earnings%20momentum%20agent%20readme%20.MD): 7-stage pipeline, Top 30 recommendations, 24-month backtest 30-day hit rate 83.3% (idealized). / 7단계 파이프라인, Top 30 추천, 24개월 백테스트 30일 hit rate 83.3%(이상치).
+
+## Papers / 논문
+
+- [SSRN paper index](https://github.com/gameworkerkim/vibe-investing/blob/main/Paper%20%EB%85%BC%EB%AC%B8/readme.md): 4 SSRN working papers, 113 pages. 3 on crypto market microstructure + 1 on multilingual LLM evaluation. / SSRN 작업 논문 4편, 113페이지. 크립토 미시구조 3편 + 다국어 LLM 평가 1편.
+- Less Volume, More Variety (SSRN 6705598): shorter LLM output -> higher contrarian-discovery rate (Spearman ρ = -0.80). / LLM 출력이 짧을수록 컨트라리안 발굴률 상승 (Spearman ρ = -0.80).
+- Directional Decoupling (SSRN 6750298): correlation-preserving, volatility-ratio-compressing beta mechanism in BNB-ETH. / BNB-ETH 상관 유지·변동성 비율 압축 베타 메커니즘.
+
+## Optional / 참고
+
+- [TechDoc folder](https://github.com/gameworkerkim/vibe-investing/tree/main/TechDoc): Technical docs for operating and reproducing the repo. / 레포 운영·재현용 기술 문서.
+
+## Disclaimer / 면책
+
+For research and education only. No tool guarantees profit; backtest hit rates are idealized. LLM-generated code may contain errors, bias, and security flaws — cross-validate and apply human review. Short selling, inverse/leveraged products can converge to total loss. Investment and legal-risk responsibility rests with the user.
+연구·교육 목적. 어떤 도구도 수익을 보장하지 않으며 백테스트 hit rate는 이상적 수치입니다. LLM 생성 코드에는 오류·편향·보안 취약점이 있을 수 있으니 교차검증과 사람 검토가 필요합니다. 공매도·인버스·레버리지 상품은 100% 손실에 수렴할 수 있습니다. 투자·법적 책임은 사용자에게 있습니다.
