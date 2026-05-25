@@ -1,0 +1,50 @@
+# US Defense & AI National Security ETF Portfolio
+
+> A structured investment portfolio covering US traditional defense primes and next-generation defense-AI companies, built around the thesis of a global rearmament supercycle. Prepared by Betalabs / vibe-investing, as of 2026-05-25. Informational only — not investment advice. Available in Korean and English.
+
+This document analyzes the structural investment opportunity created by record-high global defense spending (projected >$3T in 2026, $3.7T by 2030) driven by the Ukraine war, the Iran–Israel conflict, German and Japanese rearmament, and NATO's 5%-of-GDP commitment. It recommends a barbell strategy combining traditional defense primes with defense-AI growth names, accessed efficiently through ETFs. All return and dividend figures are estimates as of May 2026 and vary by source.
+
+## Core Beneficiaries (Traditional Defense Primes)
+
+- [Lockheed Martin (LMT)]: ~+75% 3-yr cumulative total return; ~2.6% forward dividend yield; F-35 (296-jet, $12.5B contract) and PAC-3 missile backlog at record high; 24 consecutive years of dividend growth.
+- [RTX / Raytheon (RTX)]: ~+90% 3-yr cumulative total return; ~1.4% forward dividend yield; Patriot and radar global exports; direct beneficiary of the Golden Dome project.
+- [Northrop Grumman (NOC)]: ~+55% 3-yr cumulative total return; ~1.4% forward dividend yield; leader in B-21 stealth bomber and UAVs; stable profitability.
+
+## Defense AI Trailblazers
+
+- [Palantir (PLTR)]: Public; ~+1,000% 3-yr return; no dividend; military-AI data integration and decision support; won the US Army TITAN project; flagship publicly traded defense-AI name.
+- [Anduril]: Private (not directly investable by retail); autonomous unmanned systems leader; 'Fury' unmanned fighter; leads USAF Collaborative Combat Aircraft (CCA) program.
+- [Shield AI]: Private (not directly investable by retail); 'Hivemind' AI pilot for all military aircraft; autonomous flight innovator.
+- Key caveat: Anduril and Shield AI are private; retail exposure is only possible indirectly through ETFs (e.g., SHLD) or secondary markets.
+
+## Defense ETFs (Diversification Vehicles)
+
+- [Global X Defense Tech (SHLD)]: ~+44%/yr since Sep-2023 launch (partial 3-yr data); +48–101% trailing 1-yr; 0.50% expense ratio; concentrated in next-gen defense tech/AI (Palantir, Rheinmetall); highest growth potential.
+- [iShares US Aerospace & Defense (ITA)]: ~+20–25%/yr 3-yr annualized; +38% trailing 1-yr; 0.38% expense ratio; large-cap aerospace/defense (GE, LMT, RTX); ~$16B AUM (largest); stability-first.
+- [Invesco Aerospace & Defense (PPA)]: ~+29–30%/yr 3-yr annualized; +38% trailing 1-yr; 0.58% expense ratio; 60 holdings; strong diversified performer.
+- [TIGER US Defense TOP10 (494840.KS)]: Korea-listed; usable in pension/ISA accounts; no FX conversion; top-10 US defense stocks; tax-efficient for Korean investors.
+
+## Model Portfolios (defense-sleeve = 100%; suggested 5–15% of total assets)
+
+- Conservative (income + stability): ITA 45%, SHLD 15%, PPA 15%, LMT 15%, RTX/NOC 10%.
+- Balanced (core-satellite): ITA 35%, SHLD 30%, PPA 15%, LMT 10%, PLTR 10%.
+- Aggressive (growth-focused): SHLD 45%, ITA 20%, PPA 10%, LMT 5%, PLTR 20%.
+
+## Risk Factors
+
+- Geopolitical de-escalation: ceasefires/peace deals could trigger sharp declines; manage entry cost via staggered buying.
+- Government budget volatility: US federal budget, continuing resolutions, administration changes may delay orders; LMT/RTX backlogs are relatively defensive.
+- FX (KRW/USD): KRW-denominated returns exposed to currency moves; mitigate with Korea-listed or FX-hedged products.
+- Valuation / concentration: PLTR and SHLD carry high valuations; mitigate single-theme risk via ETF diversification.
+- Private-stock access limits: Anduril and Shield AI accessible only indirectly via ETFs.
+
+## Source Documents
+
+- [Korean version (Markdown)]: defense_etf_portfolio_ko.md — full Korean report.
+- [English version (Markdown)]: defense_etf_portfolio_en.md — full English report.
+- [PDF]: defense_etf_portfolio.pdf — formatted two-page report with tables and color hierarchy.
+- [DOCX]: defense_etf_portfolio.docx — editable Word source document.
+
+## Optional
+
+- Disclaimer: Informational only; not a solicitation or investment advice. All figures are estimates as of May 2026 and vary by source; past performance does not guarantee future results. Verify the latest data and consult a qualified professional before investing.
