@@ -1,17 +1,25 @@
-# Vibe Investing
+# AI Revolution — Investment Idea Column Series
 
-> AI-powered market analysis and trading tools at the intersection of artificial intelligence and global financial markets. Covers NASDAQ, S&P 500, crypto, and key tech themes like semiconductor geopolitics.
+> A curated set of data-driven investment columns on the structural shifts of the AI revolution, authored by HoKwang Kim (김호광). The series spans three layers of the AI infrastructure stack: the demand side (AI monetization is still under 1% of humanity), the physical bottleneck (the Korean memory supercycle), and the financialization layer (GPU compute becoming a tradable futures asset). Columns are published in English and Korean. Part of the Vibe Investing repository (github.com/gameworkerkim/vibe-investing).
 
-## Featured Column: Samsung and SK Hynix – The Unavoidable Gatekeepers of the AI Revolution
-- Explores the structural memory shortage driven by AI, agentic AI’s soaring memory demands, Korea’s geopolitical advantage over Taiwan, and record financials for Samsung and SK Hynix.
-- Includes orders, revenue forecasts, and analyst projections for 2026–2027.
+Key context: All columns are reported as of 2026 and mix company disclosures with third-party analysis and estimates; undisclosed figures (e.g., Anthropic subscriber counts) are explicitly marked as estimates. The columns are informational and not investment advice. The base path for all files is /02.Investment Idea Column/AI_Revolution/ in the gameworkerkim/vibe-investing GitHub repository.
 
-## Tools & Agents
-- **Harness Quant v2** – quantitative strategy engine.
-- **Earnings Momentum Agent** – AI-driven earnings analysis.
-- Repository contains backtesting frameworks, data pipelines, and investment theses.
+## Columns
 
-## Repository
-- GitHub: https://github.com/gameworkerkim/vibe-investing/
-- Maintained by Kim (Gameworker) – quant analyst / AI researcher.
-- LinkedIn: https://www.linkedin.com/in/gameworkerkim
+- [The AI Revolution Is Just Beginning (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/ai_revolution_en.md): Argues AI is at the start of its growth curve, not the peak. ChatGPT has 900M+ weekly users but ~50M paying subscribers (0.6% of world population); Claude ~10M est. (0.1%). Enterprise adoption is 65% yet 80% of orgs report no measurable EBIT impact. The opportunity opens as free users convert to paid and agentic AI raises the price point.
+- [The AI Revolution Is Just Beginning (KO) / 인공지능 혁명, 이제 시작이다](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/ai_revolution_ko.md): Korean-language version of the AI monetization thesis. 유료 구독자는 인류의 1% 미만이며, 무료 사용자의 유료 전환과 AI 에이전트 단가 상승이 진짜 기회라는 분석.
+- [Samsung and SK Hynix: Gatekeepers of the AI Revolution (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/Samsung%20SK%20Hynix%20AI%20Memory%20Investment%20Analysis.md): Three forces make Korean memory makers strategic gatekeepers — a structural memory shortage inverting buyer-supplier dynamics (DRAM contract prices +93–98% QoQ in Q1 2026), the memory-intensity surge of agentic AI, and Korea's geopolitical/onshoring edge over Taiwan. Includes Q1 2026 financials (SK Hynix ~72% operating margin; Samsung record memory revenue).
+- [GPU Compute Is Now Traded (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/GPU_Compute_Is_Now_Traded_EN.md): In May 2026, CME (with Silicon Data) and ICE (with Ornn, on the OCPI index) launched the first compute futures markets. Thesis: investing's center of gravity moves from GPU makers/users to the secondary market where compute is traded; exchanges and benchmark-index providers are the surest winners. A double-edged mechanism that both hedges volatility and risks a bubble (three compute-futures ETFs filed before the underlying even trades).
+- [GPU Compute Is Now Traded (KO) / GPU 연산, 이제 거래된다](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/GPU_%E1%84%8B%E1%85%A7%E1%86%AB%E1%84%89%E1%85%A1%E1%86%AB_%E1%84%82%E1%85%B3%E1%86%BC%E1%84%85%E1%85%A7%E1%86%A8%E1%84%8B%E1%85%B3%E1%86%AB_%E1%84%80%E1%85%A5%E1%84%85%E1%85%A2%E1%84%83%E1%85%AC%E1%86%AB%E1%84%83%E1%85%A1_KO.md): Korean-language version of the compute-futures thesis. 컴퓨트 선물 시장의 등장과 거래소·지수 제공자가 승자가 되는 구조 분석.
+
+## Recommended Reading Order
+
+- [1. The AI Revolution Is Just Beginning](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/ai_revolution_en.md): The demand-side thesis — monetization has barely begun.
+- [2. Samsung and SK Hynix](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/Samsung%20SK%20Hynix%20AI%20Memory%20Investment%20Analysis.md): The physical bottleneck — memory is the new scarce resource.
+- [3. GPU Compute Is Now Traded](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/AI_Revolution/GPU_Compute_Is_Now_Traded_EN.md): The financialization layer — compute becomes a tradable asset.
+
+## Author
+
+- [HoKwang Kim on GitHub](https://github.com/gameworkerkim): Quantitative analyst and AI researcher; former CEO of Cyworld Z; Microsoft Azure MVP (2015–2023); cyber threat intelligence researcher.
+- [ORCID 0009-0002-0962-2175](https://orcid.org/0009-0002-0962-2175): Academic identifier.
+- [Vibe Investing repository](https://github.com/gameworkerkim/vibe-investing/): Parent repository — AI-powered market analysis columns and quant trading tools for NASDAQ, S&P 500, and crypto.
