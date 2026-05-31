@@ -1,0 +1,24 @@
+# ExxonMobil (XOM) Multi-Factor Quant
+
+> A reproducible, factor-based quant framework for deciding whether to buy, hold, or sell ExxonMobil (XOM). Built on the thesis that despite "the age of oil is ending" narratives, international oil prices are inelastic, refining is a regional oligopoly, and global infrastructure — including food via fertilizer — remains built on oil. XOM is framed as the most intuitive, boring, and low-failure way to invest in the petrodollar. Design principle: "An LLM is Excel, not an oracle" — score inputs against fixed rules instead of asking for opinions.
+
+Part of the `vibe-investing` repository, folder `01.Trading Strategy/Awesome claude quant scripts/ExxonMobil/`. Author: HoKwang Kim (Dennis Kim). All materials are informational only and not investment advice.
+
+## Core Documents
+
+- [Investment Concept & Prompt Guide (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/ExxonMobil/ExxonMobil_quant_thesis_EN.md): The full thesis — oil price inelasticity (Strait of Hormuz 2026), refining oligopoly statistics, civilization's oil dependence (incl. Haber-Bosch fertilizer feeding ~half of humanity), peak-demand uncertainty (IEA 2050 vs. OPEC), and why XOM's ~6% shareholder yield and 8.5–9.5% total expected return make it a defensive core holding.
+- [Investment Concept & Prompt Guide (KR)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/ExxonMobil/ExxonMobil_quant_thesis_KR.md): Korean version of the thesis and prompt explanation.
+- [Multi-Factor Decision Prompt (KR/EN/CN)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/ExxonMobil/ExxonMobil_quant_prompt.md): A trilingual, copy-ready LLM prompt that scores six factors (Value, Quality, Shareholder Yield, Momentum, Growth, Risk), applies weights and thresholds, enforces a risk override and an expected-return check, and outputs a BUY / HOLD / SELL verdict in tables.
+- [Factor Insight (KR/EN labels)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/ExxonMobil/ExxonMobil_insight.md): The original factor-by-factor qualitative analysis the prompt is calibrated against (P/B ~1.9, FCF/EV ~7.2%, net debt ~8%, shareholder yield 6.5%+, expected return 8.5–9.5%).
+
+## Key Facts & Statistics
+
+- Strait of Hormuz carries ~20% of global oil and gas; the 2026 crisis pushed Brent up ~40–50% (Dallas Fed: a 20% supply removal → WTI ~$98, global GDP −2.9pp).
+- Refining concentration: California top-4 ~90% (→~98% after Phillips 66 LA closure); US ex-California top-4 ~48%; US CR4 ~46%; global majors <25% of throughput, NOCs ~53%.
+- Food–oil link: Haber-Bosch synthetic nitrogen fertilizer feeds ~3.8 billion people; ~90% of nitrogen-fertilizer cost is natural gas; US corn yields rose from <1,500 to >10,000 kg/ha.
+- Peak demand: IEA WEO 2025 Current Policies sees oil rising to ~113 mb/d by 2050; OPEC ~123 mb/d; IEA STEPS peaks ~2030.
+- XOM: 43 consecutive years of dividend increases; ~$4.12 annual dividend (~2.7% yield); ~$20B 2026 buyback; ~$37B total annual shareholder returns.
+
+## Optional
+
+- [vibe-investing repository root](https://github.com/gameworkerkim/vibe-investing): AI-powered quant trading tools, multi-agent backtesting, and data-driven market columns.
