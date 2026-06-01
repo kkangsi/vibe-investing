@@ -1,9 +1,15 @@
 파일	내용
+
 backtest_daily.csv	날짜별 가격/수익률/z-score/포지션/에쿼티
+
 trades.csv	평균회귀 전략 트레이드 로그 (21건)
+
 summary_metrics.csv	전략별 성과·통계 유의성·판정
+
 leadlag_corr.csv	리드-래그 교차상관표
+
 mu_hynix_charts.png	누적수익/z-score/에쿼티 차트
+
 run_console_output.txt	콘솔 출력 로그
 
 핵심 결과 요약
