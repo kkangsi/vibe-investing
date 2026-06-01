@@ -23,7 +23,7 @@
 | 경로 | 설명 |
 |---|---|
 | `Column mu hynix leadlag.md` | 가설 칼럼: MU가 하이닉스를 하루 선행하는가? |
-| `Column_signal_bot.md` | 칼럼(개정판): 직관 → 통계 → 백테스트 → 봇 전 과정 + 워드 동봉 |
+| `Column_signal_bot.md` / `.pdf` | 칼럼(개정판): 직관 → 통계 → 백테스트 → 봇 전 과정 |
 | `quant_prompt.md` | LLM에 직접 넣는 분석 프롬프트(계산 강제형, 5단계) |
 | `script/` | `mu_hynix_pairs_full.py` 풀버전: 거래비용 + CSV 로그 3종 + 통계적 유의성 판정 |
 | `Signal_Bot/` | 매수/매도 시그널 봇 + 웹뷰 대시보드 (아래 §0) |
@@ -370,7 +370,7 @@ python script/mu_hynix_pairs_full.py --mock --mock-no-leadlag --outdir result_nu
 - 이 전략 전체: [MU_Hynix](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/MU_Hynix)
 - 시그널 봇: [Signal_Bot](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/MU_Hynix/Signal_Bot)
 - 백테스트 결과: [result](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/MU_Hynix/result)
-- 칼럼(개정판): [Column_signal_bot.md](Column_signal_bot.md) · [워드(.docx)](Column_signal_bot.docx)
+- 칼럼(개정판): [Column_signal_bot.md](Column_signal_bot.md) · [PDF](Column_signal_bot.pdf)
 
 ---
 
