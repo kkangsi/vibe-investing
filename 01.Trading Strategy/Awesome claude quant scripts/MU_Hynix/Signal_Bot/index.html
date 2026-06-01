@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MU x SK하이닉스 시그널 봇</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#2a3038;
+    --tx:#e6edf3; --tx2:#9aa6b2; --muted:#6e7681;
+    --buy:#2ea043; --sell:#f85149; --hold:#d29922; --neutral:#58a6ff;
+    --chip:#21262d;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.5;font-size:15px}
+  .wrap{max-width:1040px;margin:0 auto;padding:24px 18px 60px}
+  header h1{font-size:22px;margin:0 0 4px}
+  header .sub{color:var(--tx2);font-size:13px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 22px;font-size:12.5px;color:var(--tx2)}
+  .meta .pill{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:3px 11px}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:18px}
+  .panel h2{font-size:15px;margin:0 0 14px;color:var(--tx2);font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+  /* headline */
+  .reco{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .bias{font-size:13px;font-weight:700;padding:7px 16px;border-radius:8px}
+  .bias.LONG{background:rgba(46,160,67,.16);color:var(--buy);border:1px solid rgba(46,160,67,.4)}
+  .bias.SHORT{background:rgba(248,81,73,.16);color:var(--sell);border:1px solid rgba(248,81,73,.4)}
+  .bias.NEUTRAL{background:rgba(88,166,255,.14);color:var(--neutral);border:1px solid rgba(88,166,255,.4)}
+  .reco .head{font-size:18px;font-weight:600}
+  .warns{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+  .warn{font-size:13px;color:var(--hold);background:rgba(210,153,34,.1);
+    border:1px solid rgba(210,153,34,.3);border-radius:7px;padding:7px 12px}
+  /* core signals */
+  .cores{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.cores{grid-template-columns:1fr}}
+  .sigcard{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .sigcard .label{font-size:12px;color:var(--tx2);margin-bottom:8px}
+  .action{display:inline-block;font-size:15px;font-weight:700;padding:6px 14px;border-radius:7px;margin-bottom:9px}
+  .a-buy{background:rgba(46,160,67,.16);color:var(--buy)}
+  .a-sell{background:rgba(248,81,73,.16);color:var(--sell)}
+  .a-hold,.a-flat,.a-no{background:rgba(210,153,34,.14);color:var(--hold)}
+  .a-na{background:var(--chip);color:var(--muted)}
+  .sigcard .detail{font-size:13px;color:var(--tx)}
+  .conf{font-size:11px;color:var(--muted);margin-left:8px;text-transform:uppercase;letter-spacing:.04em}
+  /* prices */
+  .prices{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:680px){.prices{grid-template-columns:1fr 1fr}}
+  .px{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
+  .px .k{font-size:11px;color:var(--tx2)}
+  .px .v{font-size:18px;font-weight:700;margin-top:3px}
+  /* leadlag table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--border)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--tx2);font-weight:600;font-size:12px}
+  tr.hl td{background:rgba(88,166,255,.08);font-weight:600}
+  .ok{color:var(--buy)} .no{color:var(--muted)}
+  /* strategy list */
+  .strat{border:1px solid var(--border);border-radius:10px;padding:15px 16px;margin-bottom:11px;background:var(--panel2)}
+  .strat .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .strat .name{font-weight:600;font-size:14.5px}
+  .strat .num{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;
+    background:var(--chip);border-radius:6px;font-size:12px;color:var(--tx2);margin-right:9px}
+  .strat .act{font-size:13px;font-weight:600;padding:4px 11px;border-radius:6px;white-space:nowrap}
+  .lv-high{background:rgba(46,160,67,.14);color:var(--buy)}
+  .lv-med{background:rgba(88,166,255,.14);color:var(--neutral)}
+  .lv-low{background:var(--chip);color:var(--muted)}
+  .strat .desc{font-size:12.5px;color:var(--tx2);margin-top:9px}
+  .disclaimer{font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;margin-top:8px}
+  .err{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.35);
+    border-radius:10px;padding:18px;color:var(--tx);font-size:14px}
+  code{background:var(--chip);padding:2px 6px;border-radius:4px;font-size:12px}
+  a{color:var(--neutral)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MU &times; SK하이닉스 매수/매도 시그널 봇</h1>
+    <div class="sub">리드-래그 모멘텀 + 스프레드 평균회귀 기본 전략 &middot; 추가 전략 7종 &middot; 참고용 보조 지표</div>
+  </header>
+  <div id="app"></div>
+</div>
+
+<!-- file:// 로 직접 열 때를 위한 JS 래퍼(브라우저가 로컬 fetch(json)을 차단) -->
+<script src="signals.js" onerror="window.__noJs=true"></script>
+<script>
+const ACT_CLASS = a => {
+  a = (a||"").toUpperCase();
+  if(a.startsWith("BUY")) return "a-buy";
+  if(a.startsWith("SELL")) return "a-sell";
+  if(a.startsWith("N/A")) return "a-na";
+  if(a.startsWith("NO-ENTRY")||a.startsWith("FLAT")||a.startsWith("HOLD")) return "a-hold";
+  return "a-hold";
+};
+const esc = s => String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function render(d){
+  const c = d.core, r = d.recommendation;
+  const px = d.prices;
+  let h = "";
+
+  // meta
+  h += `<div class="meta">
+    <span class="pill">데이터: ${esc(d.source)}</span>
+    <span class="pill">표본: ${esc(d.sample.start)} ~ ${esc(d.sample.end)} (${d.sample.days}일)</span>
+    <span class="pill">생성: ${esc(d.generated_at)}</span>
+  </div>`;
+
+  // recommendation
+  h += `<div class="panel"><h2>종합 시그널</h2>
+    <div class="reco">
+      <span class="bias ${esc(r.bias)}">${esc(r.bias)}</span>
+      <span class="head">${esc(r.headline)}</span>
+    </div>`;
+  if(r.warnings && r.warnings.length){
+    h += `<div class="warns">` + r.warnings.map(w=>`<div class="warn">주의: ${esc(w)}</div>`).join("") + `</div>`;
+  }
+  h += `</div>`;
+
+  // prices
+  h += `<div class="panel"><h2>현재가</h2><div class="prices">
+    <div class="px"><div class="k">MU (USD)</div><div class="v">$${px.MU_usd}</div></div>
+    <div class="px"><div class="k">하이닉스 (KRW)</div><div class="v">${Number(px.HYNIX_krw).toLocaleString()}</div></div>
+    <div class="px"><div class="k">하이닉스 (USD환산)</div><div class="v">$${px.HYNIX_usd}</div></div>
+    <div class="px"><div class="k">USD/KRW</div><div class="v">${px.USDKRW}</div></div>
+  </div></div>`;
+
+  // core A/B
+  const A=c.signal_A, B=c.signal_B;
+  h += `<div class="panel"><h2>기본 전략 시그널</h2><div class="cores">
+    <div class="sigcard">
+      <div class="label">A. 리드-래그 모멘텀 (MU 선행)</div>
+      <span class="action ${ACT_CLASS(A.action)}">${esc(A.action)}</span><span class="conf">${esc(A.confidence)}</span>
+      <div class="detail">${esc(A.detail)}</div>
+    </div>
+    <div class="sigcard">
+      <div class="label">B. 스프레드 평균회귀 (공적분)</div>
+      <span class="action ${ACT_CLASS(B.action)}">${esc(B.action)}</span><span class="conf">${esc(B.confidence)}</span>
+      <div class="detail">${esc(B.detail)}</div>
+    </div>
+  </div>`;
+
+  // cointegration line
+  const co=c.cointegration;
+  h += `<div style="margin-top:14px;font-size:12.5px;color:var(--tx2)">
+    공적분: beta=${co.beta} &middot; ADF p=${co.adf_p} &middot; EG p=${co.eg_p} &middot;
+    유효=${co.valid?'<span class="ok">O</span>':'<span class="no">X</span>'} &middot;
+    현재 z-score=<b style="color:var(--tx)">${c.z_last}</b> &middot;
+    +1일 상관=<b style="color:var(--tx)">${c.leadlag_plus1.corr}</b> (p=${c.leadlag_plus1.p})
+  </div></div>`;
+
+  // leadlag table
+  h += `<div class="panel"><h2>리드-래그 교차상관표 (k&gt;0 = MU 선행)</h2>
+    <table><thead><tr><th>lag (MU 선행일)</th><th>상관계수</th><th>p-value</th><th>n</th><th>5% 유의</th></tr></thead><tbody>`;
+  c.leadlag_table.forEach(row=>{
+    const hl = row.lag_MU_lead===1 ? ' class="hl"' : '';
+    h += `<tr${hl}><td>${row.lag_MU_lead>0?'+':''}${row.lag_MU_lead}</td><td>${row.corr}</td><td>${row.p}</td><td>${row.n}</td>
+      <td>${row.sig5pct?'<span class="ok">O</span>':'<span class="no">X</span>'}</td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  // strategies
+  h += `<div class="panel"><h2>추가 전략 7종</h2>`;
+  d.strategies.forEach(s=>{
+    h += `<div class="strat"><div class="top">
+      <div class="name"><span class="num">${s.id}</span>${esc(s.name)}</div>
+      <span class="act lv-${esc(s.confidence)}">${esc(s.action)}</span>
+    </div><div class="desc">${esc(s.detail)}</div></div>`;
+  });
+  h += `</div>`;
+
+  // disclaimer
+  h += `<div class="disclaimer">${esc(d.disclaimer)}</div>`;
+
+  document.getElementById("app").innerHTML = h;
+}
+
+function showErr(){
+  document.getElementById("app").innerHTML =
+    `<div class="err"><b>데이터를 불러오지 못했습니다.</b><br><br>
+    먼저 봇을 실행해 <code>signals.json</code>(과 <code>signals.js</code>)를 생성하세요:<br><br>
+    <code>python signal_bot.py --years 3 --outdir .</code><br><br>
+    또는 로컬 서버로 여세요: <code>python -m http.server</code> 후
+    <code>http://localhost:8000/</code> 접속.</div>`;
+}
+
+// 1) 우선 fetch(signals.json) — http(s)/Pages 환경
+// 2) 실패하면 signals.js 가 채운 window.SIGNALS 사용 — file:// 환경
+fetch("signals.json").then(r=>{ if(!r.ok) throw 0; return r.json(); })
+  .then(render)
+  .catch(()=>{ if(window.SIGNALS) render(window.SIGNALS); else showErr(); });
+</script>
+</body>
+</html>
