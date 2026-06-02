@@ -10,7 +10,7 @@
 
 | 서브테마 | 종목 |
 |---|---|
-| 컴퓨트 / GPU / 가속기 | NVDA · AMD · **INTC** · AVGO · MRVL · TSM |
+| 연산 / GPU / 가속기 | NVDA · AMD · **INTC** · AVGO · MRVL · TSM |
 | 메모리 / 스토리지 | MU · STX · WDC · PSTG |
 | 서버 / 시스템 | **DELL** · SMCI · HPE |
 | 네트워킹 | ANET · CSCO |
