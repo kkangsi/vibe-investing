@@ -1,0 +1,19 @@
+{
+  "name": "toss-amqs-dashboard",
+  "version": "1.0.0",
+  "description": "토스증권 Open API + AMQS 모멘텀 퀀트 전략으로 국내 주식/ETF 매수·매도·보유 시그널을 보여주는 대시보드",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "author": "Dennis Kim (김호광)",
+  "license": "MIT"
+}

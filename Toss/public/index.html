@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AMQS 퀀트 대시보드 · 국내 주식/ETF 시그널</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📈</span>
+      <div>
+        <h1>AMQS 퀀트 대시보드</h1>
+        <p class="sub">토스증권 Open API × Adaptive Momentum Quant Strategy</p>
+      </div>
+    </div>
+    <div class="search">
+      <input id="searchInput" type="text" placeholder="종목명 또는 6자리 코드 검색 (예: 삼성전자, 005930)" />
+      <button id="searchBtn">검색</button>
+    </div>
+  </header>
+
+  <div id="modeBanner" class="mode-banner hidden"></div>
+
+  <section id="regime" class="regime card">
+    <div class="regime-loading">시장 레짐 불러오는 중…</div>
+  </section>
+
+  <section id="searchResult" class="search-result hidden"></section>
+
+  <main>
+    <div class="section-head">
+      <h2>📊 ETF — 한국인 선호 10종목</h2>
+      <span class="legend">
+        <i class="dot buy"></i>매수 <i class="dot hold"></i>보유 <i class="dot sell"></i>매도 <i class="dot avoid"></i>회피
+      </span>
+    </div>
+    <div id="etfGrid" class="grid etf-grid"></div>
+
+    <div class="section-head"><h2>🏭 섹터별 대표주 (섹터당 10종목)</h2></div>
+    <div id="sectors"></div>
+  </main>
+
+  <footer>
+    <p>
+      ⚠️ 본 대시보드는 <b>AMQS 모멘텀 퀀트 전략</b>의 룰을 기계적으로 적용해 산출한 정보이며,
+      투자 권유나 수익 보장이 아닙니다. 모든 투자 책임은 본인에게 있습니다.
+      모멘텀 전략은 추세 전환점에서 단기 손실이 발생할 수 있습니다.
+    </p>
+    <p class="footer-links">
+      <a href="https://github.com/gameworkerkim/vibe-investing" target="_blank" rel="noopener noreferrer">🔗 GitHub · gameworkerkim/vibe-investing</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/gameworkerkim/vibe-investing/tree/main/Toss" target="_blank" rel="noopener noreferrer">📁 소스 코드 (/Toss)</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Adaptive%20Momentum%20Quant%20Strategy%20(AMQS)" target="_blank" rel="noopener noreferrer">📈 AMQS 전략 원문</a>
+    </p>
+    <p class="credit">Strategy: Dennis Kim (김호광) · vibe-investing</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
