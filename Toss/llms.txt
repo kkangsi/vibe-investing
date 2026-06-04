@@ -1,1 +1,42 @@
+# Toss × AMQS 퀀트 대시보드
 
+> 토스증권 Open API로 한국인이 선호하는 국내 주식·ETF 시세를 받아, Adaptive Momentum
+> Quant Strategy(AMQS)의 룰을 기계적으로 적용해 매수/보유/매도 시그널을 보여주는 웹
+> 대시보드. 키가 없으면 결정론적 MOCK 데이터로 동작한다. 투자 권유가 아니며 모든 책임은
+> 사용자에게 있다.
+
+핵심 동작:
+- 4-Factor Composite 모멘텀: `0.50·Z(12-1) + 0.30·Z(6-1) + 0.15·Z(3-1) + 0.05·Z(1/Vol)` (universe 내 횡단면 z-score)
+- 레짐 필터(국내 적용): KODEX 200 200일선·5일 수익률·20일 실현 변동성으로 RISK_ON / RISK_OFF / DEFENSIVE 판정 (원본 QQQ+VIX 대체)
+- 시그널: 60일 고점 −12% 이탈→매도, z≥+0.5→매수, z≤−0.5→매도, 그 외→보유. 방어/위험회피 레짐이면 매수 강등
+- 구성: 섹터 8개 × 10종목 + 인기 ETF 10종목 + 종목 검색(`?q=` 공유 링크)
+
+## 문서
+
+- [README.md](README.md): 투자 철학 문서 — 왜 모멘텀인가, AMQS 3대 메커니즘, 주의점(투자권유 아님·모멘텀 크래시·국내 백테스트 없음·MOCK 데이터)
+- [GUIDE.md](GUIDE.md): 사용 설명서 — 설치, 토스 Open API 키(.env) 연동, 서버 API, 종목 교체
+- [docs/readme.md](docs/readme.md): 문서·스크린샷 인덱스
+- [docs/Toss_OpenAPI_Guide.md](docs/Toss_OpenAPI_Guide.md): 토스증권 Open API 기술 분석 — 인증·토큰 정책, 20개 엔드포인트, 6가지 활용 시나리오, 설계 제약, 정보 검증 등급
+- [docs/토스증권_OpenAPI_분석문서.pdf](docs/%E1%84%90%E1%85%A9%E1%84%89%E1%85%B3%E1%84%8C%E1%85%B3%E1%86%BC%E1%84%80%E1%85%AF%E1%86%AB_OpenAPI_%E1%84%87%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5%E1%86%A8%E1%84%86%E1%85%AE%E1%86%AB%E1%84%89%E1%85%A5.pdf): 분석 문서 PDF 버전
+
+## 소스
+
+- [server.js](server.js): Express 서버 — `/api/health`, `/api/dashboard`, `/api/search`. 의존성 없는 .env 로더 포함
+- [src/amqs.js](src/amqs.js): 모멘텀 점수·레짐 판정·시그널 엔진
+- [src/toss.js](src/toss.js): 토스 Open API OAuth2 클라이언트(토큰 캐싱) + MOCK 폴백
+- [src/universe.js](src/universe.js): 섹터별 종목 + ETF 큐레이션 (KRX 6자리 코드)
+- [public/](public/index.html): 대시보드 프론트엔드(vanilla JS)
+
+## 토스 Open API 요약
+
+- Base URL: `https://openapi.tossinvest.com` · 인증: OAuth 2.0 Client Credentials (`POST /oauth2/token`)
+- 시세: `GET /api/v1/prices?symbols=` · 일봉: `GET /api/v1/candles?symbol=&interval=1d&count=200`
+- 토큰 24시간 · refresh 없음 · 계좌/주문 API는 `X-Tossinvest-Account` 헤더 필요
+- 서비스 상태(2026-06): 사전 신청 단계, 정식 오픈일 미정. 키는 토스증권 PC 웹에서 발급
+- 개발자 문서: https://developers.tossinvest.com/docs · 스펙: https://openapi.tossinvest.com/openapi-docs/latest/openapi.json
+
+## 링크
+
+- GitHub: https://github.com/gameworkerkim/vibe-investing
+- 이 프로젝트: https://github.com/gameworkerkim/vibe-investing/tree/main/Toss
+- AMQS 전략 원문: https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Adaptive%20Momentum%20Quant%20Strategy%20(AMQS)
