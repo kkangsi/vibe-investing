@@ -1,0 +1,17 @@
+{
+  "name": "kodex200-arbitrage-bot",
+  "version": "1.0.0",
+  "description": "삼성·하이닉스 → KOSPI200 ETF lead-lag/괴리율 차익거래 알람 봇 + 검증·백테스트 (토스/KIS API)",
+  "type": "module",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "selftest": "node selftest.js",
+    "record": "node bot.js --record"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Dennis Kim (김호광)",
+  "license": "MIT"
+}

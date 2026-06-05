@@ -1,0 +1,3 @@
+# verify_leadlag.py 용. tv_scanner.py 는 표준 라이브러리만 사용.
+pandas
+numpy
