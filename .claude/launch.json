@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kodex200-arb-dashboard",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["01.Trading Strategy/Kodex200 Arbitrage Bot/server.js", "3137"],
+      "port": 3137
+    }
+  ]
+}

@@ -6,6 +6,7 @@
   "main": "bot.js",
   "scripts": {
     "start": "node bot.js",
+    "dashboard": "node server.js",
     "selftest": "node selftest.js",
     "record": "node bot.js --record"
   },

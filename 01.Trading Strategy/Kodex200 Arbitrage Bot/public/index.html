@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KODEX200 차익거래 봇 · 대시보드</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▲▼</span>
+      <div>
+        <h1>KODEX200 Arbitrage Bot</h1>
+        <p class="sub">삼성·하이닉스 → KOSPI200 ETF lead-lag / 괴리율 알람</p>
+      </div>
+    </div>
+    <div class="source-picker">
+      <span class="picker-label">데이터 소스</span>
+      <div class="seg" id="sourceSeg">
+        <button data-source="AUTO">자동</button>
+        <button data-source="KIS">한국투자</button>
+        <button data-source="TOSS">토스증권</button>
+        <button data-source="MOCK">MOCK</button>
+      </div>
+      <span class="mode-badge" id="modeBadge">…</span>
+    </div>
+  </header>
+
+  <div class="risk" id="riskBar">
+    ⚠️ <b>고위험 트레이딩</b> — 단기 차익거래 창은 매우 짧고 스프레드·슬리피지·역행으로
+    손실 위험이 큽니다. 본 도구는 <b>알람·리서치 전용(자동주문 없음)</b>이며 투자 권유가
+    아닙니다. <b>초단타·고빈도 매매는 증권사 FDS(이상거래 탐지)로 계좌·API가 제한</b>될 수
+    있으니 폴링 ≥1초·약관 rate limit을 준수하세요.
+  </div>
+
+  <main>
+    <section class="panel composite">
+      <h2>빅2 합성지수 (KOSPI200 ≈ 55%)</h2>
+      <div class="driver-cards" id="driverCards"></div>
+      <div class="composite-row" id="compositeRow"></div>
+    </section>
+
+    <section class="panel trackers">
+      <h2>추종 ETF · lead-lag gap & 괴리율</h2>
+      <div class="table-wrap">
+        <table id="trackerTable">
+          <thead>
+            <tr>
+              <th class="left">종목</th><th>배수</th><th>현재가</th><th>NAV</th>
+              <th>괴리율</th>
+              <th>30s</th><th>60s</th><th>2m</th><th>3m</th><th>5m</th>
+            </tr>
+          </thead>
+          <tbody id="trackerBody"></tbody>
+        </table>
+      </div>
+      <p class="legend">셀 값 = lead-lag gap (기대−실제 ETF 수익률). 색이 진할수록 괴리 큼.
+        <b>확인 타임프레임(60s·2m)</b> 동시 성립 시 굵게 표시.</p>
+    </section>
+
+    <section class="panel alerts">
+      <h2>실시간 알람 <span class="muted" id="alertCount"></span></h2>
+      <ul id="alertList" class="alert-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <span id="footMeta">…</span>
+    <span class="muted">MOCK은 lead-lag·괴리율을 주입한 합성 데이터입니다 · 실거래 판단은 실데이터 재검증 필수</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -139,3 +139,48 @@ export function evaluateDisparity(board, config = DEFAULT_CONFIG) {
   out.sort((a, b) => Math.abs(b.disparity) - Math.abs(a.disparity));
   return { signals: out };
 }
+
+// 대시보드 표시용 종목별 스냅샷(시그널 발화 여부와 무관한 현재 상태).
+export const DISPLAY_TIMEFRAMES = ['30s', '60s', '2m', '3m', '5m'];
+
+export function snapshot(board, config = DEFAULT_CONFIG) {
+  const trend = config.trend;
+  const composite = {};
+  for (const tf of DISPLAY_TIMEFRAMES) {
+    const c = compositeReturn(board, tf, trend);
+    composite[tf] = c ? c.indexRet : null;
+  }
+
+  const drivers = DRIVERS.map((d) => {
+    const inst = board.get(d.code);
+    const trends = {};
+    for (const tf of DISPLAY_TIMEFRAMES) {
+      const tr = inst?.trendOf(tf, trend);
+      trends[tf] = tr ? { ret: tr.ret, confirmed: tr.confirmed } : null;
+    }
+    return { code: d.code, name: d.name, weight: d.indexWeight, price: inst?.lastPrice ?? null, trends };
+  });
+
+  const trackers = TRACKERS.map((t) => {
+    const inst = board.get(t.code);
+    const perTf = {};
+    for (const tf of DISPLAY_TIMEFRAMES) {
+      const g = gapFor(board, t, tf, trend);
+      perTf[tf] = g ? { gap: g.gap, expected: g.expected, actual: g.actual } : null;
+    }
+    const disp = inst?.disparityOf(config.disparity || DEFAULT_CONFIG.disparity);
+    return {
+      code: t.code,
+      name: t.name,
+      kind: t.kind,
+      leverage: t.leverage,
+      price: inst?.lastPrice ?? null,
+      nav: inst?.lastNav ?? null,
+      disparity: disp ? disp.disp : (inst?.lastDisp?.() ?? null),
+      disparityConfirmed: disp ? disp.confirmed : false,
+      perTf,
+    };
+  });
+
+  return { composite, drivers, trackers };
+}

@@ -13,10 +13,22 @@ import { DRIVERS, TRACKERS } from './instruments.js';
 // 토스 클라이언트(이 폴더에 자체 포함된 toss.js).
 const toss = await import('./toss.js');
 
-export function pickMode() {
+// 데이터 소스 결정. force = 'TOSS' | 'KIS' | 'MOCK' | 'AUTO'(또는 미지정).
+// 요청한 소스에 자격증명이 없으면 MOCK으로 안전 폴백한다(대시보드가 차이를 표시).
+export function pickMode(force) {
+  const want = force && force !== 'AUTO' ? String(force).toUpperCase() : null;
+  if (want === 'MOCK') return 'MOCK';
+  if (want === 'KIS') return kis.isMock() ? 'MOCK' : 'KIS';
+  if (want === 'TOSS') return toss.isMock() ? 'MOCK' : 'TOSS';
+  // AUTO: 실시간성이 좋은 KIS 우선 → 토스 → MOCK.
   if (!kis.isMock()) return 'KIS';
   if (!toss.isMock()) return 'TOSS';
   return 'MOCK';
+}
+
+// 소스별 자격증명 보유 여부 — 대시보드 셀렉터 활성/비활성 표시에 사용.
+export function sourceAvailability() {
+  return { KIS: !kis.isMock(), TOSS: !toss.isMock(), MOCK: true, AUTO: true };
 }
 
 // ---- 실시간(토스) Map → 배열 정규화 ----
@@ -36,8 +48,19 @@ function createMock(codes) {
   let trend = 0;
   let trendLeft = 0;
 
-  const driverBase = new Map(DRIVERS.map((d, i) => [d.code, 70000 + i * 50000]));
-  const trackerBase = new Map(TRACKERS.map((t, i) => [t.code, 10000 + i * 3000]));
+  // 기준가: 2026-06 실거래 수준(TradingView 스냅샷)으로 설정해 MOCK도 현실적인
+  // 가격대를 보이게 한다. 없는 코드는 합리적 기본값으로 폴백.
+  const REAL_BASE = {
+    '005930': 333500,   // 삼성전자
+    '000660': 2108000,  // SK하이닉스
+    '069500': 130662,   // KODEX 200
+    '102110': 130830,   // TIGER 200
+    '122630': 190525,   // KODEX 레버리지
+    '114800': 996,      // KODEX 인버스
+    '252670': 88,       // KODEX 200선물인버스2X
+  };
+  const driverBase = new Map(DRIVERS.map((d, i) => [d.code, REAL_BASE[d.code] ?? 70000 + i * 50000]));
+  const trackerBase = new Map(TRACKERS.map((t, i) => [t.code, REAL_BASE[t.code] ?? 10000 + i * 3000]));
   // 지수 누적 로그수익률 히스토리(지연 조회용): [{ ts, cum }]
   const indexHist = [{ ts: Date.now(), cum: 0 }];
   let cum = 0;
@@ -69,11 +92,14 @@ function createMock(codes) {
       tick++;
       const ts = Date.now();
       if (trendLeft <= 0 && rand() < 0.15) {
-        trend = (rand() < 0.5 ? -1 : 1) * stepVol * (3 + rand() * 4);
-        trendLeft = 8 + Math.floor(rand() * 12);
+        trend = (rand() < 0.5 ? -1 : 1) * stepVol * (2 + rand() * 3);
+        trendLeft = 6 + Math.floor(rand() * 8);
       }
       const drift = trendLeft-- > 0 ? trend : 0;
-      const indexStep = drift + stepVol * gauss();
+      // 약한 평균회귀(reversion)로 누적수익률을 ±2% 근방에 묶어, MOCK 가격이 실거래
+      // 수준 근처에 머물게 한다(추세·lead-lag는 유지하되 비현실적 폭주 방지).
+      const reversion = 0.006 * cum;
+      const indexStep = drift + stepVol * gauss() - reversion;
       cum += indexStep;
       indexHist.push({ ts, cum });
       // 오래된 히스토리 정리.
@@ -109,8 +135,8 @@ function createMock(codes) {
   };
 }
 
-export async function createFeed(codes) {
-  const mode = pickMode();
+export async function createFeed(codes, force) {
+  const mode = pickMode(force);
   if (mode === 'KIS') {
     // Node 22+ 이고 비활성화하지 않았으면 WebSocket 스트리밍 우선.
     if (typeof globalThis.WebSocket !== 'undefined' && process.env.ARB_KIS_WS !== '0') {
