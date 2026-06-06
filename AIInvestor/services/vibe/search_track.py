@@ -59,36 +59,93 @@ def normalize_ticker(q: str) -> str | None:
     return t
 
 
+def _derive_ards_signal(ards_payload: dict[str, Any],
+                         row: dict[str, Any]) -> tuple[str, int]:
+    """ARDS 거시 레짐 + 종목 지표 → 프론트 ARDS_MAP 키 (RISK_ON/BUY_DIP_TACTICAL/
+    HOLD_ACCUMULATE/REDUCE/DEFENSIVE_ARDS) 와 0-100 점수.
+
+    프론트 매핑 (main.ts:60):
+      RISK_ON / BUY_DIP_TACTICAL → BUY
+      HOLD_ACCUMULATE → HOLD
+      REDUCE / DEFENSIVE_ARDS → SELL
+    """
+    state = (ards_payload or {}).get("verdict", {}).get("state", "")
+    dd = float(row.get("dd_from_high") or 0)
+    rsi = float(row.get("rsi14") or 50)
+    oversold = float(row.get("oversold_score") or 0)
+    decline = float(row.get("decline_score") or 0)
+
+    if state == "RECESSION_REBALANCE":
+        return "DEFENSIVE_ARDS", 80
+    if state == "DOWNTREND_DISTRIBUTION":
+        if dd < -20 or oversold > 60:
+            return "BUY_DIP_TACTICAL", 60
+        return "REDUCE", min(95, 50 + int(decline / 2))
+    if state == "OVERSOLD_BOUNCE":
+        if oversold > 50 or rsi < 35:
+            return "BUY_DIP_TACTICAL", 70
+        return "HOLD_ACCUMULATE", 55
+    if state == "CORRECTION":
+        if dd < -10 or oversold > 50:
+            return "BUY_DIP_TACTICAL", 60
+        return "HOLD_ACCUMULATE", 55
+    # UPTREND_HEALTHY 또는 unknown
+    if oversold > 50:
+        return "BUY_DIP_TACTICAL", 65
+    return "RISK_ON", 70
+
+
 def extract_signals_for_ticker(signals_payload: dict[str, Any] | None,
                                 ticker: str) -> list[dict[str, Any]]:
-    """combined signals/latest.json 에서 해당 ticker 의 ARDS/AMQS 행 추출."""
+    """combined signals/latest.json 에서 ticker 의 ARDS/AMQS 행 추출.
+
+    프론트가 기대하는 셰이프: {strategy, signal, score, date, detail?}
+    signal 은 ARDS_MAP/AMQS_MAP 키와 일치해야 BUY/HOLD/SELL 배지가 떰.
+    """
     if not signals_payload:
         return []
     out: list[dict[str, Any]] = []
     ards = signals_payload.get("ards") or {}
-    # ARDS-X 는 complex/indices/groups 에 ticker 가 흩어져 있음
+    as_of_full = signals_payload.get("as_of") or ards.get("asof") or ""
+    date_str = as_of_full[:10] if isinstance(as_of_full, str) else ""
+
+    # ARDS-X 는 complex/indices 에 ticker 흩어져 있음
     for key in ("indices", "complex"):
         for row in ards.get(key, []):
             if isinstance(row, dict) and row.get("ticker") == ticker:
+                sig, score = _derive_ards_signal(ards, row)
                 out.append({
                     "strategy": "ARDS",
                     "ticker": ticker,
-                    "decline_score": row.get("decline_score"),
-                    "oversold_score": row.get("oversold_score"),
-                    "rsi14": row.get("rsi14"),
-                    "dd_from_high": row.get("dd_from_high"),
+                    "signal": sig,
+                    "score": score,
+                    "date": date_str,
+                    "detail": {
+                        "decline_score": row.get("decline_score"),
+                        "oversold_score": row.get("oversold_score"),
+                        "rsi14": row.get("rsi14"),
+                        "dd_from_high": row.get("dd_from_high"),
+                    },
                 })
                 break
+
+    # AMQS: 종목별 signal 필드를 그대로 사용 (CENTER/SATELLITE/TACTICAL/DIP_BUY/
+    # REDUCE/EXIT). 프론트 AMQS_MAP 가 BUY/HOLD/SELL/null 로 변환.
     amqs = signals_payload.get("amqs") or {}
     for row in amqs.get("metrics", []):
         if isinstance(row, dict) and row.get("ticker") == ticker:
+            sig = row.get("signal") or "HOLD"
             out.append({
                 "strategy": "AMQS",
                 "ticker": ticker,
-                "signal": row.get("signal"),
-                "total_100": row.get("total_100"),
-                "weight": row.get("weight"),
-                "reason": row.get("reason"),
+                "signal": sig,
+                "score": row.get("total_100"),
+                "date": date_str,
+                "detail": {
+                    "weight": row.get("weight"),
+                    "reason": row.get("reason"),
+                    "subtheme": row.get("subtheme"),
+                },
             })
             break
     return out

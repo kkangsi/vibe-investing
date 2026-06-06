@@ -309,40 +309,89 @@ class TestExtractSignalsForTicker:
     def test_returns_empty_when_no_payload(self) -> None:
         assert search_track.extract_signals_for_ticker(None, "NVDA") == []
 
-    def test_extracts_ards_complex_row(self) -> None:
+    def test_extracts_ards_complex_row_with_derived_signal(self) -> None:
         payload = {
-            "ards": {"complex": [{"ticker": "NVDA", "decline_score": 30,
+            "as_of": "2026-06-06T11:23:46+00:00",
+            "ards": {"verdict": {"state": "CORRECTION"},
+                     "complex": [{"ticker": "NVDA", "decline_score": 30,
                                   "oversold_score": 20, "rsi14": 55,
                                   "dd_from_high": -5}]},
             "amqs": {"metrics": []},
         }
         result = search_track.extract_signals_for_ticker(payload, "NVDA")
         assert len(result) == 1
-        assert result[0]["strategy"] == "ARDS"
+        row = result[0]
+        assert row["strategy"] == "ARDS"
+        assert row["signal"] in {"RISK_ON", "BUY_DIP_TACTICAL",
+                                  "HOLD_ACCUMULATE", "REDUCE", "DEFENSIVE_ARDS"}
+        # CORRECTION + dd > -10 + oversold 20 → HOLD_ACCUMULATE
+        assert row["signal"] == "HOLD_ACCUMULATE"
+        assert isinstance(row["score"], int)
+        assert row["date"] == "2026-06-06"
+        assert "decline_score" in row["detail"]
 
-    def test_extracts_amqs_row(self) -> None:
+    def test_ards_recession_state_maps_defensive(self) -> None:
+        payload = {
+            "ards": {"verdict": {"state": "RECESSION_REBALANCE"},
+                     "complex": [{"ticker": "NVDA", "decline_score": 60,
+                                  "oversold_score": 30, "rsi14": 40,
+                                  "dd_from_high": -25}]},
+        }
+        result = search_track.extract_signals_for_ticker(payload, "NVDA")
+        assert result[0]["signal"] == "DEFENSIVE_ARDS"
+
+    def test_ards_correction_with_deep_drawdown_maps_buy_dip(self) -> None:
+        payload = {
+            "ards": {"verdict": {"state": "CORRECTION"},
+                     "complex": [{"ticker": "NVDA", "decline_score": 40,
+                                  "oversold_score": 20, "rsi14": 30,
+                                  "dd_from_high": -18}]},
+        }
+        result = search_track.extract_signals_for_ticker(payload, "NVDA")
+        assert result[0]["signal"] == "BUY_DIP_TACTICAL"
+
+    def test_ards_uptrend_maps_risk_on(self) -> None:
+        payload = {
+            "ards": {"verdict": {"state": "UPTREND_HEALTHY"},
+                     "complex": [{"ticker": "NVDA", "decline_score": 10,
+                                  "oversold_score": 15, "rsi14": 60,
+                                  "dd_from_high": -2}]},
+        }
+        result = search_track.extract_signals_for_ticker(payload, "NVDA")
+        assert result[0]["signal"] == "RISK_ON"
+
+    def test_extracts_amqs_row_preserves_signal_enum(self) -> None:
         payload = {
             "ards": None,
             "amqs": {"metrics": [{"ticker": "NVDA", "signal": "CENTER",
                                   "total_100": 85.5, "weight": 0.15,
-                                  "reason": "강세"}]},
+                                  "reason": "강세", "subtheme": "GPU"}]},
         }
         result = search_track.extract_signals_for_ticker(payload, "NVDA")
         assert len(result) == 1
-        assert result[0]["strategy"] == "AMQS"
-        assert result[0]["signal"] == "CENTER"
+        row = result[0]
+        assert row["strategy"] == "AMQS"
+        assert row["signal"] == "CENTER"
+        assert row["score"] == 85.5
+        assert row["detail"]["subtheme"] == "GPU"
 
-    def test_extracts_both_strategies(self) -> None:
+    def test_extracts_both_when_in_both_universes(self) -> None:
         payload = {
-            "ards": {"indices": [{"ticker": "^GSPC", "decline_score": 10}]},
-            "amqs": {"metrics": []},
+            "as_of": "2026-06-06T11:23:46+00:00",
+            "ards": {"verdict": {"state": "CORRECTION"},
+                     "complex": [{"ticker": "NVDA", "decline_score": 30,
+                                  "oversold_score": 20, "rsi14": 55,
+                                  "dd_from_high": -5}]},
+            "amqs": {"metrics": [{"ticker": "NVDA", "signal": "CENTER",
+                                  "total_100": 85.5}]},
         }
-        result = search_track.extract_signals_for_ticker(payload, "^GSPC")
-        assert len(result) == 1
-        assert result[0]["ticker"] == "^GSPC"
+        result = search_track.extract_signals_for_ticker(payload, "NVDA")
+        strategies = {r["strategy"] for r in result}
+        assert strategies == {"ARDS", "AMQS"}
 
     def test_unknown_ticker_empty(self) -> None:
-        payload = {"ards": {"complex": [{"ticker": "AAPL"}]}, "amqs": {}}
+        payload = {"ards": {"verdict": {"state": "CORRECTION"},
+                            "complex": [{"ticker": "AAPL"}]}, "amqs": {}}
         assert search_track.extract_signals_for_ticker(payload, "MSFT") == []
 
 
