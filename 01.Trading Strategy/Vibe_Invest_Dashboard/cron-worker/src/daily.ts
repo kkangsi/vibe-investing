@@ -3,6 +3,7 @@
  */
 import { fetchDailyMany } from "./providers/yahoo";
 import { fetchFredMany } from "./providers/fred";
+import { reconcileWithCache } from "./cache";
 import { computeSignals, ALL_YAHOO_SYMBOLS, FRED_IDS, type SignalRow } from "./signals";
 import { freshState, type HystState } from "../../shared/strategy/ards/hysteresis";
 import type { D1Like } from "../../shared/ingest";
@@ -46,20 +47,33 @@ export async function persistSignals(db: D1Like, rows: SignalRow[]): Promise<voi
 export async function runDailySignals(
   env: DailyEnv,
   opts: { today?: string } = {},
-): Promise<{ date: string; n_rows: number; ards_state: string | null; yahoo_fail: number; fred_fail: number }> {
+): Promise<{
+  date: string;
+  n_rows: number;
+  ards_state: string | null;
+  yahoo_from_cache: number;
+  yahoo_missing: number;
+  fred_from_cache: number;
+  fred_missing: number;
+}> {
   const today = opts.today ?? new Date().toISOString().slice(0, 10);
   const prevState = (await loadHystState(env.SNAPSHOTS)) ?? freshState();
 
-  const yahoo = await fetchDailyMany(ALL_YAHOO_SYMBOLS);
-  const fred = await fetchFredMany(FRED_IDS); // best-effort (막히면 엔진이 프록시 폴백)
+  // 수집 → R2 캐시와 reconcile (실패분은 직전 저장본으로 폴백 = 가용성)
+  const yahooFetch = await fetchDailyMany(ALL_YAHOO_SYMBOLS);
+  const px = await reconcileWithCache(env.SNAPSHOTS, "prices", ALL_YAHOO_SYMBOLS, yahooFetch.data);
+  const fredFetch = await fetchFredMany(FRED_IDS); // best-effort (막히면 엔진이 프록시 폴백)
+  const fred = await reconcileWithCache(env.SNAPSHOTS, "fred", FRED_IDS, fredFetch.data);
 
-  const { payload, rows, newState } = computeSignals(yahoo.data, fred.data, prevState, today);
+  const { payload, rows, newState } = computeSignals(px.data, fred.data, prevState, today);
   payload.updated_at = new Date().toISOString();
   payload.data_quality = {
-    yahoo_ok: Object.keys(yahoo.data).length,
-    yahoo_fail: Object.keys(yahoo.failures).length,
+    yahoo_ok: Object.keys(px.data).length,
+    yahoo_fail: px.missing.length,
     fred_ok: Object.keys(fred.data).length,
-    fred_fail: Object.keys(fred.failures).length,
+    fred_fail: fred.missing.length,
+    yahoo_from_cache: px.fromCache.length,
+    fred_from_cache: fred.fromCache.length,
   };
 
   await persistSignals(env.DB, rows);
@@ -72,7 +86,9 @@ export async function runDailySignals(
     date: today,
     n_rows: rows.length,
     ards_state: newState.committed,
-    yahoo_fail: Object.keys(yahoo.failures).length,
-    fred_fail: Object.keys(fred.failures).length,
+    yahoo_from_cache: px.fromCache.length,
+    yahoo_missing: px.missing.length,
+    fred_from_cache: fred.fromCache.length,
+    fred_missing: fred.missing.length,
   };
 }

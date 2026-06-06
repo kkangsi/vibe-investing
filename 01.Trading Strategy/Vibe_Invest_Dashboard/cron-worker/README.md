@@ -14,6 +14,12 @@ Pages Functions(API)는 읽기만 + CDN 엣지 캐시.
   - ※ Stooq 는 봇 차단(PoW)으로 Worker fetch 불가 → Yahoo 채택.
 - **FRED CSV** (`providers/fred.ts`) — 거시 시리즈. **best-effort**: 막히면 누락 → ARDS 엔진이 시장 프록시로 자동 폴백.
 
+## R2 캐시 폴백 (`cache.ts`) — 가용성
+"가져온 데이터를 스토리지에 넣고 꺼내 쓴다." fetch 성공분은 R2(`cache/<kind>/<id>.json`)에 갱신 저장,
+**실패분은 직전 저장본으로 폴백(stale)** → Yahoo/FRED 가 한 번 삐끗(429·일시장애)해도 마지막 정상 데이터로 계속 동작.
+둘 다 없으면 누락(엔진 결측 처리). `data_quality` 에 `*_from_cache` / 누락 수 기록.
+(Stooq 처럼 Worker 가 직접 못 받는 소스를 외부 로더로 같은 키에 적재해 두는 용도로도 확장 가능.)
+
 ## 파이프라인 (`daily.ts` → `signals.ts`)
 1. `loadHystState`(R2 `state/ards-regime.json`) — 직전 히스테리시스 상태
 2. Yahoo/FRED 수집(부분 성공 허용)

@@ -5,6 +5,7 @@ import { parseFredCsv } from "../../cron-worker/src/providers/fred";
 import { computeSignals } from "../../cron-worker/src/signals";
 import { persistSignals } from "../../cron-worker/src/daily";
 import { isUsMarketWindowUtc } from "../../cron-worker/src/market";
+import { reconcileWithCache, putSeries, getSeries, type R2Like } from "../../cron-worker/src/cache";
 import { freshState } from "../../shared/strategy/ards/hysteresis";
 import { AI_INFRA_TICKERS } from "../../shared/strategy/amqs";
 import type { DSeries } from "../../shared/strategy/ards/dseries";
@@ -91,6 +92,44 @@ describe("computeSignals — 엔진 배선 (골든 데이터 기반)", () => {
       expect(["BUY", "SELL", "HOLD"]).toContain(r.signal);
       expect(JSON.parse(r.detail_json).regime).toBe(res.payload.amqs.regime.label);
     }
+  });
+});
+
+function fakeR2(): R2Like & { _map: Map<string, string> } {
+  const m = new Map<string, string>();
+  return {
+    _map: m,
+    async get(k: string) {
+      return m.has(k) ? { text: async () => m.get(k) as string } : null;
+    },
+    async put(k: string, v: string) {
+      m.set(k, v);
+    },
+  };
+}
+
+describe("cache (R2) — 저장/조회 + 폴백", () => {
+  it("putSeries → getSeries 라운드트립", async () => {
+    const r2 = fakeR2();
+    await putSeries(r2, "prices", "^GSPC", { dates: ["2026-01-01"], values: [5000] });
+    expect(await getSeries(r2, "prices", "^GSPC")).toEqual({ dates: ["2026-01-01"], values: [5000] });
+    expect(await getSeries(r2, "prices", "MISSING")).toBeNull();
+  });
+
+  it("reconcile: 성공분은 캐시 저장+사용, 실패분은 캐시 폴백, 둘다없으면 missing", async () => {
+    const r2 = fakeR2();
+    // 사전: AAPL 직전 저장본 존재 (이번엔 fetch 실패한다고 가정)
+    await putSeries(r2, "prices", "AAPL", { dates: ["2026-01-01"], values: [190] });
+
+    const fetched = { NVDA: { dates: ["2026-06-06"], values: [1000] } }; // AAPL/TSLA 는 실패
+    const res = await reconcileWithCache(r2, "prices", ["NVDA", "AAPL", "TSLA"], fetched);
+
+    expect(res.data.NVDA.values).toEqual([1000]); // fetch 성공
+    expect(res.data.AAPL.values).toEqual([190]); // 캐시 폴백
+    expect(res.fromCache).toEqual(["AAPL"]);
+    expect(res.missing).toEqual(["TSLA"]); // fetch·캐시 모두 없음
+    // NVDA 는 캐시에 새로 저장됨
+    expect(await getSeries(r2, "prices", "NVDA")).toEqual({ dates: ["2026-06-06"], values: [1000] });
   });
 });
 

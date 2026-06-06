@@ -44,7 +44,14 @@ export interface DailyPayload {
   updated_at: string | null;
   ards: ReturnType<typeof runArds>;
   amqs: { regime: ReturnType<typeof runAmqs>["regime"]; metrics: ReturnType<typeof runAmqs>["metrics"] };
-  data_quality?: { yahoo_ok: number; yahoo_fail: number; fred_ok: number; fred_fail: number };
+  data_quality?: {
+    yahoo_ok: number;
+    yahoo_fail: number;
+    fred_ok: number;
+    fred_fail: number;
+    yahoo_from_cache: number;
+    fred_from_cache: number;
+  };
 }
 
 export interface ComputeResult {
