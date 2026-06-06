@@ -138,6 +138,19 @@ jobs:
           # Substitute Function App host into static page (only API base needed now)
           sed -i "s|func-aiinvestor-prod|${FUNCTIONAPPNAME}|g" static_web/dashboard.html
 
+      - name: Inject Vibe API base into static_web/main.js
+        run: |
+          # Vibe 프론트 (static_web/main.js) 의 __VIBE_FUNC_BASE__ placeholder 를
+          # 실제 Function App 의 /api/vibe URL 로 치환. 6 개 endpoint 호출 모두 영향.
+          if [ -f static_web/main.js ]; then
+            VIBE_BASE="https://${FUNCTIONAPPHOST}/api/vibe"
+            sed -i "s|__VIBE_FUNC_BASE__|${VIBE_BASE}|g" static_web/main.js
+            COUNT=$(grep -c "${VIBE_BASE}" static_web/main.js || echo 0)
+            echo "✓ Vibe API base → ${VIBE_BASE} (${COUNT} substitutions)"
+          else
+            echo "static_web/main.js missing — skipping Vibe substitution"
+          fi
+
       - name: Get Static Web App deployment token
         id: swa_token
         run: |
