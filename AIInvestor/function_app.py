@@ -3080,6 +3080,134 @@ async def vibe_daily_signals_timer(timer: func.TimerRequest) -> None:
         logger.exception("vibe_daily_signals_timer failed")
 
 
+# ── Vibe 읽기 API (CF Pages Functions 대체) ─────────────────────────────────
+# 모든 응답은 module-level 메모리 캐시 + Cache-Control 헤더.
+# 데이터 없으면 {data: null, stale: true} 로 프론트 스켈레톤 트리거.
+_VIBE_CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "3600",
+}
+
+
+def _vibe_json_response(payload: dict, *, max_age: int = 60) -> func.HttpResponse:
+    headers = {
+        **_VIBE_CORS,
+        "Cache-Control": f"public, max-age={max_age}, stale-while-revalidate=600",
+    }
+    return func.HttpResponse(
+        json.dumps(payload, ensure_ascii=False),
+        status_code=200, mimetype="application/json", headers=headers,
+    )
+
+
+def _vibe_options() -> func.HttpResponse:
+    return func.HttpResponse(status_code=204, headers=_VIBE_CORS)
+
+
+@app.route(route="vibe/dashboard", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_dashboard(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/dashboard — ARDS+AMQS combined signals/latest.json."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return _vibe_json_response({"data": None, "stale": True})
+    from services.vibe.api_cache import cached_blob_read
+    data = await cached_blob_read(_config.storage_account_name,
+                                  "signals/latest.json", ttl_s=60.0)
+    return _vibe_json_response({"data": data, "stale": data is None}, max_age=60)
+
+
+@app.route(route="vibe/market", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_market(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/market — 10분 시세 스냅샷."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return _vibe_json_response({"data": None, "stale": True})
+    from services.vibe.market_snapshot import get_cached_market
+    data = await get_cached_market(_config.storage_account_name)
+    return _vibe_json_response({"data": data, "stale": data is None}, max_age=120)
+
+
+@app.route(route="vibe/movers", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_movers(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/movers — 시장 스냅샷에서 movers 만 발췌."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return _vibe_json_response({"data": None, "stale": True})
+    from services.vibe.market_snapshot import get_cached_market
+    snap = await get_cached_market(_config.storage_account_name)
+    if not snap:
+        return _vibe_json_response({"data": None, "stale": True}, max_age=120)
+    payload = {"ts": snap.get("ts"),
+               "gainers": snap.get("movers", {}).get("gainers", []),
+               "losers": snap.get("movers", {}).get("losers", [])}
+    return _vibe_json_response({"data": payload, "stale": False}, max_age=300)
+
+
+@app.route(route="vibe/news", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_news(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/news?limit=10 — 뉴스 요약 (news_service ingest 가 채움)."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return _vibe_json_response({"data": None, "stale": True})
+    try:
+        limit = max(1, min(50, int(req.params.get("limit") or 10)))
+    except ValueError:
+        limit = 10
+    from services.vibe.api_cache import cached_blob_read
+    payload = await cached_blob_read(_config.storage_account_name,
+                                     "news/summary-latest.json", ttl_s=300.0)
+    if not payload:
+        return _vibe_json_response({"data": {"items": [], "market_summary": ""},
+                                     "stale": True}, max_age=300)
+    items = (payload.get("items") or [])[:limit]
+    return _vibe_json_response(
+        {"data": {"items": items,
+                  "market_summary": payload.get("market_summary", ""),
+                  "ts": payload.get("ts")},
+         "stale": False},
+        max_age=300,
+    )
+
+
+@app.route(route="vibe/rankings", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_rankings(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/rankings — 검색 Top5 (P4 cron 이 채움)."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return _vibe_json_response({"data": None, "stale": True})
+    from services.vibe.api_cache import cached_blob_read
+    data = await cached_blob_read(_config.storage_account_name,
+                                  "rankings/latest.json", ttl_s=300.0)
+    return _vibe_json_response({"data": data, "stale": data is None}, max_age=300)
+
+
+@app.route(route="vibe/health", auth_level=func.AuthLevel.ANONYMOUS,
+           methods=["GET", "OPTIONS"])
+async def vibe_health(req: func.HttpRequest) -> func.HttpResponse:
+    """GET /api/vibe/health — 스캐폴드 확인."""
+    if req.method == "OPTIONS":
+        return _vibe_options()
+    return _vibe_json_response({"ok": True, "service": "vibe", "stage": "P3"},
+                                max_age=30)
+
+
 # ---------------------------------------------------------------------
 # §DONATION — TON/TRON USDT donation intents + on-chain verification
 # ---------------------------------------------------------------------
