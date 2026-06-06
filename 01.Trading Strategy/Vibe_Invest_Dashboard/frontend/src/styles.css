@@ -115,8 +115,46 @@ body {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px;
+  padding: 8px;
   z-index: 30;
+  max-height: 360px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.ac-head {
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 2px 6px 6px;
+}
+.ac-item {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ac-item:hover {
+  background: var(--surface-2);
+}
+.ac-item .tk {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 13px;
+}
+.ac-item .ko {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ac-item .en {
+  color: var(--text-dim);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .hdr-ctrl {
   display: flex;

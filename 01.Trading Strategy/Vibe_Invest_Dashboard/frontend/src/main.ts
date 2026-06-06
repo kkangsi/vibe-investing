@@ -4,6 +4,7 @@
  * 등락색 한국식(적=상승, 청=하락). 빈 화면 금지(스켈레톤/stale).
  */
 import "./styles.css";
+import { searchSymbols, SYM_BY_TICKER } from "../../shared/symbols";
 
 // ---------------------------------------------------------------------------
 // 유틸
@@ -290,6 +291,37 @@ function setUpdated(iso: string | null) {
 // ---------------------------------------------------------------------------
 // 검색
 // ---------------------------------------------------------------------------
+/** 입력 중 자동완성 제안 (티커/한글명/영문명/약칭). 클라이언트 번들 사전, 서버 호출 없음. */
+function renderSuggestions(q: string) {
+  const box = $("search-result");
+  const hits = searchSymbols(q, 8);
+  if (hits.length === 0) {
+    box.hidden = true;
+    return;
+  }
+  box.hidden = false;
+  box.innerHTML =
+    `<div class="ac-head">제안</div>` +
+    hits
+      .map(
+        (s) => `<div class="ac-item" data-pick="${esc(s.t)}">
+          <span class="tk">${esc(s.t)}</span>
+          <span class="ko">${esc(s.ko)}</span>
+          <span class="en">${esc(s.en)}</span>
+        </div>`,
+      )
+      .join("");
+}
+
+/** 입력값 → 검색할 티커로 해석(정확 티커 우선, 아니면 첫 제안). */
+function resolveTicker(value: string): string | null {
+  const v = value.trim();
+  if (!v) return null;
+  if (SYM_BY_TICKER[v.toUpperCase()]) return v.toUpperCase();
+  const hits = searchSymbols(v, 1);
+  return hits.length ? hits[0].t : v.toUpperCase();
+}
+
 async function doSearch(q: string) {
   const box = $("search-result");
   box.hidden = false;
@@ -301,7 +333,9 @@ async function doSearch(q: string) {
     const sigs = data.signals?.length
       ? data.signals.map((s) => `<div class="row-sig"><span>${esc(s.strategy)} <span class="sub">${esc(s.date)}</span></span>${badge(s.signal, "")}</div>`).join("")
       : '<div class="sub" style="color:var(--text-dim)">해당 종목 시그널 없음 (유니버스 외)</div>';
-    box.innerHTML = `<div style="display:flex;justify-content:space-between"><b>${esc(data.ticker)}</b><span class="chip" id="sc-close">닫기 ✕</span></div>${sigs}
+    const sym = SYM_BY_TICKER[data.ticker];
+    const nm = sym ? `<span class="sub">${esc(sym.ko)} · ${esc(sym.en)}</span>` : "";
+    box.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:baseline"><span><b>${esc(data.ticker)}</b> ${nm}</span><span class="chip" id="sc-close">닫기 ✕</span></div>${sigs}
       <div class="sub" style="color:var(--text-dim);margin-top:6px">⚠ 투자 조언이 아닙니다.</div>`;
     $("sc-close").onclick = () => (box.hidden = true);
   } catch {
@@ -341,17 +375,29 @@ function boot() {
     $("theme").textContent = next === "light" ? "☀" : "☾";
   };
   $("lang").onclick = () => { lang = lang === "ko" ? "en" : "ko"; applyLang(); };
-  // 검색
+  // 검색 — 입력 중 자동완성(티커/한글/영문/약칭), Enter/선택 시 조회
   const input = $("search") as HTMLInputElement;
-  input.addEventListener("keydown", (e) => {
-    if ((e as KeyboardEvent).key === "Enter" && input.value.trim()) doSearch(input.value.trim());
+  input.addEventListener("input", () => {
+    if (input.value.trim()) renderSuggestions(input.value);
+    else $("search-result").hidden = true;
   });
-  // 위임: 티커 클릭 → 검색
+  input.addEventListener("keydown", (e) => {
+    if ((e as KeyboardEvent).key === "Enter") {
+      const tk = resolveTicker(input.value);
+      if (tk) { input.value = tk; doSearch(tk); }
+    } else if ((e as KeyboardEvent).key === "Escape") {
+      $("search-result").hidden = true;
+    }
+  });
+  // 위임: 자동완성 선택 / 티커 클릭 → 검색, 카테고리 칩, 외부 클릭 시 닫기
   document.addEventListener("click", (e) => {
+    const pick = (e.target as HTMLElement).closest<HTMLElement>("[data-pick]");
+    if (pick?.dataset.pick) { input.value = pick.dataset.pick; doSearch(pick.dataset.pick); return; }
     const t = (e.target as HTMLElement).closest<HTMLElement>("[data-tk]");
-    if (t?.dataset.tk) { input.value = t.dataset.tk; doSearch(t.dataset.tk); }
+    if (t?.dataset.tk) { input.value = t.dataset.tk; doSearch(t.dataset.tk); return; }
     const chip = (e.target as HTMLElement).closest<HTMLElement>("[data-cat]");
-    if (chip?.dataset.cat) { newsFilter = chip.dataset.cat; renderNews(null, allNews); }
+    if (chip?.dataset.cat) { newsFilter = chip.dataset.cat; renderNews(null, allNews); return; }
+    if (!(e.target as HTMLElement).closest(".hdr-search")) $("search-result").hidden = true;
   });
   // 상승색 안내 1회
   if (!localStorage.getItem("up-tip")) {
