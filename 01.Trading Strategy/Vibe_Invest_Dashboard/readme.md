@@ -39,10 +39,10 @@ docs/            분석·프롬프트 문서
 | 4 | Pages + Pages Functions + Cron Worker 재구성 | ✅ |
 | 5 | 시그널 TS 포팅 (ARDS·AMQS) | ✅ Python 골든 일치 |
 | 6 | Cron Worker | ✅ 일1회 시그널 + 10분 시세(Yahoo 키리스) |
-| 7 | API (dashboard·news·movers·rankings·search·track) | ✅ 로컬 D1/R2 검증 |
-| 8 | 프론트 (PART B, 전략 카드 2장) | ⬜ |
-| 9 | AIInvestor 뉴스 함수 연결 | ⬜ |
-| 10 | 배포 + Python 병행 검증 | ⬜ |
+| 7 | API (dashboard·market·news·movers·rankings·search·track) | ✅ 로컬 D1/R2 검증 |
+| 8 | 프론트 (PART B, 전략 카드 2장) | ✅ preview 검증(데스크톱+모바일) |
+| 9 | AIInvestor 뉴스 함수 연결 | ⬜ (VS Code, `docs/PROMPT-azure-news.md`) |
+| 10 | 배포 + Python 병행 검증 | ⬜ (Cloudflare 계정) |
 
 ## 로컬 개발
 ```bash
