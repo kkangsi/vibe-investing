@@ -3036,6 +3036,51 @@ async def news_collect_timer(timer: func.TimerRequest) -> None:
 
 
 # ---------------------------------------------------------------------
+# §VIBE — Cloudflare 마이그레이션 P2: 10분 시세 + 일1회 시그널
+# ---------------------------------------------------------------------
+# 10분 시세 (Yahoo, 키리스). 미 장 시간 외엔 함수 내부에서 skip.
+@app.timer_trigger(
+    schedule="0 */10 * * * *",
+    arg_name="timer",
+    run_on_startup=False,
+    use_monitor=True,
+)
+async def vibe_market_snapshot_timer(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return
+    from services.vibe.market_snapshot import refresh_market_snapshot
+    try:
+        result = await refresh_market_snapshot(_config.storage_account_name)
+        logger.info("vibe_market_snapshot %s", result)
+    except Exception:
+        logger.exception("vibe_market_snapshot_timer failed")
+
+
+# 일1회 시그널 산출 — UTC 21:30 (평일 미장 마감 직후 = KST 06:30 토)
+# ARDS-X + AMQS 를 순차 실행, signals/latest.json 으로 결합.
+@app.timer_trigger(
+    schedule="0 30 21 * * 1-5",
+    arg_name="timer",
+    run_on_startup=False,
+    use_monitor=True,
+)
+async def vibe_daily_signals_timer(timer: func.TimerRequest) -> None:
+    await _bootstrap()
+    if not _config or not _config.storage_account_name:
+        return
+    from services.vibe.runner import build_combined_signals
+    try:
+        out = await build_combined_signals(_config.storage_account_name)
+        logger.info("vibe_daily_signals ards=%s amqs=%s errors=%d",
+                    "ok" if out.get("ards") else "fail",
+                    "ok" if out.get("amqs") else "fail",
+                    len(out.get("errors") or []))
+    except Exception:
+        logger.exception("vibe_daily_signals_timer failed")
+
+
+# ---------------------------------------------------------------------
 # §DONATION — TON/TRON USDT donation intents + on-chain verification
 # ---------------------------------------------------------------------
 
