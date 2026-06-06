@@ -3920,7 +3920,9 @@ def _check_dashboard_key(req: func.HttpRequest) -> bool:
 _CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Telegram-Init-Data",
+    "Access-Control-Allow-Headers": (
+        "Content-Type, X-Telegram-Init-Data, X-Guest-Id, X-Google-Id-Token"
+    ),
     "Access-Control-Max-Age": "3600",
 }
 
