@@ -5,6 +5,7 @@
  */
 import { fetchQuote, fetchScreener, type Quote, type ScreenerRow } from "./providers/yahoo";
 import { pyRound } from "../../shared/strategy/series";
+import { SYM_BY_TICKER } from "../../shared/symbols";
 import type { D1Like } from "../../shared/ingest";
 
 export interface MarketEnv {
@@ -33,6 +34,9 @@ const SECTOR_NAMES: Record<string, string> = {
 };
 const SECTOR_SYMBOLS = Object.keys(SECTOR_NAMES);
 
+// 한국인 선호 US ETF (표시용, #3). 10분 subrequest 한도 고려해 핵심만.
+const ETF_DISPLAY = ["QQQ", "TQQQ", "SOXL", "SCHD", "JEPI", "JEPQ", "SMH", "SOXX", "NVDL", "TSLL"];
+
 const SNAPSHOT_KEY = "market-latest.json";
 
 export interface Tile {
@@ -54,6 +58,7 @@ export interface MarketSnapshot {
   indices: Tile[];
   vix: number | null;
   sectors: Tile[];
+  etfs: Tile[];
   movers: { gainers: Mover[]; losers: Mover[] };
   breadth: { sectors_up: number; sectors_down: number };
   risk_score: number; // 0~100 (heuristic)
@@ -96,6 +101,7 @@ export function buildMarketSnapshot(
 
   const indices = INDEX_SYMBOLS.map((s) => tile(s, INDEX_NAMES[s])).filter((t): t is Tile => t !== null);
   const sectors = SECTOR_SYMBOLS.map((s) => tile(s, SECTOR_NAMES[s])).filter((t): t is Tile => t !== null);
+  const etfs = ETF_DISPLAY.map((s) => tile(s, SYM_BY_TICKER[s]?.ko ?? s)).filter((t): t is Tile => t !== null);
   const vix = quotes[VIX_SYMBOL] ? pyRound(quotes[VIX_SYMBOL].price, 1) : null;
 
   const sectorsUp = sectors.filter((s) => s.chg_pct > 0).length;
@@ -116,6 +122,7 @@ export function buildMarketSnapshot(
     indices,
     vix,
     sectors,
+    etfs,
     movers: { gainers: gMovers, losers: lMovers },
     breadth: { sectors_up: sectorsUp, sectors_down: sectorsDown },
     risk_score: score,
@@ -158,7 +165,7 @@ export async function runMarketSnapshot(
 
   const ts = now.toISOString();
   const quotes: Record<string, Quote> = {};
-  for (const sym of [...INDEX_SYMBOLS, VIX_SYMBOL, ...SECTOR_SYMBOLS]) {
+  for (const sym of [...INDEX_SYMBOLS, VIX_SYMBOL, ...SECTOR_SYMBOLS, ...ETF_DISPLAY]) {
     try {
       quotes[sym] = await fetchQuote(sym);
     } catch {

@@ -32,8 +32,8 @@ async function getJSON<T>(path: string, init?: RequestInit): Promise<Envelope<T>
 // i18n (섹션 제목 위주, 뉴스는 KO 고정)
 // ---------------------------------------------------------------------------
 const I18N: Record<string, Record<string, string>> = {
-  ko: { market: "시장 상황", watch: "주요 종목 — 빅테크 · AI · AI 인프라", gainers: "나스닥 급등 TOP 10", losers: "나스닥 급락 TOP 10", news: "주요 경제 뉴스 요약", rankings: "인기 검색 TOP 5", stats: "사이트 통계" },
-  en: { market: "Market", watch: "Watchlist — Big Tech · AI · AI Infra", gainers: "Top Gainers", losers: "Top Losers", news: "Market News", rankings: "Top Searches", stats: "Site Stats" },
+  ko: { market: "시장 상황", etf: "인기 ETF", watch: "주요 종목 — 빅테크 · AI · AI 인프라", gainers: "나스닥 급등 TOP 10", losers: "나스닥 급락 TOP 10", news: "주요 경제 뉴스 요약", rankings: "인기 검색 TOP 5", stats: "사이트 통계" },
+  en: { market: "Market", etf: "Popular ETFs", watch: "Watchlist — Big Tech · AI · AI Infra", gainers: "Top Gainers", losers: "Top Losers", news: "Market News", rankings: "Top Searches", stats: "Site Stats" },
 };
 let lang: "ko" | "en" = "ko";
 function applyLang() {
@@ -82,7 +82,7 @@ function gaugeSvg(score: number, label: string): string {
 // ---------------------------------------------------------------------------
 interface Tile { ticker: string; name: string; price: number; chg_pct: number; }
 interface MarketData {
-  ts: string; indices: Tile[]; vix: number | null; sectors: Tile[];
+  ts: string; indices: Tile[]; vix: number | null; sectors: Tile[]; etfs?: Tile[];
   movers: { gainers: Mover[]; losers: Mover[] }; risk_score: number; risk_label: string;
 }
 interface Mover { rank: number; ticker: string; name: string; price: number; chg_pct: number; volume: number; }
@@ -112,6 +112,19 @@ function renderMarket(m: MarketData | null) {
     idxRows.push(`<div class="idx"><span><b>VIX</b> <span class="nm">변동성</span></span>
       <span data-num>${fmtNum(m.vix, 1)}</span></div>`);
   $("indices").innerHTML = idxRows.join("");
+
+  const etfs = m.etfs ?? [];
+  $("etfs").innerHTML = etfs.length
+    ? etfs
+        .map(
+          (e) => `<div class="etf-tile" data-tk="${esc(e.ticker)}">
+            <span class="tk">${esc(e.ticker)}</span>
+            <span class="ko">${esc(e.name)}</span>
+            <span class="pc ${pctCls(e.chg_pct)}" data-num>${fmtPct(e.chg_pct)}</span>
+          </div>`,
+        )
+        .join("")
+    : '<div class="sub" style="color:var(--text-dim);padding:4px 0">—</div>';
 
   renderMovers("gainers", m.movers.gainers);
   renderMovers("losers", m.movers.losers);
