@@ -179,7 +179,7 @@ Dashboard (REST API + static frontend)
 |-------|------------|
 | Runtime | Node.js ≥18, TypeScript |
 | Web framework | Express.js |
-| Storage | **SQLite** (WAL, ACID) / JSON (legacy) — configurable |
+| Storage | **SQLite** (WAL, ACID) / JSON (single-device only) — configurable |
 | Git integration | `simple-git`, `@octokit/rest` (GitHub) |
 | Scheduler | `node-cron` |
 | LLM | OpenAI SDK (ChatGPT, DeepSeek, Claude, Ollama — OpenAI-compatible API) |

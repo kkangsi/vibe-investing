@@ -275,7 +275,7 @@ Dashboard (REST API + 정적 프론트)
 |---|------|
 | 런타임 | Node.js ≥18, TypeScript |
 | 웹 프레임워크 | Express.js |
-| 저장소 | **SQLite** (WAL, ACID) / JSON (레거시) — 설정으로 전환 |
+| 저장소 | **SQLite** (WAL, ACID) / JSON (1인 싱글 디바이스 전용) — 설정으로 전환 |
 | Git 연동 | `simple-git`, `@octokit/rest` (GitHub) |
 | 스케줄러 | `node-cron` |
 | LLM | OpenAI SDK (ChatGPT, DeepSeek, Claude, Ollama — OpenAI 호환 API) |

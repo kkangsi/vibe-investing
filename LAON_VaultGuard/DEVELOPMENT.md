@@ -219,10 +219,18 @@ interface AggregatedResult {
 
 ### Phase 6: v0.6 — 에코시스템 확장 (계획)
 
-- [ ] VS Code 확장 플러그인
-- [ ] 오탐 피드백 루프
-- [ ] fine-tuned 모델 평가 파이프라인
-- [ ] pre-commit hook 통합 코드
+> 우선순위 순서대로 진행. JSON 스토리지는 1인 싱글 디바이스 전용으로 한정.
+
+| # | 항목 | 설명 | 예상 소요 |
+|---|------|------|-----------|
+| 1 | **pre-commit hook** | `npx laon-vaultguard hook install` → `.git/hooks/pre-commit`에 설치. 커밋 전 변경 파일만 스캔 | 반나절 |
+| 2 | **오탐 피드백 루프** | `PUT /api/findings/:id/feedback` (accurate/false_positive). few-shot LLM 프롬프트 개선 | 1~2일 |
+| 3 | **fine-tuned 모델 평가** | SecretBench 데이터셋으로 llama3.1/deepseek-r1 파인튜닝 파이프라인 | 2~3일 |
+| 4 | **JSON 파일 락** | `proper-lockfile`로 `findings.json` TOCTOU 방지 (JSON 사용자 보호) | 반나절 |
+| 5 | **대시보드 인증** | simple token/password 인증. `HOST=0.0.0.0` 환경 기본 보호 | 하루 |
+| 6 | **LLM 재시도 로직** | exponential backoff + jitter. 429 rate limit 자동 재시도 | 반나절 |
+| 7 | **결과 PDF 내보내기** | 스캔 결과 → PDF 리포트. 이메일 첨부용 | 하루 |
+| 8 | 멀티 Ollama 아키텍처 | v0.7 이관 — 2개 Ollama 모델 동시 교차검증 | 차기 |
 
 ## 5. 테스트 전략
 
