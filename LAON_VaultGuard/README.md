@@ -40,6 +40,30 @@ npm run build
 npm start              # 기본 포트 3101, http://localhost:3101/dashboard
 ```
 
+### Ollama 오프라인 모드 — 기업 보안을 위한 구성
+
+기업 환경이나 기밀 레포지토리에서는 **소스코드를 외부 LLM API로 전송하는 것 자체가 보안 위험**입니다. LAON VaultGuard는 [Ollama](https://ollama.com)를 통해 **완전히 오프라인에서도 동작**합니다.
+
+```bash
+# 1. Ollama 설치 + 모델 다운로드
+brew install ollama && ollama pull llama3.1
+
+# 2. .env 설정 (다른 LLM 키 불필요)
+LLM_PROVIDERS=ollama
+LLM_MODE=sequential
+
+# 3. 실행 — 모든 분석이 로컬에서만 처리됨
+npm run dev
+```
+
+**Ollama 오프라인 모드의 장점:**
+- 🔒 **소스코드 외부 유출 Zero** — 모든 분석이 로컬 머신 내에서 완료
+- 💰 **무료** — API 키 불필요, 토큰 비용 $0
+- 🏢 **기업 보안 정책 준수** — 방화벽·에어갭 환경에서도 동작
+- 🔄 **하이브리드 구성 가능** — `LLM_PROVIDERS=ollama,deepseek` 설정 시 평소엔 Ollama, 필요시 클라우드 LLM fallback
+
+→ 상세: [docs/Ollama.md](docs/Ollama.md)
+
 ## 아키텍처 개요
 
 ```

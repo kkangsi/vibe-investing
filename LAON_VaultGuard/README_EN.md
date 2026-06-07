@@ -40,6 +40,30 @@ npm run build
 npm start              # Default port 3101, http://localhost:3101/dashboard
 ```
 
+### Ollama Offline Mode — Built for Enterprise Security
+
+In enterprise environments or when dealing with confidential repositories, **sending source code to external LLM APIs is itself a security risk**. LAON VaultGuard works **fully offline** via [Ollama](https://ollama.com).
+
+```bash
+# 1. Install Ollama + download a model
+brew install ollama && ollama pull llama3.1
+
+# 2. Configure .env (no LLM API keys needed)
+LLM_PROVIDERS=ollama
+LLM_MODE=sequential
+
+# 3. Run — all analysis stays on your machine
+npm run dev
+```
+
+**Why Ollama offline mode:**
+- 🔒 **Zero source code exfiltration** — all analysis runs locally
+- 💰 **Free** — no API keys, zero token cost
+- 🏢 **Enterprise compliance** — works in firewalled and air-gapped environments
+- 🔄 **Hybrid capable** — `LLM_PROVIDERS=ollama,deepseek` uses local by default, cloud as fallback
+
+→ Details: [docs/Ollama.md](docs/Ollama.md)
+
 ## Architecture Overview
 
 ```
