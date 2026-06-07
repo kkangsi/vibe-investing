@@ -21,7 +21,8 @@ Regex handles speed. LLMs handle context. **Use both, for real stability.**
 ## Features
 
 - **Periodic repo monitoring** — cron-based scheduler for GitHub, GitLab, and local repos
-- **Multi-LLM detection** — OpenAI (ChatGPT), DeepSeek, MiniMax, Mimo with concurrent cross-validation
+- **Multi-LLM detection** — OpenAI (ChatGPT), DeepSeek, MiniMax, Mimo, **Ollama (local)** with concurrent cross-validation
+- **Offline mode** — fully local secret detection via Ollama, no internet or API key required
 - **Two-stage detection** — Stage 1: `git grep` keyword filter → Stage 2: LLM contextual analysis to minimize false positives
 - **Web dashboard** — local web UI with SSE real-time updates, accessible to the team on the same network
 - **Multi-channel alerts** — Slack, Telegram, Email, and Dashboard notifications
@@ -163,17 +164,18 @@ Cloud targets: AWS, Azure, GCP, **KT Cloud**, **Naver Cloud Platform (NCP)**
 ## Roadmap
 
 - [x] Architecture design
-- [x] File-based JSON storage
-- [x] Git monitor + candidate filter
-- [x] LLM harness (multi-LLM parallel/sequential/majority)
-- [x] Web dashboard (REST API + UI + SSE)
+- [x] File-based JSON storage (no SQLite needed — local JSON/MD is sufficient)
+- [x] Git monitor + candidate filter (git grep first-pass)
+- [x] Multi-LLM harness (OpenAI, DeepSeek, MiniMax, Mimo, **Ollama**)
+- [x] Ollama local mode — fully offline secret detection, no internet required
+- [x] 2-stage detection (git grep → LLM contextual analysis)
+- [x] Web dashboard (REST API + SSE real-time)
 - [x] CLI mode (`npx laon-vaultguard scan`)
-- [x] Telegram alerts
-- [x] Telegram alerts
+- [x] Telegram bot alerts
 - [x] Slack alerts (Block Kit)
-- [ ] Email reports
-- [ ] Cross-platform packaging (Linux, Windows)
-- [ ] GitHub App / GitLab App integration (OAuth)
+- [x] Email reports (nodemailer · daily/weekly HTML)
+- [x] GitHub remote repos + OAuth
+- [x] Cross-platform (macOS / Linux / Windows WSL)
 - [ ] VSCode extension
 
 ## License

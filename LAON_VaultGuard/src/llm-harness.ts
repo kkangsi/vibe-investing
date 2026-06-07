@@ -311,6 +311,7 @@ export function estimateCost(provider: LlmProvider, tokensUsed: number): number 
     deepseek: 0.14,  // deepseek-chat
     minimax: 1.00,   // abab6.5s
     mimo: 0.50,
+    ollama: 0,       // local — free
   };
   return (tokensUsed / 1_000_000) * (rates[provider] || 1);
 }

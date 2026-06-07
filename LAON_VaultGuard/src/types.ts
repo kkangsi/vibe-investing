@@ -7,7 +7,7 @@ export type Provider = 'AWS' | 'Azure' | 'GCP' | 'KTCloud' | 'NCP' | 'Generic';
 export type ScanStatus = 'running' | 'completed' | 'failed';
 export type TriggerMode = 'scheduled' | 'manual';
 export type LlmMode = 'parallel' | 'sequential' | 'majority';
-export type LlmProvider = 'openai' | 'deepseek' | 'minimax' | 'mimo';
+export type LlmProvider = 'openai' | 'deepseek' | 'minimax' | 'mimo' | 'ollama';
 
 // ── Repo ──
 

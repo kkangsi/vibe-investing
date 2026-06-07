@@ -30,6 +30,11 @@ export const config = {
       baseUrl: process.env.MIMO_BASE_URL || '',
       model: process.env.MIMO_MODEL || '',
     },
+    ollama: {
+      apiKey: 'ollama',  // Ollama doesn't require auth locally
+      baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
+      model: process.env.OLLAMA_MODEL || 'llama3.1',
+    },
   },
 
   github: {

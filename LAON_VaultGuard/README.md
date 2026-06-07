@@ -12,7 +12,7 @@
 
 하지만 **단일 LLM에만 의존하는 것은 또 다른 단일 장애점**입니다. 모델마다 판단 편향이 있고, API 장애나 할당량 초과 시 탐지 공백이 발생합니다. LAON VaultGuard는 **여러 LLM을 동시에 교차 검증**하는 구조로 설계되었습니다:
 
-- **각 LLM은 서로 다른 보안 페르소나를 형성** — Claude(규율 기반), DeepSeek(고성능·저비용), GPT(체계적), MiniMax(경량·빠름)
+- **각 LLM은 서로 다른 보안 페르소나를 형성** — Claude(규율 기반), DeepSeek(고성능·저비용), GPT(체계적), MiniMax(경량·빠름), **Ollama(로컬·오프라인)**
 - **다수결 모드**로 오탐을 줄이고, **순차 fallback**으로 단일 LLM 장애에도 스캔이 중단되지 않음
 - [Gitleaks](https://github.com/gitleaks/gitleaks) (pre-commit) → **LAON VaultGuard** (정기 감사) → [TruffleHog](https://github.com/trufflesecurity/trufflehog) (CI) → GitHub Secret Scanning (push 후) 4단계 방어선의 핵심 축
 
@@ -21,7 +21,8 @@
 ## 핵심 기능
 
 - **정기 레포 감시** — GitHub, GitLab, 로컬 레포를 cron 기반 스케줄러로 주기적 스캔
-- **멀티 LLM 탐지** — OpenAI(ChatGPT), DeepSeek, MiniMax, Mimo 등 여러 LLM을 동시·교차 검증
+- **멀티 LLM 탐지** — OpenAI(ChatGPT), DeepSeek, MiniMax, Mimo, **Ollama(로컬)** 등 여러 LLM을 동시·교차 검증
+- **오프라인 모드** — Ollama 연동 시 인터넷 없이 완전 로컬에서 시크릿 탐지 (API 키 불필요)
 - **2단계 탐지** — 1차 `git grep` 키워드 필터 → 2차 LLM 문맥 분석으로 거짓양성 최소화
 - **웹 대시보드** — 같은 네트워크의 팀이 함께 모니터링 가능한 로컬 웹 UI
 - **멀티 알람** — Slack, Telegram, 이메일, 대시보드로 탐지 결과 실시간 통보
@@ -151,19 +152,18 @@ LAON_VaultGuard/
 ## 로드맵
 
 - [x] 기본 아키텍처 설계
-- [x] DB 스키마 설계
-- [ ] TypeScript 프로젝트 세팅 (tsconfig, esbuild)
-- [ ] Git monitor + diff extractor 구현
-- [ ] Candidate filter (git grep 연동)
-- [ ] LLM harness (멀티 LLM 병렬 분석)
-- [ ] Result aggregation (다수결 엔진)
-- [ ] SQLite 저장 · 이력 조회
-- [ ] 웹 대시보드 (REST API + UI)
+- [x] 파일 기반 JSON 저장소 (SQLite 불필요 — 로컬에선 JSON/MD 충분)
+- [x] Git monitor + candidate filter (git grep 1차 필터)
+- [x] 멀티 LLM harness (OpenAI, DeepSeek, MiniMax, Mimo, **Ollama**)
+- [x] Ollama 로컬 모드 — 인터넷 없이 완전 오프라인 시크릿 탐지
+- [x] 2단계 탐지 (git grep → LLM 문맥 분석)
+- [x] 웹 대시보드 (REST API + SSE 실시간)
+- [x] CLI 모드 (`npx laon-vaultguard scan`)
 - [x] Telegram 봇 알람
 - [x] Slack 알람 (Block Kit)
-- [x] 이메일 리포트 (nodemailer)
+- [x] 이메일 리포트 (nodemailer · 일간/주간 HTML)
 - [x] GitHub 원격 레포 + OAuth
-- [ ] 크로스플랫폼 패키징 (Linux, Windows)
+- [x] 크로스플랫폼 (macOS / Linux / Windows WSL)
 - [ ] VSCode 확장
 
 ## 라이선스
