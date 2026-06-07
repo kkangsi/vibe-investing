@@ -4,3 +4,4 @@ data/
 .env
 *.db
 tests/test-repo/.git/
+tests/test-repo/.git/
