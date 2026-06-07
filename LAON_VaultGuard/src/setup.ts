@@ -148,11 +148,60 @@ const LLM_OPTIONS: LlmOption[] = [
   },
 ];
 
-const OLLAMA_RECOMMENDED_MODELS = [
-  { name: 'llama3.1:8b', desc: 'general purpose, fast (~4.7GB)', why: 'lightweight, good all-around' },
-  { name: 'deepseek-r1:8b', desc: 'reasoning, security audit (~4.9GB)', why: 'best for code analysis, secret detection' },
-  { name: 'mistral:7b', desc: 'lightweight, fast (~4.1GB)', why: 'smallest usable model, lowest RAM' },
-  { name: 'codestral:22b', desc: 'code specialist (~13GB)', why: 'larger, needs 16GB+ RAM' },
+interface OllamaModel {
+  name: string;
+  sizeGB: number;
+  ramNeeded: string;
+  accuracy: string;
+  speed: string;
+  bestFor: string;
+  requiresAppleSilicon?: boolean;
+  isFineTuned?: boolean;
+}
+
+const OLLAMA_MODELS: OllamaModel[] = [
+  {
+    name: 'deepseek-r1:8b',
+    sizeGB: 4.9,
+    ramNeeded: '8GB+',
+    accuracy: '★★★☆',
+    speed: '★★☆☆',
+    bestFor: '시크릿 탐지 최적 — 추론 특화, false positive 제어 우수 (SecretBench 검증)',
+  },
+  {
+    name: 'llama3.1:8b',
+    sizeGB: 4.7,
+    ramNeeded: '8GB+',
+    accuracy: '★★☆☆',
+    speed: '★★★☆',
+    bestFor: '범용 스캔 — 무난한 성능, Ollama 공식 기본 모델',
+  },
+  {
+    name: 'mistral:7b',
+    sizeGB: 4.1,
+    ramNeeded: '8GB',
+    accuracy: '★☆☆☆',
+    speed: '★★★★',
+    bestFor: '저사양 기기 — 구형 Mac, 8GB RAM, 빠른 응답 필요 시',
+  },
+  {
+    name: 'codestral:22b',
+    sizeGB: 13,
+    ramNeeded: '16GB+',
+    accuracy: '★★★★',
+    speed: '★☆☆☆',
+    bestFor: '최고 정확도 — 대용량 RAM 확보 시 코드 분석 정밀도 최상',
+  },
+  {
+    name: 'vitorallo/securereview-7b-mlx-4bit',
+    sizeGB: 4.2,
+    ramNeeded: '8GB+',
+    accuracy: '★★★★',
+    speed: '★★☆☆',
+    bestFor: '보안 리뷰 파인튜닝 — 취약점·시크릿 탐지에 특화 학습됨',
+    requiresAppleSilicon: true,
+    isFineTuned: true,
+  },
 ];
 
 // ── main ──
@@ -215,43 +264,135 @@ async function main() {
   if (wantOllama) {
     console.log('\n─── Ollama Setup ───');
     if (checkOllama()) {
-      console.log('  Ollama detected.\n');
+      const isAppleSilicon = platform() === 'darwin' && (() => {
+        try { return execSync('sysctl -n machdep.cpu.brand_string', { encoding: 'utf-8' }).includes('Apple'); } catch { return false; }
+      })();
+      console.log('  ✅ Ollama detected.\n');
       const existing = listOllamaModels();
       if (existing.length > 0) {
-        console.log('  Installed models:');
+        console.log('  Currently installed models:');
         for (const m of existing) console.log(`    - ${m}`);
+        console.log();
       } else {
-        console.log('  No models pulled yet.');
+        console.log('  No models installed yet. Choose from below:\n');
       }
 
-      console.log('\n  Recommended models:');
-      for (const m of OLLAMA_RECOMMENDED_MODELS) {
-        console.log(`    ${m.name.padEnd(20)} ${m.desc.padEnd(30)} ${m.why}`);
+      // ── model comparison table ──
+      console.log('  Available models (select 1-2 for best results):\n');
+      console.log('    #  Model                        Size    RAM     Acc.   Speed  Notes');
+      console.log('    ── ──────────────────────────── ──────  ──────  ────   ─────  ──────────────────────────────────');
+      for (let i = 0; i < OLLAMA_MODELS.length; i++) {
+        const m = OLLAMA_MODELS[i];
+        const num = `[${i + 1}]`;
+        let notes = '';
+        if (i === 0) notes = '← 시크릿 탐지 권장';
+        else if (i === 1) notes = '← Ollama 기본';
+        else if (i === 4) notes = '← 보안 파인튜닝 (Apple Silicon 전용)';
+        // skip models not available on this platform
+        if (m.requiresAppleSilicon && !isAppleSilicon) continue;
+        const notePad = notes ? ` ${notes}` : '';
+        console.log(`    ${num.padEnd(3)} ${m.name.padEnd(28)} ${String(m.sizeGB).padEnd(6)} ${m.ramNeeded.padEnd(6)} ${m.accuracy.padEnd(4)}  ${m.speed.padEnd(5)}${notePad}`);
       }
+      if (!isAppleSilicon) {
+        console.log('    ─   (securereview-7b skipped — Apple Silicon only)');
+      }
+      console.log('    [0]  skip — I\'ll pull models manually later');
+      console.log();
 
-      const pullChoice = await question(rl, '\nPull a model? (name or Enter to skip): ');
-      if (pullChoice) {
-        console.log(`\n  Pulling ${pullChoice}... (this may take a few minutes)\n`);
-        try {
-          execSync(`ollama pull ${pullChoice}`, { stdio: 'inherit' });
-          console.log(`\n  -> ${pullChoice} ready`);
-        } catch {
-          console.log(`\n  -> pull failed. Run manually: ollama pull ${pullChoice}`);
+      // ── guided recommendation ──
+      console.log('  ── 최적 조합 가이드 ──');
+      console.log('  🥇 단일 모델:  [1] deepseek-r1:8b — 비용 0, 시크릿 탐지 False Positive 제어 최고');
+      if (isAppleSilicon) {
+        console.log('  🥈 보안 특화:   [5] securereview-7b — 취약점 리뷰 파인튜닝, SecretBench 유사 데이터 학습');
+        console.log('  🔥 최고 조합:  [1+5] deepseek-r1 + securereview — 추론 + 보안 도메인 교차검증');
+      } else {
+        console.log('  🔥 최고 조합:  [1+3] deepseek-r1 + mistral — 추론 + 경량 모델 교차검증');
+      }
+      console.log();
+
+      // ── select models to pull (multi) ──
+      const pullChoice = await question(rl, 'Models to pull (comma-separated, e.g. 1,5) [1]: ');
+      if (pullChoice === '0') {
+        console.log('  -> model pull skipped. Run "ollama pull <name>" later.\n');
+      } else {
+        const nums = (pullChoice || '1').split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0 && n <= OLLAMA_MODELS.length);
+        const selectedModels = nums.map(n => OLLAMA_MODELS[n - 1]).filter(Boolean);
+
+        for (const model of selectedModels) {
+          if (model.requiresAppleSilicon && !isAppleSilicon) {
+            console.log(`  ⚠ ${model.name} requires Apple Silicon — skipping`);
+            continue;
+          }
+          if (existing.includes(model.name)) {
+            console.log(`  ✅ ${model.name} already installed`);
+            continue;
+          }
+          console.log(`\n  ⬇ Pulling ${model.name}... (${model.sizeGB}GB, ${model.isFineTuned ? 'custom model' : '~2-10 min'})\n`);
+          try {
+            execSync(`ollama pull ${model.name}`, { stdio: 'inherit' });
+            console.log(`\n  ✅ ${model.name} pulled successfully`);
+          } catch {
+            console.log(`\n  ❌ pull failed. Run manually: ollama pull ${model.name}`);
+          }
         }
-      } else {
-        console.log('  -> model pull skipped (run ollama pull <name> later)');
+        console.log();
+      }
+
+      // ── multi-Ollama cross-validation guidance ──
+      const pulledNow = ((pullChoice || '1').split(',').map(s => parseInt(s.trim(), 10))
+        .filter(n => !isNaN(n)).map(n => OLLAMA_MODELS[n - 1]).filter(Boolean)
+        .map(m => m.name));
+      const allAvailable = [...new Set([...existing, ...pulledNow])];
+
+      if (allAvailable.length >= 2) {
+        console.log('  🔥 Multi-Ollama 권장 구성 (교차검증):');
+        console.log(`    현재 ${allAvailable.length}개 모델 사용 가능.\n`);
+        console.log('    VaultGuard는 여러 LLM의 판단을 교차검증하여 오탐을 줄입니다.');
+        console.log('    Ollama 모델 2개를 동시에 사용하면 API 비용 없이도 다수결 모드 사용 가능.\n');
+        const primary = allAvailable.find(m => m.includes('deepseek-r1')) || allAvailable[0];
+        const secondary = allAvailable.filter(m => m !== primary);
+        console.log(`    권장 .env 설정 (주 모델: ${primary}):`);
+        console.log(`      LLM_PROVIDERS=ollama,ollama-secondary`);
+        console.log(`      LLM_MODE=majority`);
+        console.log(`      OLLAMA_MODEL=${primary}`);
+        console.log(`      OLLAMA_MODEL_SECONDARY=${secondary[0]}`);
+        console.log();
+      } else if (allAvailable.length === 1) {
+        console.log('  💡 Pro tip: Pull a second model for cross-validation:');
+        console.log(`    Currently: ${allAvailable[0]}`);
+        if (allAvailable[0].includes('deepseek')) {
+          console.log('    Add:      ollama pull mistral  (fast + lightweight complement)');
+        } else {
+          console.log('    Add:      ollama pull deepseek-r1:8b  (reasoning + best for secrets)');
+        }
+        console.log();
+      }
+
+      // configure primary ollama model in .env
+      const ollamaModel = allAvailable[0] || 'deepseek-r1:8b';
+      lines = setKey(lines, 'OLLAMA_MODEL', ollamaModel);
+      if (!lines.some(l => l.startsWith('OLLAMA_BASE_URL'))) {
+        lines = setKey(lines, 'OLLAMA_BASE_URL', 'http://localhost:11434/v1');
       }
       ollamaReady = true;
     } else {
-      console.log('  Ollama is not installed.\n');
-      console.log(`  Install command:\n${getOllamaInstallGuide()}\n`);
-      const installChoice = await question(rl, 'Install now? This opens your terminal [y/N]: ');
+      console.log('  ❌ Ollama is not installed.\n');
+      console.log(`  Install:\n    ${getOllamaInstallGuide()}\n`);
+      console.log('  1. Run the install command above');
+      console.log('  2. Pull models:  ollama pull deepseek-r1:8b');
+      console.log('  3. Re-run:  npm run setup  to complete configuration\n');
+
+      const installChoice = await question(rl, 'Show install instructions? [y/N]: ');
       if (installChoice.toLowerCase() === 'y' || installChoice.toLowerCase() === 'yes') {
-        console.log(`\n  Run this command in another terminal:\n  ${getOllamaInstallGuide()}\n`);
-        console.log('  After install, run:  ollama pull llama3.1:8b');
-        console.log('  Then re-run this setup to add Ollama.\n');
+        console.log(`\n  Platform: ${platform()}`);
+        console.log(`  Command:  ${getOllamaInstallGuide()}`);
+        console.log('  Models:   ollama pull deepseek-r1:8b');
+        console.log('            ollama pull securereview-7b-mlx-4bit  (Apple Silicon only)');
+        console.log('\n  After install + model pull, re-run: npm run setup\n');
       }
-      console.log('  -> Ollama skipped. Add later via .env: OLLAMA_BASE_URL=http://localhost:11434/v1');
+      console.log('  -> Ollama deferred. Set manually in .env:');
+      console.log('     OLLAMA_BASE_URL=http://localhost:11434/v1');
+      console.log('     OLLAMA_MODEL=deepseek-r1:8b\n');
     }
   }
 
