@@ -44,6 +44,12 @@ async function main() {
     process.exit(0);
   }
 
+  if (command === 'hook') {
+    const { hookCli } = await import('./hook-install.js');
+    hookCli(args.slice(1));
+    return;
+  }
+
   if (command === 'scan') {
     let repoPath = '';
     let mode: ScanMode = 'all';
@@ -258,8 +264,15 @@ LAON VaultGuard CLI — LLM-based Security Scanner
 
 Usage:
   npx laon-vaultguard scan <path> [options]
+  npx laon-vaultguard hook <install|uninstall> [--force]
   npx laon-vaultguard version
   npx laon-vaultguard help
+
+Commands:
+  scan      Scan a repository for secrets
+  hook      Manage pre-commit hook (install/uninstall)
+  version   Show version
+  help      Show this help
 
 Options:
   --mode <mode>    Scan mode: all (default), secrets, sql, versions, db, tls
@@ -267,10 +280,10 @@ Options:
 
 Examples:
   npx laon-vaultguard scan .
+  npx laon-vaultguard hook install
+  npx laon-vaultguard hook uninstall
   npx laon-vaultguard scan ~/projects/my-app
   npx laon-vaultguard scan /path/to/repo --mode sql
-  npx laon-vaultguard scan . --no-llm
-  npx laon-vaultguard scan . --mode secrets
 
 Scan Modes:
   all       All security checks (default)
