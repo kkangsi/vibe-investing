@@ -239,3 +239,62 @@ curl -X POST http://localhost:3101/api/scan/trigger
 - [API Reference](./docs/API.md) — REST API 명세
 - [Database Schema](./docs/Database.md) — DB 테이블 설계
 - [AGENTS.md](../AGENTS.md) — 레포 전체 AI 에이전트 가이드
+
+## 8. 개선 필요 사항 (Review)
+
+> 2026-06-07 종합 검토 기반. 우선순위는 **상 / 중 / 하**.
+
+### 8.1 설계적 개선 필요 사항
+
+| # | 항목 | 설명 | 우선순위 |
+|---|------|------|----------|
+| 1 | **JSON 파일 동시성** | 여러 API 요청 동시에 `findings.json`에 쓰기 발생 시 데이터 손상 위험. 최소한 `writeJson`에 파일 락(`proper-lockfile` 등) 추가 필요 | **상** |
+| 2 | **대시보드 인증 부재** | `HOST=0.0.0.0` 시 네트워크 누구나 접근 가능. Architecture.md v0.2 로드맵에도 있으나 미구현 | **상** |
+| 3 | **LLM 응답 스키마 검증 부재** | `JSON.parse()` 후 구조만 확인하고 필드 타입/범위 검증이 없음. Zod 또는 JSON Schema로 검증 필요 — LLM 환각 방어의 핵심 | **상** |
+| 4 | **알람 기본값이 모두 `false`** | `getAlertConfig()` 기본값이 모든 채널 `false` → `.env`에 알람 설정을 해도 대시보드에서 명시적으로 켜지 않으면 알람이 가지 않음. UX 혼란 | **중** |
+| 5 | **LLM 프롬프트 인젝션 방어 미흡** | `buildUserPrompt()`가 파일 내용을 그대로 프롬프트에 삽입. `<user_input>` 태그로 감싸거나 명시적 데이터/지시 구분자가 없음 | **상** |
+| 6 | **`candidate-filter.ts` 정규식 과도** | 60개 이상의 패턴을 단일 `git grep -E`로 실행. 일부 패턴(예: `Bearer`, `sk-`)은 지나치게 광범위해 후보 과다 발생 가능. 패턴별 우선순위/가중치 도입 검토 | **중** |
+| 7 | **에러 핸들링에 재시도 로직 없음** | LLM 호출 실패 시 `maxRetries: 1`만 있고 exponential backoff 없음. 429(Rate Limit) 발생 시 바로 실패 처리됨 | **중** |
+
+### 8.2 추가 필요 기능
+
+| # | 기능 | 설명 |
+|---|------|------|
+| 1 | **Docker 이미지** | 엔터프라이즈 배포를 위한 컨테이너화. `HOST=0.0.0.0` 의존 대신 docker-compose로 실행 |
+| 2 | **결과 내보내기 (SARIF)** | GitHub Code Scanning, GitLab SAST와 연동되는 SARIF 포맷 출력 |
+| 3 | **차등 프라이버시 전처리** | v0.4 로드맵 항목 — LLM에 코드 전송 전 키/토큰 부분만 마스킹하는 전처리 레이어 |
+| 4 | **오탐 피드백 루프** | 사용자가 acknowledge/거짓양성 표시한 데이터로 LLM 프롬프트를 동적 개선 (few-shot 예시 추가) |
+| 5 | **fine-tuned 모델** | 시크릿 탐지에 특화된 소형 모델 fine-tuning (예: llama3.1을 SecretBench 데이터셋으로 학습 후 Ollama에서 사용) |
+| 6 | **pre-commit hook 통합 코드** | README의 4단계 방어선 중 첫 단계지만 실제 `.git/hooks` 설치 코드가 없음 |
+| 7 | **Prometheus 메트릭** | 스캔 횟수, 탐지 건수, LLM 토큰 사용량, 지연시간 등을 `/metrics` 엔드포인트로 노출 |
+| 8 | **VS Code 확장** | v0.4 로드맵에 있음. 실시간 에디터 내 경고 |
+| 9 | **`result-aggregator.ts` 구현** | 본 문서 3.3절에 "추후 구현"으로 남아있는 다수결 로직 모듈 |
+
+## 9. 경쟁 솔루션 대비 단점 및 우선순위 액션
+
+> 2026-06-07 검토. LLM 바이브 코딩 보안 솔루션 카테고리(gitleaks, trufflehog, GitHub Secret Scanning 등) 대비 단점과 보강 방안.
+
+### 9.1 LLM 바이브 코딩 보안 솔루션 대비 단점 및 보강 방안
+
+| 약점 | 설명 | 보강 방안 |
+|------|------|-----------|
+| **설치 복잡도** | 여러 LLM API 키 + Ollama 설치 + .env 구성 필요. ChatGPT 플러그인식 원클릭 설치 안 됨 | `npx create-laon-vaultguard` 대화형 CLI 설치 마법사 |
+| **LLM 지연시간** | API 호출 왕복 + 멀티 LLM 병렬 호출로 수 초~수십 초 소요. regex 스캐너는 밀리초 | 스트리밍 응답 + 후보 청크별 점진적 분석 |
+| **정규식 기반보다 낮은 재현율 가능성** | LLM이 놓치는 단순 패턴(예: base64 인코딩 키)도 있음. gitleaks/trufflehog는 100% 재현 | 하이브리드: git grep → LLM → 정규식 fallback 3단계 |
+| **비용** | API 호출 비용 발생 (월 수천 건 스캔 시 $10~100). gitleaks는 무료 | Ollama 기본값 + 경량 LLM 우선 사용 + 캐싱으로 비용 최소화 |
+| **AST/의미 분석 부재** | 순수 텍스트 기반 grep. 변수 흐름 추적, taint analysis 불가 → SQL injection 탐지의 false positive 높음 | tree-sitter 기반 AST 분석 레이어 추가 (v0.5) |
+| **엔터프라이즈 인증/권한 부재** | RBAC, SSO, LDAP 연동 없음. 팀 규모 확장에 한계 | 인증 미들웨어 + PostgreSQL 마이그레이션 |
+| **SIEM/SOAR 연동 부재** | Splunk, Elastic, DataDog 등으로 이벤트 전송 불가 | Webhook 표준화 + Syslog 출력 |
+| **fine-tuned 모델 없음** | 범용 LLM에 의존 → 시크릿 탐지 도메인 최적화 안 됨. Github Secret Scanning은 자체 학습 모델 사용 | SecretBench 데이터셋으로 llama3.1 fine-tuning |
+
+### 9.2 우선순위 액션 아이템 (Top 5)
+
+> 상태 표기: ✅ 완료 / ⏳ 진행 예정 / ⚠️ 오탐으로 종료
+
+| 순위 | 항목 | 카테고리 | 예상 소요 | 상태 |
+|------|------|----------|-----------|------|
+| 1 | LLM 응답 JSON Schema 검증 (Zod) + maskedFingerprint 외 원문 재검증 | 보안 버그 | 1~2일 | ✅ 완료 (`llm-harness.ts`에 `validateLlmScanResult()` + `containsCleartextSecret()` 추가) |
+| 2 | `LlmProvider` 타입에 `'claude'` 추가 | 타입 버그 | 5분 | ⚠️ **오탐** — `types.ts:10`의 `LlmProvider`는 이미 `'claude'`를 포함 |
+| 3 | `writeJson` 파일 락 도입 (`proper-lockfile`) | 동시성 버그 | 반나절 | ⏳ 진행 예정 |
+| 4 | 대시보드 기본 인증 (simple token/password) | 보안 설계 | 1일 | ⏳ 진행 예정 |
+| 5 | `clearTimeout(0)` → `clearTimeout(timeoutId)` 수정 (timeoutId try 밖으로) | 버그 | 10분 | ✅ 완료 (`controller`+`timeoutId` 호이스트) |
