@@ -386,3 +386,30 @@ async function loadScanHistory() {
     }).join('');
   } catch (err) { console.error(err); }
 }
+
+// Finding detail modal
+function showFindingDetail(id) {
+  fetch(API + '/api/findings/' + id).then(r => r.json()).then(f => {
+    document.getElementById('modal-title').textContent = '[' + f.severity.toUpperCase() + '] ' + f.provider + ' — ' + (f.secret_type || f.secretType);
+    document.getElementById('modal-body').innerHTML =
+      '<p><strong>File:</strong> <code>' + (f.file_path || f.filePath) + (f.line ? ':' + f.line : '') + '</code></p>' +
+      '<p><strong>Repo:</strong> ' + (f.repo_name || '-') + '</p>' +
+      '<p><strong>Confidence:</strong> ' + f.confidence + '</p>' +
+      '<p><strong>Fingerprint:</strong> <code>' + (f.masked_fingerprint || f.maskedFingerprint) + '</code></p>' +
+      '<p><strong>Evidence:</strong> ' + (f.evidence_note || f.evidenceNote || '-') + '</p>' +
+      '<p><strong>Remediation:</strong> ' + (f.remediation || '-') + '</p>' +
+      '<p><strong>Detected:</strong> ' + new Date(f.detected_at || f.detectedAt).toLocaleString() + '</p>' +
+      (f.acknowledged_note ? '<p><strong>Resolved note:</strong> <em>' + f.acknowledged_note + '</em></p>' : '') +
+      '<p><strong>LLM Sources:</strong> ' + ((f.llmSources || f.llm_sources || []).join(', ') || '-') + '</p>';
+    document.getElementById('finding-modal').style.display = 'flex';
+  }).catch(err => console.error(err));
+}
+
+function closeModal() {
+  document.getElementById('finding-modal').style.display = 'none';
+}
+
+// Close modal on background click
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'finding-modal') closeModal();
+});
