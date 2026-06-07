@@ -1,5 +1,9 @@
 # LAON VaultGuard — LLM 시크릿 탐지 프롬프트
 
+> 🇰🇷 LAON VaultGuard가 LLM에 주입하는 시크릿 탐지 시스템 프롬프트 정의.
+> 🇺🇸 Defines the secret detection system prompt injected into LLMs by LAON VaultGuard.
+> 🇨🇳 定义 LAON VaultGuard 注入 LLM 的密钥检测系统提示词。
+
 > 기반: [Secret scanning LLM harness prompt](../../TechDoc/LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md)
 > 이 문서는 LAON VaultGuard가 LLM에 주입하는 시스템 프롬프트를 정의한다.
 

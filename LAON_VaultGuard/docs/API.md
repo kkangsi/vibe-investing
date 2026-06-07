@@ -1,5 +1,9 @@
 # API Reference — LAON VaultGuard
 
+> 🇰🇷 LAON VaultGuard의 REST API 엔드포인트 명세입니다.
+> 🇺🇸 REST API endpoint specification for LAON VaultGuard.
+> 🇨🇳 LAON VaultGuard 的 REST API 端点规范。
+
 Base URL: `http://localhost:3101`
 
 ## Scan & Status

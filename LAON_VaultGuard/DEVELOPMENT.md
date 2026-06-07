@@ -1,5 +1,9 @@
 # LAON VaultGuard — 개발 가이드
 
+> 🇰🇷 LAON VaultGuard 개발 환경 설정 및 단계별 구현 계획.
+> 🇺🇸 Development environment setup and phased implementation plan.
+> 🇨🇳 开发环境设置和分阶段实施计划。
+
 > TypeScript · Node.js 기반. LLM을 활용한 비공개 키 감시 자동화 도구.
 
 ## 1. 개발 환경 설정

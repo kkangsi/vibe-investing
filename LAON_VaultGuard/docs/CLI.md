@@ -1,6 +1,8 @@
 # LAON VaultGuard CLI 매뉴얼
 
-> `laon-vaultguard` 명령줄 도구 — GUI 없이 단발성 시크릿 스캔
+> 🇰🇷 `laon-vaultguard` CLI 도구 사용법 — GUI 없이 단발성 시크릿 스캔.
+> 🇺🇸 How to use the `laon-vaultguard` CLI tool — single-shot secret scanning without GUI.
+> 🇨🇳 `laon-vaultguard` CLI 工具使用指南 — 无需 GUI 的单次密钥扫描。
 
 ## 설치
 

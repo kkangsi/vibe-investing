@@ -1,5 +1,9 @@
 # Database Schema — LAON VaultGuard (macOS v0.1)
 
+> 🇰🇷 파일 기반 JSON 저장소 스키마 및 SQLite 마이그레이션 계획.
+> 🇺🇸 File-based JSON storage schema and SQLite migration plan.
+> 🇨🇳 基于文件的 JSON 存储模式和 SQLite 迁移计划。
+
 > **v0.1**: 파일 기반 JSON 저장소. `data/` 디렉토리 아래 구조화된 파일로 관리.
 > v0.2+에서 SQLite로 점진적 마이그레이션 예정.
 
