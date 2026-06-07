@@ -244,17 +244,7 @@ function exportReport() {
 }
 
 function setupAlerts() {
-  alert(
-    'Alert Setup Guide\n\n' +
-    'Slack:   Create Incoming Webhook at api.slack.com/apps\n' +
-    '         Add SLACK_WEBHOOK_URL to .env\n\n' +
-    'Email:   Set EMAIL_HOST/PORT/USER/PASS/TO in .env\n' +
-    '         For Gmail, use App Password (not login)\n\n' +
-    'Teams:   Channel -> Connectors -> Incoming Webhook\n' +
-    'Discord: Server Settings -> Integrations -> Webhooks\n\n' +
-    'Then enable in Alert Settings panel.\n' +
-    'See docs/ for detailed setup guides.'
-  );
+  window.open('/alert-setup.html', 'alert-setup');
 }
 
 function toggleAlerts() {

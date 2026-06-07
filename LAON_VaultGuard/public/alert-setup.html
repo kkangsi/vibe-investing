@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAON VaultGuard — Alert Setup Guide</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --green: #3fb950; --accent: #58a6ff;
+  --critical: #f85149; --high: #d29922;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: var(--bg); color: var(--text); line-height: 1.7; padding: 20px 40px; }
+h1 { color: var(--green); margin-bottom: 8px; }
+h2 { color: var(--accent); margin: 32px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { margin: 16px 0 8px; }
+code { background: var(--surface); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+pre { background: var(--surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border); overflow-x: auto; font-size: 13px; }
+.lang-tabs { display: flex; gap: 8px; margin: 16px 0; }
+.lang-tab { padding: 6px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; }
+.lang-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.lang-content { display: none; }
+.lang-content.active { display: block; }
+.step { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 12px 0; }
+.step-num { display: inline-block; background: var(--accent); color: #000; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-size: 13px; font-weight: bold; margin-right: 8px; }
+.back-link { color: var(--muted); font-size: 13px; margin-bottom: 16px; display: block; }
+</style>
+</head>
+<body>
+
+<a href="/dashboard" class="back-link">&larr; Back to Dashboard</a>
+<h1>LAON VaultGuard — Alert Setup Guide</h1>
+<p style="color:var(--muted)">Configure Slack, Email, Teams, Discord, Telegram alerts for real-time secret detection notifications.</p>
+
+<div class="lang-tabs">
+  <button class="lang-tab active" onclick="switchLang('ko')">KO</button>
+  <button class="lang-tab" onclick="switchLang('en')">EN</button>
+  <button class="lang-tab" onclick="switchLang('zh')">ZH</button>
+</div>
+
+<!-- Korean -->
+<div class="lang-content active" id="lang-ko">
+
+<h2>Slack</h2>
+<div class="step"><span class="step-num">1</span> <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> -> Create New App -> From scratch</div>
+<div class="step"><span class="step-num">2</span> App Name: <code>LAON VaultGuard</code>, workspace select -> Create App</div>
+<div class="step"><span class="step-num">3</span> Left menu: <strong>Incoming Webhooks</strong> -> Activate -> Add New Webhook to Workspace</div>
+<div class="step"><span class="step-num">4</span> Select target channel -> Allow -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">5</span> <code>.env</code>: <code>SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../xxx</code></div>
+<div class="step"><span class="step-num">6</span> Dashboard -> Alert Settings -> Slack ON</div>
+
+<h2>Email (Gmail)</h2>
+<div class="step"><span class="step-num">1</span> Gmail -> Settings -> See all settings -> Accounts -> App passwords</div>
+<div class="step"><span class="step-num">2</span> Generate app password (2FA required) -> Copy 16-char code</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>:<br>
+<pre>EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your@gmail.com
+EMAIL_PASS=your-app-password
+EMAIL_TO=team@company.com
+REPORT_SCHEDULE=daily</pre></div>
+<div class="step"><span class="step-num">4</span> Dashboard -> Alert Settings -> Email ON, select frequency</div>
+
+<h2>Teams</h2>
+<div class="step"><span class="step-num">1</span> Teams channel -> "..." menu -> Connectors -> Incoming Webhook -> Add</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code> -> Create -> Copy URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TEAMS_WEBHOOK_URL=https://xxx.webhook.office.com/...</code></div>
+
+<h2>Discord</h2>
+<div class="step"><span class="step-num">1</span> Server Settings -> Integrations -> Webhooks -> New Webhook</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code>, select channel -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...</code></div>
+
+<h2>Telegram</h2>
+<div class="step"><span class="step-num">1</span> @BotFather -> <code>/newbot</code> -> name: <code>LAON VaultGuard</code> -> username</div>
+<div class="step"><span class="step-num">2</span> Copy bot token, get chat ID via @userinfobot</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TELEGRAM_BOT_TOKEN=123:abc</code>, <code>TELEGRAM_CHAT_ID=-456</code></div>
+
+</div>
+
+<!-- English -->
+<div class="lang-content" id="lang-en">
+
+<h2>Slack</h2>
+<div class="step"><span class="step-num">1</span> <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> -> Create New App -> From scratch</div>
+<div class="step"><span class="step-num">2</span> App Name: <code>LAON VaultGuard</code>, select workspace -> Create App</div>
+<div class="step"><span class="step-num">3</span> Left menu: <strong>Incoming Webhooks</strong> -> Activate -> Add New Webhook to Workspace</div>
+<div class="step"><span class="step-num">4</span> Select target channel -> Allow -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">5</span> <code>.env</code>: <code>SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../xxx</code></div>
+<div class="step"><span class="step-num">6</span> Dashboard -> Alert Settings -> Slack ON</div>
+
+<h2>Email (Gmail)</h2>
+<div class="step"><span class="step-num">1</span> Gmail -> Settings -> See all settings -> Accounts -> App passwords</div>
+<div class="step"><span class="step-num">2</span> Generate app password (2FA required) -> Copy 16-char code</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>:<br>
+<pre>EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your@gmail.com
+EMAIL_PASS=your-app-password
+EMAIL_TO=team@company.com
+REPORT_SCHEDULE=daily</pre></div>
+<div class="step"><span class="step-num">4</span> Dashboard -> Alert Settings -> Email ON, select frequency</div>
+
+<h2>Teams</h2>
+<div class="step"><span class="step-num">1</span> Teams channel -> "..." menu -> Connectors -> Incoming Webhook -> Add</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code> -> Create -> Copy URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TEAMS_WEBHOOK_URL=https://xxx.webhook.office.com/...</code></div>
+
+<h2>Discord</h2>
+<div class="step"><span class="step-num">1</span> Server Settings -> Integrations -> Webhooks -> New Webhook</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code>, select channel -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...</code></div>
+
+<h2>Telegram</h2>
+<div class="step"><span class="step-num">1</span> @BotFather -> <code>/newbot</code> -> name: <code>LAON VaultGuard</code> -> username</div>
+<div class="step"><span class="step-num">2</span> Copy bot token, get chat ID via @userinfobot</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TELEGRAM_BOT_TOKEN=123:abc</code>, <code>TELEGRAM_CHAT_ID=-456</code></div>
+
+</div>
+
+<!-- Chinese -->
+<div class="lang-content" id="lang-zh">
+
+<h2>Slack</h2>
+<div class="step"><span class="step-num">1</span> <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> -> Create New App -> From scratch</div>
+<div class="step"><span class="step-num">2</span> App Name: <code>LAON VaultGuard</code>, select workspace -> Create App</div>
+<div class="step"><span class="step-num">3</span> Left menu: <strong>Incoming Webhooks</strong> -> Activate -> Add New Webhook to Workspace</div>
+<div class="step"><span class="step-num">4</span> Select channel -> Allow -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">5</span> <code>.env</code>: <code>SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../xxx</code></div>
+<div class="step"><span class="step-num">6</span> Dashboard -> Alert Settings -> Slack ON</div>
+
+<h2>Email (Gmail)</h2>
+<div class="step"><span class="step-num">1</span> Gmail -> Settings -> See all settings -> Accounts -> App passwords</div>
+<div class="step"><span class="step-num">2</span> Generate app password (2FA required) -> Copy 16-char code</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>:<br>
+<pre>EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your@gmail.com
+EMAIL_PASS=your-app-password
+EMAIL_TO=team@company.com
+REPORT_SCHEDULE=daily</pre></div>
+<div class="step"><span class="step-num">4</span> Dashboard -> Alert Settings -> Email ON, select frequency</div>
+
+<h2>Teams</h2>
+<div class="step"><span class="step-num">1</span> Teams channel -> "..." menu -> Connectors -> Incoming Webhook -> Add</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code> -> Create -> Copy URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TEAMS_WEBHOOK_URL=https://xxx.webhook.office.com/...</code></div>
+
+<h2>Discord</h2>
+<div class="step"><span class="step-num">1</span> Server Settings -> Integrations -> Webhooks -> New Webhook</div>
+<div class="step"><span class="step-num">2</span> Name: <code>LAON VaultGuard</code>, select channel -> Copy Webhook URL</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...</code></div>
+
+<h2>Telegram</h2>
+<div class="step"><span class="step-num">1</span> @BotFather -> <code>/newbot</code> -> name: <code>LAON VaultGuard</code> -> username</div>
+<div class="step"><span class="step-num">2</span> Copy bot token, get chat ID via @userinfobot</div>
+<div class="step"><span class="step-num">3</span> <code>.env</code>: <code>TELEGRAM_BOT_TOKEN=123:abc</code>, <code>TELEGRAM_CHAT_ID=-456</code></div>
+
+</div>
+
+<script>
+function switchLang(lang) {
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
+  document.querySelector('.lang-tab[onclick="switchLang(\'' + lang + '\')"]').classList.add('active');
+  document.getElementById('lang-' + lang).classList.add('active');
+}
+</script>
+</body>
+</html>
