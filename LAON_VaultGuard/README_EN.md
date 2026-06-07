@@ -45,31 +45,17 @@ Beyond cloud key detection, additional vulnerability categories are audited:
 
 ### Test Methods
 
-**Method 1: CLI (quick single scan)**
+| Command | Description |
+|---------|-------------|
+| `npx laon-vaultguard scan .` | Full scan |
+| `npx laon-vaultguard scan . --mode secrets` | Cloud keys/tokens only |
+| `npx laon-vaultguard scan . --mode sql` | SQL injection only |
+| `npx laon-vaultguard scan . --no-llm` | Raw candidates without LLM |
+| `npx laon-vaultguard hook install` | Install pre-commit hook |
+| `npx laon-vaultguard version` | Show version |
+| `npx create-laon-vaultguard` | Interactive setup wizard |
 
-```bash
-# Full scan
-npx laon-vaultguard scan .
-
-# Category-specific scan
-npx laon-vaultguard scan . --mode sql       # SQL injection only
-npx laon-vaultguard scan . --mode secrets   # Cloud keys/tokens only
-npx laon-vaultguard scan . --mode versions  # Outdated versions only
-npx laon-vaultguard scan . --mode db        # DB credential exposure only
-npx laon-vaultguard scan . --mode tls       # TLS/SSL config only
-
-# Raw candidates without LLM
-npx laon-vaultguard scan . --no-llm
-```
-
-**Method 2: Dashboard (periodic monitoring)**
-
-```bash
-npm run dev                           # http://localhost:3101/dashboard
-# -> "Scan Now" button or cron auto-scan
-# -> Filter and acknowledge results in dashboard
-# -> Slack/Telegram/Email/Discord/Teams alert integration
-```
+**Dashboard**: `npm run dev` → `http://localhost:3101/dashboard` (SSE real-time updates, alert integration)
 
 ![Dashboard screenshot](public/dashboard.png)
 

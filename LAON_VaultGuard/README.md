@@ -212,31 +212,17 @@ open http://localhost:3101/api/report/pdf   # 브라우저에서 열기 → "PDF
 
 ### 테스트 방법
 
-**방법 1: CLI (빠른 단발 스캔)**
+| 명령어 | 설명 |
+|--------|------|
+| `npx laon-vaultguard scan .` | 전체 스캔 |
+| `npx laon-vaultguard scan . --mode secrets` | 클라우드 키·토큰만 |
+| `npx laon-vaultguard scan . --mode sql` | SQL injection만 |
+| `npx laon-vaultguard scan . --no-llm` | LLM 없이 원시 후보만 |
+| `npx laon-vaultguard hook install` | pre-commit 훅 설치 |
+| `npx laon-vaultguard version` | 버전 확인 |
+| `npx create-laon-vaultguard` | 대화형 설치 마법사 |
 
-```bash
-# 전체 스캔
-npx laon-vaultguard scan .
-
-# 카테고리별 스캔
-npx laon-vaultguard scan . --mode sql       # SQL injection 만
-npx laon-vaultguard scan . --mode secrets   # 클라우드 키·토큰 만
-npx laon-vaultguard scan . --mode versions  # 구버전 취약점 만
-npx laon-vaultguard scan . --mode db        # DB 연결정보 노출 만
-npx laon-vaultguard scan . --mode tls       # TLS/SSL 설정 만
-
-# LLM 없이 원시 후보만 확인
-npx laon-vaultguard scan . --no-llm
-```
-
-**방법 2: 대시보드 (주기적 모니터링)**
-
-```bash
-npm run dev                           # http://localhost:3101/dashboard
-# -> "지금 스캔" 버튼 or cron 자동 스캔
-# -> 결과를 대시보드에서 필터링·확인 처리
-# -> Slack/Telegram/Email/Discord/Teams 알람 연동 가능
-```
+**대시보드**: `npm run dev` → `http://localhost:3101/dashboard` (SSE 실시간 업데이트, 알람 연동)
 
 ### 테스트 레포 (로컬 전용)
 
