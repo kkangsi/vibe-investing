@@ -13,6 +13,7 @@ model Corp {
   corpCode    String   @unique @db.VarChar(8)
   stockCode   String?  @db.VarChar(6)
   companyName String
+  formerNames String[] @default([]) // 이전 법인명 목록
   market      String   @default("KOSDAQ")
   marketCap   BigInt?
   isAdmin     Boolean  @default(false)
@@ -24,6 +25,7 @@ model Corp {
   fundRelations   CorpFundRelation[]
   filings         Filing[]
   signals         Signal[]
+  corpEvents      CorpEvent[]
 
   @@index([companyName])
   @@index([corpCode])
@@ -190,10 +192,52 @@ model EntityVote {
   entityType String   // "person" | "fund" | "corp"
   entityUid  String   // Person.personUid / Fund.fundUid / Corp.corpCode
   entityName String   // 표시용 이름
-  vote       String   // "up" | "down" | "neutral"
+  vote       String   // "bad_ass" | "good" | "neutral"
   ip         String?
   createdAt  DateTime @default(now())
 
   @@index([entityType, entityUid])
+  @@index([createdAt])
+}
+
+// ─── 평가 댓글 ───
+model EntityComment {
+  id         String   @id @default(uuid())
+  entityType String   // "person" | "fund" | "corp"
+  entityUid  String
+  entityName String
+  authorName String   @default("익명")
+  password   String?  // 수정/삭제용 비밀번호 해시
+  content    String
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityUid])
+  @@index([createdAt])
+}
+
+// ─── 회사 이벤트 (법인명 변경, 사업목적 추가 등) ───
+model CorpEvent {
+  id        String   @id @default(uuid())
+  corpId    String
+  eventType String   // "NAME_CHANGE" | "PURPOSE_ADDITION" | "DIRECTOR_CHANGE" | "CAPITAL_INCREASE" | "CB_ISSUANCE" | "MERGER" | "SPLIT"
+  detail    String   // 상세 내용
+  occurredAt DateTime
+  sourceUrl String?
+  corp      Corp     @relation(fields: [corpId], references: [id], onDelete: Cascade)
+
+  @@index([corpId, occurredAt])
+  @@index([eventType])
+}
+
+// ─── 경제지표 스냅샷 (Naver Finance 크롤링) ───
+model MarketSnapshot {
+  id        String   @id @default(uuid())
+  category  String   // "TOP_VOLUME" | "TOP_TURNOVER" | "TOP_GAINERS" | "TOP_SEARCH" | "VOLUME_PLUNGE"
+  data      Json     // { stocks: [{ rank, name, code, price, change, volume }] }
+  stats     Json?    // { avgChange, gainerCount, loserCount, totalVolume }
+  createdAt DateTime @default(now())
+
+  @@index([category, createdAt])
   @@index([createdAt])
 }
