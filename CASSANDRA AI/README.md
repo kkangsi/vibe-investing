@@ -49,26 +49,37 @@ DeepSeek·Claude 등 다중 LLM을 활용하여 개인·법인·조합 간의 **
 
 ## 기술 스택
 
+> 전체 인프라 구성은 [docs/TECH_STACK.md](docs/TECH_STACK.md) 참조
+
 | 계층 | 기술 |
 |---|---|
+| **배포 & 호스팅** | Vercel (Hobby 플랜) — CDN + WAF + Serverless Functions |
+| **CDN & 보안** | Vercel Edge Network (100+ PoP) + Vercel WAF (DDoS·Bot 방어) |
+| **데이터베이스** | Neon.tech Serverless PostgreSQL 16 (Free Tier, 0.5GB) |
+| **캐시** | Vercel KV (Redis 호환, Hobby 256MB) |
+| **로컬 DB** | PostgreSQL 16 + TimescaleDB (Docker Compose, 개발용) |
 | **프레임워크** | Next.js 15 (App Router) |
 | **언어** | TypeScript |
-| **데이터베이스** | PostgreSQL 16 + TimescaleDB (시계열) |
 | **ORM** | Prisma 6 |
 | **관계망 시각화** | Cytoscape.js |
 | **스타일링** | Tailwind CSS 4 |
-| **LLM (계획)** | DeepSeek V3 + Claude Sonnet 4 (다중 앙상블) |
-| **외부 API** | OpenDART (금융감독원), Toss Securities Open API (계획) |
-| **상태 관리** | Zustand |
+| **상태 관리** | Zustand + TanStack React Query |
+| **LLM** | DeepSeek V3 + Claude Sonnet 4 (다중 앙상블) |
+| **외부 API** | OpenDART (금융감독원) |
+| **웹 스크래핑** | Puppeteer + Cheerio (Naver Finance) |
+| **UI 컴포넌트** | Radix UI + Lucide Icons |
+| **밸리데이션** | Zod |
+| **총 인프라 비용** | **$0/월** (LLM API 제외) |
 
 ## 데이터 소스
+
+> 인프라 구성 상세는 [docs/TECH_STACK.md](docs/TECH_STACK.md) 참조
 
 | 소스 | 용도 |
 |---|---|
 | **DART OpenAPI** | 공시 목록, 사업보고서, 감사보고서, 주요사항보고서, 지분공시 |
-| **Toss Securities Open API** (연동 계획) | 실시간 주가, 거래량, 호가 데이터 |
-| **뉴스 검색** (연동 계획) | 기업·인물 관련 뉴스 크로스레퍼런스 |
-| **KIND (한국거래소)** | 상장폐지 종목, 관리종목 지정 이력 |
+| **Naver Finance** | 실시간 거래량·검색어 순위 (Puppeteer 크롤링) |
+| **KIND (한국거래소)** | 상장폐지 종목, 관리종목 지정 이력 (계획) |
 
 ## 데이터 모델
 
