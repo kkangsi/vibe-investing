@@ -20,6 +20,20 @@ However, **depending on a single LLM is another single point of failure**. Each 
 - **Majority-vote mode** reduces false positives, and **sequential fallback** ensures scans never stop due to a single LLM failure
 - A critical link in the 4-gate defense: [Gitleaks](https://github.com/gitleaks/gitleaks) (pre-commit) → **LAON VaultGuard** (periodic audit) → [TruffleHog](https://github.com/trufflesecurity/trufflehog) (CI) → GitHub Secret Scanning (post-push)
 
+Regex provides speed, LLM provides context. **Together they deliver real security.**
+
+### 🔗 Scan Orchestrator — "Single Pane of Glass for Security"
+
+LAON extends beyond secret detection to integrate with **Semgrep** (XSS, SQLi, OWASP Top 10) as a scan orchestrator. Both tools output SARIF for unified dashboard/CI visibility:
+
+```
+LAON (secrets)    ──→ findings.sarif ──┐
+                                        ├──→ GitHub Code Scanning
+Semgrep (XSS/SQLi) ──→ semgrep.sarif ──┘      or LAON Dashboard
+```
+
+→ [Semgrep Integration Guide](./docs/SEMGREP_INTEGRATION.md)
+
 Regex handles speed. LLMs handle context. **Use both, for real stability.**
 
 ## Features

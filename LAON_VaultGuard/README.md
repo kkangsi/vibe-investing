@@ -22,6 +22,18 @@
 
 정규식은 속도를, LLM은 문맥을 담당합니다. **둘을 함께 쓸 때 진짜 안정성이 확보됩니다.**
 
+### 🔗 스캔 오케스트레이터 — "모든 보안 스캔의 단일 창구"
+
+LAON은 시크릿 탐지를 넘어, **Semgrep**(XSS, SQLi, OWASP Top 10)과 연동하는 **스캔 오케스트레이터**로 확장됩니다. 두 도구의 결과를 SARIF로 통합해 단일 대시보드/CI 파이프라인에서 운영:
+
+```
+LAON (시크릿 탐지) ──→ findings.sarif ──┐
+                                         ├──→ GitHub Code Scanning
+Semgrep (XSS/SQLi) ──→ semgrep.sarif ──┘      or LAON Dashboard
+```
+
+→ [Semgrep 통합 가이드](./docs/SEMGREP_INTEGRATION.md)
+
 ## 핵심 기능
 
 - **정기 레포 감시** — GitHub, GitLab, 로컬 레포를 cron 기반 스케줄러로 주기적 스캔
