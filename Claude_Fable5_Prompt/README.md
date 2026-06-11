@@ -308,7 +308,7 @@ claude-haiku-4-5-20251001
 ```
 
 **Claude-in-Claude 패턴 (Claudeception)**
-아티팩트 내에서 API 키 없이 Anthropic API 호출 가능:
+아티팩트 내에서 API 키 없이 Anthropic API 호출 가능
 ```javascript
 const response = await fetch("https://api.anthropic.com/v1/messages", {
   method: "POST",
