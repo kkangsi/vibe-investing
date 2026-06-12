@@ -1,55 +1,144 @@
 # vibe-investing
 
 > AI-powered Vibe Investing repository by HoKwang Kim (Dennis Kim). Curation, trading strategies, market-analysis columns, and SSRN papers on using LLMs as tools (not oracles) to find alpha in disruptive-innovation markets: US NASDAQ/S&P500, crypto, the luxury sector, and crypto-equity correlation.
+
 > 인공지능을 도구로 활용한 바이브 투자(Vibe Investing) 레포 (저자: 김호광 / Dennis Kim). LLM을 만능 신탁이 아닌 도구로 보고, 미국 나스닥·S&P500, 가상화폐, 명품 섹터, 크립토-주식 상관관계 등 파괴적 혁신 시장에서 알파를 찾는 큐레이션·트레이딩 전략·시장 분석 칼럼·SSRN 논문을 다룹니다.
 
 Core thesis / 핵심 명제:
+
 - AI is a tool like Excel; the human insight reading the model matters most. / AI는 엑셀 같은 도구이며, 모델을 읽는 인간의 통찰이 가장 중요하다.
+
 - The next stage is a multi-LLM "investment committee": run Claude, Gemini, ChatGPT, DeepSeek as PMs of different character and cross-validate. / 다음 단계는 멀티-LLM "투자위원회" — Claude·Gemini·ChatGPT·DeepSeek를 서로 다른 개성의 PM으로 운용하고 교차검증한다.
+
 - Evidence (ARDS study): macro diagnosis converges (CV 3.7%) but execution diverges (weight CV 52%, ~14x); each model forms a distinct PM persona. / 근거(ARDS 연구): 거시 진단은 수렴(CV 3.7%)하나 실행은 분산(비중 CV 52%, 약 14배)되며, 각 모델이 고유한 PM 페르소나를 형성한다.
 
+- Strategy Tiers: three-level classification based on LLM cross-validation, backtest data, and reproducibility. / 전략 등급: LLM 교차검증·백테스트·재현성을 기준으로 3-Tier 분류.
+
 Author / 저자: HoKwang Kim (Dennis Kim), CEO of Betalabs Inc., Microsoft Azure ex-MVP, former CEO of CyworldZ. ORCID 0009-0002-0962-2175. Email gameworker@gmail.com. GitHub @gameworkerkim.
+
 License / 라이선스: MIT (code), CC-BY-4.0 (paper preprints). Cite as "HoKwang Kim (Dennis Kim) / vibe-investing" or the relevant SSRN DOI.
 
 ## Main docs / 주요 문서
 
 - [README (Korean) / 한국어 README](https://github.com/gameworkerkim/vibe-investing/blob/main/README.md): Repo overview, multi-LLM committee thesis, genre curation, directory map. / 레포 개요, 멀티-LLM 위원회 명제, 장르별 큐레이션, 디렉토리 구조.
+
 - [README (English) / 영어 README](https://github.com/gameworkerkim/vibe-investing/blob/main/Readme%20en.MD): English version of the main README. / 메인 README의 영어판.
 
-## Awesome series (author-written curation) / 어썸 시리즈 (직접 집필 큐레이션)
+## Trading strategies / 트레이딩 전략 (01.Trading Strategy/)
 
-- [Awesome Claude Quant Scripts](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Awesome%20claude%20quant%20scripts.MD): Flagship. 8 quant strategies (Value, Growth, Quality, Momentum, Multi-Factor, Trend Following, Statistical Arbitrage, Machine Learning) bound across 3 layers — academic primary sources -> Python skeletons -> Claude prompt templates. 30+ primary papers, 13 prompt templates. / 핵심 자산. 8대 퀀트 전략을 학계 원전 → Python 골격 → Claude 프롬프트 3레이어로 묶음. 원전 30+편, 프롬프트 13종.
-- [Awesome Vibe Invest — Stocks](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest.MD): 30+ NASDAQ/S&P500 AI investing tools scored on 5 axes (activity, maturity, learning curve, Korea-market fit, license). / NASDAQ/S&P500 AI 투자 도구 30+종 5축 평가.
-- [Awesome Vibe Invest — Crypto](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest%20crypto.MD): Benchmark-centric LLM crypto trading curation (Alpha Arena: DeepSeek +46%, GPT-5 -75% — model IQ != trading IQ). / 벤치마크(Alpha Arena) 중심 크립토 LLM 트레이딩 큐레이션.
-- [Awesome Vibe Trading Bot](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20Vibe%20Trading%20Bot.MD): Analysis of open-source coin trading bots on GitHub (AI-bot expansion). / GitHub 오픈소스 코인 트레이딩 봇 분석.
-- [Awesome AI Quant Prompt Repos](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20AI%20Quant%20Prompt%20github%20repos%20evaluation%20kr.MD): User-rating and reliability analysis of AI/LLM quant-prompt GitHub repos. / AI/LLM 퀀트 프롬프트 GitHub 레포 사용자 평가·신뢰성 분석.
+- [Strategy index (KR)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme.MD) | [index (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme%20EN.md): Strategy folder index with full Tier classification. / 전략 폴더 인덱스 및 Tier 분류.
 
-## Trading strategies (01.Trading Strategy/) / 트레이딩 전략
+### Tier 1: Recommended / 즉시 사용 가능 (11 strategies)
 
-- [Trading Strategy index (KR)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme.MD) | [index (EN)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Readme%20EN.md): Strategy folder index. / 전략 폴더 인덱스.
-- [ARDS — Adaptive Recession-Defensive Strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/ARDS%3A%20Adaptive%20Recession-Defensive%20Strategy/readme.md): The multi-LLM investment-committee study. 4-LLM cross-validation, 5-Factor recession composite, 4-Tier 25-ticker universe, 4-Phase regime. Read this for the repo's core design philosophy. / 멀티-LLM 투자위원회 연구. 4-LLM 교차검증, 5-Factor 침체 컴포지트, 4-Tier 25종목, 4-Phase 레짐. 레포 핵심 철학.
-- [Nasdaq-BTC Coupling strategy + bot](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/): BTC-QQQ 30-day rolling correlation, 6-regime classification, 547-line Python signal bot. / BTC-QQQ 30일 상관관계, 6 regime 분류, 547줄 Python 신호 봇.
-- [Luxury investment strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Luxury%20investment%20strategy/Luxury%20investment%20strategy.md): LVMH/Hermès/Kering, 225 backtests, 3-tier risk portfolio, 4 CSV datasets. / 명품 섹터 전략, 225건 백테스트, 3단계 포트폴리오, CSV 4종.
+- [ARDS-X Regime Classifier](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/ARDS%20%E2%80%94%20Adaptive%20Recession-Defensive%20Strategy%20for%20AI_QQQ/README.md): Meta tool. yfinance+FRED free data, 2-axis regime map (5 states), 2014-2026 backtest (win rate 77%). No API key needed. / 메타 도구. 실데이터 기반 레짐 분류, "어떤 전략을 써야 할지" 판정.
 
-## Columns (02.Investment Idea Column/) / 칼럼
+- [AMQS — Adaptive Momentum Quant Strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Adaptive%20Momentum%20Quant%20Strategy%20(AMQS)/readme.md): 4-Factor composite momentum + macro filter, weekly rebalance. 2024-2026: +114.1% vs QQQ +46.2%, Sharpe 1.33. / AI 슈퍼사이클 모멘텀, 완전 공개 코드+백테스트.
 
-- [Column index](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/Readme.MD): 7 empirical columns; statistical commentary that names no specific party. / 실증 칼럼 7편 통합 인덱스; 특정 주체 비지목 통계 논평 원칙.
-- [Reading the model — lessons from LTCM](https://github.com/gameworkerkim/vibe-investing/blob/main/Vibe%20Investing%20Risk%20Management.MD): 1998 LTCM collapse applied to 2026 AI vibe investing; functional homogenization risk. / LTCM 사태와 2026 AI 바이브 투자 리스크; 기능적 동질화.
-- [Microsoft Fintool acquisition](https://github.com/gameworkerkim/vibe-investing/blob/main/Microsoft%20fintool%20acquisition%20column.MD): Microsoft's entry into the $37B financial-terminal market. / 마이크로소프트의 370억 달러 금융 터미널 시장 진입.
-- [Crypto perp manipulation — Invisible hand or planned fraud?](https://github.com/gameworkerkim/vibe-investing/blob/main/Crypto%20perp%20manipulation%20column.MD): VTCLR pattern, Benford's law, Bayesian analysis of crypto perpetual-futures pump-dump. / VTCLR 패턴, 벤포드 법칙, 무기한 선물 pump-dump 베이지안 분석.
-- [Does the market open when it closes? (After Market Close)](https://github.com/gameworkerkim/vibe-investing/blob/main/AfterMarketClose/After_Market_Close_Column.md): 91.2% of market-moving disclosures cluster at AMC; 34 NASDAQ-100 cases. / 시장 충격 공시 91.2%가 장 마감 후 집중; 나스닥100 34건.
-- [DAT mNAV arbitrage strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/mNAV(Market-to-Net-Asset-Value)%20arbitrage/Dat%20mnav%20arbitrage%20strategy.MD): mNAV arbitrage across 15 digital-asset-treasury firms (MSTR, BMNR, SBET); Chanos pair trade. / 15개 DAT 기업 mNAV 아비트리지; Chanos 페어 트레이드.
+- [AMQS-M7](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Adaptive%20Momentum%20Quant%20Strategy%20(AMQS)%20for%20M7/readme.md): Magnificent 7 specialized. "Pullback-in-Uptrend" momentum. CLI tracker + KIS broker API placeholder. / M7 특화 확장판, KR/EN/CN 3개 언어.
+
+- [Token Unlock 72h Shock](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Token%20unlock%2072h%20shock%20analysis%20/readme.MD): 52 Binance token unlocks, 88.5% negative returns (avg -16.97%, p=2.2e-9). SSRN #1 (6632838). 8 Python scripts + 10 CSV. / 바이낸스 토큰 언락 폭락 실증, 논문 전체 재현 가능.
+
+- [Binance Listing Day Crash](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Binance%20Listing%20Day%20Crash%20/Listing%20day%20crash%20analysis.md): 51 tokens, 96.1% declined within 24h (72h avg -45.24%). LST-10 Ultimate Hybrid short strategy + self-critique roadmap. / 상장일 폭락 전수 분석, 숏 전략 동봉.
+
+- [Midterm Signal](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Midterm%20signal): 1938-2022 22-cycle backtest, 95.5% win rate. Honest prompt design — no exaggeration. May 2026: "Do not buy (2/6)." / 중간선거 매수 시그널, 과장 없는 정직한 프롬프트.
+
+- [BNB Trading Bot](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/BNB%20Trading%20Bot/Readme.md): BNB-ETH 4-year stats, ETH MA crossover signals. Backtest +123.21%. SSRN #4 (6750298). KR/EN/CN. / BNB-ETH 정량 분석, 독립 실행형 신호 프로그램.
+
+- [Dual-Engine Capital Compounder](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Dual-Engine%20Capital%20Compounder%20Quant%20Strategy%20Using%20LLM): TCRY signal, Finance+Retail 2-engine. 3-language prompt + CSV + Python screener. / 금융+리테일 복리 엔진, 자사주 매입 합산.
+
+- [Dividend Growth Prompt](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Dividend%20growth%20prompt): 3-LLM cross-validated. MSFT·UNH unanimous. Audit-ready design. Claude A-grade sector compliance. / 배당 성장주 발굴, AI 오류 정정 audit trail.
+
+- [AI Supercycle Investment](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/AI%20Supercycle%20Investment%20Quant%20Strategy): 4-Layer value chain diversification, 3-language prompt + CSV + Python screener bundle. / AI 가치사슬 4-Layer 장기 분산, 완성형 번들.
+
+- [Luxury Investment Strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Luxury%20investment%20strategy/Luxury%20investment%20strategy.md): 13 luxury firms/ETFs, 225 backtests, 3-tier risk portfolio, 4 CSV datasets. / 명품 섹터 전략, 입문용 칼럼형.
+
+### Tier 2: Conditional Use / 조건부 사용 (10 strategies) — Requires caution / 주의 필수
+
+- [ARDS (original)](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/ARDS%3A%20Adaptive%20Recession-Defensive%20Strategy/readme.md): 4-LLM cross-validation, 5-Factor recession composite. Weight divergence 14x (85%→225%). Mandatory median + 15% cap. / 경기 침체 방어 전략. 비중 발산 심각, 캡 적용 필수.
+
+- [Pharma Sector Long/Short](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Pharma%20sector%20prompt): 4-LLM, mega-cap pharma. Portfolios diverge >50%. Use Consensus tickers only; verify Divergence tickers from primary sources. / 4-LLM 포트폴리오 정반대. Consensus 종목만 사용.
+
+- [MRDS — Market Regime Diagnostic](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Market%20Regime%20Diagnostic%20Quant%20Strategy/readme.md): 4-LLM cross-validation, 5th-gen meta layer. NVDA data center revenue YoY hallucination detected (+44%/+73%/+115%). Cross-verify all quantitative figures. / 거시 레짐 진단, LLM 환각 발견. 원본 교차검증 필수.
+
+- [AI Super Cycle Weekly Rebalance](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Ai%20super%20cycle%20weekly%20rebalance%20prompt): 3-LLM. NVDA 25-44% concentration. Value is "less broken in drawdowns," not "more profit." 3-LLM median + 35% cap. / NVDA 초고집중 고위험. median+35% 캡 필수.
+
+- [DAT Quant Strategy](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/DAT%20quant%20strategy): 7-pair 90-day rolling Z-Score. Author: "buying BTC directly is better." Spot ETF regime change invalidates past patterns. / DAT 평균회귀. 저자 스스로 비권장.
+
+- [Binance Alpha MM Bot](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Trading%20strategy%20that%20devours%20Binance%20Alpha%20MM%20bots/Binance%20alpha%20mm%20bot%20analysis.MD): MBP-5 behavior model, Phase 3 short. Backtest Sharpe 3.25 (likely overfit). Consider real-world slippage. / MM 봇 역전략. Sharpe 3.25 과적합 우려.
+
+- [Declining Stock Quant Script](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Declining%20Stock%20Quant%20Script%20Using%20LLM): Multi-factor decline prediction + inverse ETFs. Volatility decay warning: do not hold >1 day. / 하락주+인버스. 1일 초과 보유 금지.
+
+- [AI Supply Chain Bayesian Analysis](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/AI%20supply%20chain%20bayesian%20analysis): Bayesian multi-factor, 5-layer×3-factor. Use scores as relative rankings only, never as absolute probabilities. / 베이지안 분석. 상대 순위로만 활용.
+
+- [Long-Term Dividend Investing](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Long-Term%20Dividend%20Investing): Code implementation for retirement/income portfolios. Complement to Dividend Growth Prompt. / 장기 배당 코드. 은퇴 자금 운용용.
+
+- [VWAP Strategy](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy): VWAP confluence-based. Code exists but LLM cross-validation report missing. / VWAP Confluence 전략. 교차검증 리포트 부재.
+
+### Tier 3: Research Stage / 연구 단계 (6 strategies) — Not usable / 사용 불가
+
+- [REGIME](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/REGIME): Unfinished. Macro explains 1-3% of stock variance. Do not use without quant-finance background. / 미완성. 거시는 종목을 설명 못 함.
+
+- [Nasdaq Short Selling Strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Nasdaq%20short%20selling%20strategy/IdeaNote.MD): Idea note only. Sector/stock coupling concept, no backtest. / 아이디어 노트 단계, 백테스트 없음.
+
+- [SaaS Short / HBM Long](https://github.com/gameworkerkim/vibe-investing/tree/main/01.Trading%20Strategy/SaaS%20short%20HBM%20Long): Folder only, no content. / 준비중, 내용 없음.
+
+- [Disclosure Timing Around Token Unlocks](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/%20Disclosure%20Timing%20Around%20Token%20Unlocks/ideanote%20disclosuretiming%20kr.MD): Phase 3 research design, target 2027 Q1-Q2. / 연구 설계 문서, 실행 전.
+
+- [ChainWar](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/ChainWar/IdeaNote_ChainWar.MD): Phase 4 v0.1, target 2027 Q3-Q4. Chain-vs-chain token performance hypothesis. / 연구 초안, 모든 패턴은 가설 상태.
+
+- [Bitcoin-Nasdaq Coupling](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Investment%20Strategy%20Based%20on%20Bitcoin%20and%20Nasdaq%20Coupling/IdeaNodte.MD): Short idea note. BTC-QQQ correlation 0.52→-0.20 (Apr 2026). Asymmetric coupling hypothesis. / 짧은 아이디어 노트, BTC-나스닥 비대칭 커플링.
+
+## Awesome series (author-written curation) / 어썸 시리즈
+
+- [Awesome Claude Quant Scripts](https://github.com/gameworkerkim/vibe-investing/blob/main/01.Trading%20Strategy/Awesome%20claude%20quant%20scripts/Readme.MD): 11 quant prompt+code strategies with 3-Tier classification. Multi-LLM cross-validation methodology flagship. / 11종 퀀트 프롬프트+코드 전략, 3-Tier 분류.
+
+- [Awesome Vibe Invest — Stocks](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest.MD): 30+ NASDAQ/S&P500 AI investing tools scored on 5 axes. / 30+종 AI 투자 도구 5축 평가.
+
+- [Awesome Vibe Invest — Crypto](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20vibe%20invest%20crypto.MD): Benchmark-centric LLM crypto trading curation (Alpha Arena: DeepSeek +46%, GPT-5 -75%). / Alpha Arena 중심 크립토 LLM 트레이딩 큐레이션.
+
+- [Awesome Vibe Trading Bot](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20Vibe%20Trading%20Bot.MD): Analysis of open-source coin trading bots on GitHub. / GitHub 오픈소스 코인 트레이딩 봇 분석.
+
+- [Awesome AI Quant Prompt Repos](https://github.com/gameworkerkim/vibe-investing/blob/main/Awesome%20AI%20Quant%20Prompt%20github%20repos%20evaluation%20kr.MD): User-rating and reliability analysis of AI/LLM quant-prompt GitHub repos. / AI/LLM 퀀트 프롬프트 레포 사용자 평가·신뢰성 분석.
+
+## Columns / 칼럼 (02.Investment Idea Column/)
+
+- [Column index](https://github.com/gameworkerkim/vibe-investing/blob/main/02.Investment%20Idea%20Column/Readme.MD): 7 empirical columns. / 실증 칼럼 7편 통합 인덱스.
+
+- [Reading the model — lessons from LTCM](https://github.com/gameworkerkim/vibe-investing/blob/main/Vibe%20Investing%20Risk%20Management.MD): 1998 LTCM collapse applied to 2026 AI vibe investing. / LTCM 사태와 2026 AI 바이브 투자 리스크.
+
+- [Microsoft Fintool acquisition](https://github.com/gameworkerkim/vibe-investing/blob/main/Microsoft%20fintool%20acquisition%20column.MD): Microsoft's entry into the $37B financial-terminal market. / MS의 금융 터미널 시장 진입.
+
+- [Crypto perp manipulation](https://github.com/gameworkerkim/vibe-investing/blob/main/Crypto%20perp%20manipulation%20column.MD): VTCLR pattern, Benford's law, Bayesian analysis. / 무기한 선물 pump-dump 베이지안 분석.
+
+- [After Market Close](https://github.com/gameworkerkim/vibe-investing/blob/main/AfterMarketClose/After_Market_Close_Column.md): 91.2% of market-moving disclosures cluster at AMC. / 시장 충격 공시 91.2%가 장 마감 후 집중.
+
+- [DAT mNAV arbitrage strategy](https://github.com/gameworkerkim/vibe-investing/blob/main/mNAV(Market-to-Net-Asset-Value)%20arbitrage/Dat%20mnav%20arbitrage%20strategy.MD): mNAV arbitrage across 15 digital-asset-treasury firms. / 15개 DAT 기업 mNAV 아비트리지.
 
 ## Tools / 도구
 
-- [Harness Quant v2](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quant%20v2%20readme%20.MD): 6-scenario-matrix LLM trading platform (backtest + MCP + multi-agent debate). In development. / 6 시나리오 매트릭스 LLM 트레이딩 플랫폼. 개발 중.
-- [Earnings Momentum Agent](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quantv2/Earnings%20momentum%20agent%20readme%20.MD): 7-stage pipeline, Top 30 recommendations, 24-month backtest 30-day hit rate 83.3% (idealized). / 7단계 파이프라인, Top 30 추천, 24개월 백테스트 30일 hit rate 83.3%(이상치).
+- [Harness Quant v2](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quant%20v2%20readme%20.MD): 6-scenario-matrix LLM trading platform. In development. / 6 시나리오 매트릭스 LLM 트레이딩 플랫폼.
+
+- [Earnings Momentum Agent](https://github.com/gameworkerkim/vibe-investing/blob/main/Harness%20quantv2/Earnings%20momentum%20agent%20readme%20.MD): 7-stage pipeline, Top 30, 24-month backtest 30-day hit rate 83.3% (idealized). / 7단계 파이프라인, Top 30 추천.
 
 ## Papers / 논문
 
-- [SSRN paper index](https://github.com/gameworkerkim/vibe-investing/blob/main/Paper%20%EB%85%BC%EB%AC%B8/readme.md): 4 SSRN working papers, 113 pages. 3 on crypto market microstructure + 1 on multilingual LLM evaluation. / SSRN 작업 논문 4편, 113페이지. 크립토 미시구조 3편 + 다국어 LLM 평가 1편.
-- Less Volume, More Variety (SSRN 6705598): shorter LLM output -> higher contrarian-discovery rate (Spearman ρ = -0.80). / LLM 출력이 짧을수록 컨트라리안 발굴률 상승 (Spearman ρ = -0.80).
-- Directional Decoupling (SSRN 6750298): correlation-preserving, volatility-ratio-compressing beta mechanism in BNB-ETH. / BNB-ETH 상관 유지·변동성 비율 압축 베타 메커니즘.
+- [SSRN paper index](https://github.com/gameworkerkim/vibe-investing/blob/main/Paper%20%EB%85%BC%EB%AC%B8/readme.md): 4 SSRN working papers, 113 pages. / SSRN 작업 논문 4편, 113페이지.
+
+- #1 (SSRN 6632838): 72-Hour Shock — Binance token unlock 52 cases → Token Unlock 72h strategy. / 바이낸스 토큰 언락 52건.
+
+- #2 (SSRN 6688740): CEX airdrop distribution asymmetry, BNB Chain ecosystem. / 중앙화 거래소 에어드롭 분배 비대칭.
+
+- #3 (SSRN 6705598): Less Volume, More Variety — shorter LLM output → higher contrarian-discovery rate (ρ = -0.80). / LLM 출력 짧을수록 컨트라리안 발굴률 상승.
+
+- #4 (SSRN 6750298): Directional Decoupling — BNB-ETH correlation-preserving, volatility-ratio-compressing beta. / BNB-ETH 디커플링 메커니즘.
+
+## Practical recommendation / 실무 권장
+
+1. Start with ARDS-X to determine regime → then pick strategy (correction: AMQS, recession: ARDS). / ARDS-X로 레짐 판별 → 전략 선택.
+2. All prompts must be input to ≥3 LLMs; use median for weights; apply human conservative cap (≤15% per ticker). / 모든 프롬프트 3개 이상 LLM 입력, median + 15% 캡.
+3. Avoid Tier 3 strategies entirely; Tier 2 requires the stated conditions. / Tier 3 사용 불가, Tier 2는 조건 숙지.
+4. Reproduce backtest CSV → OOS validation → paper trade ≥3 months → only then consider live. / 백테스트 재현 → OOS → 페이퍼 트레이딩 3개월 → 실거래.
+5. LLMs are "ticker idea discovery tools," not "full asset allocation decision makers." / LLM은 종목 아이디어 발굴 도구, 전체 자산 배분 결정 주체가 아님.
 
 ## Optional / 참고
 
@@ -57,5 +146,6 @@ License / 라이선스: MIT (code), CC-BY-4.0 (paper preprints). Cite as "HoKwan
 
 ## Disclaimer / 면책
 
-For research and education only. No tool guarantees profit; backtest hit rates are idealized. LLM-generated code may contain errors, bias, and security flaws — cross-validate and apply human review. Short selling, inverse/leveraged products can converge to total loss. Investment and legal-risk responsibility rests with the user.
-연구·교육 목적. 어떤 도구도 수익을 보장하지 않으며 백테스트 hit rate는 이상적 수치입니다. LLM 생성 코드에는 오류·편향·보안 취약점이 있을 수 있으니 교차검증과 사람 검토가 필요합니다. 공매도·인버스·레버리지 상품은 100% 손실에 수렴할 수 있습니다. 투자·법적 책임은 사용자에게 있습니다.
+For research and education only. No tool guarantees profit; backtest hit rates are idealized. LLM-generated code may contain errors, bias, and security flaws — cross-validate and apply human review. Short selling, inverse/leveraged products can converge to total loss. Crypto bot code is research prototype only — testnet validation and legal review required before live deployment. Investment and legal-risk responsibility rests with the user.
+
+연구·교육 목적. 어떤 도구도 수익을 보장하지 않으며 백테스트 hit rate는 이상적 수치입니다. LLM 생성 코드에는 오류·편향·보안 취약점이 있을 수 있으니 교차검증과 사람 검토가 필요합니다. 공매도·인버스·레버리지 상품은 100% 손실에 수렴할 수 있습니다. 가상화폐 봇 코드는 모두 연구용 프로토타입으로 실전 투입 전 testnet 검증과 법률 검토가 필수입니다. 투자·법적 책임은 사용자에게 있습니다.
