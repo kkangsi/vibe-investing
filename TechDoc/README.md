@@ -1,6 +1,6 @@
 # TechDoc
 
-> [Dennis Kim (@gameworkerkim)](https://github.com/gameworkerkim)이 큐레이션한 기술 문서 모음 -- 서버리스, 클라우드 비용 절감, AI/LLM, 개발자 인프라를 다룹니다.
+> [Dennis Kim (@gameworkerkim)](https://github.com/gameworkerkim)이 최근 유행하는 기술을 평가하고 큐레이션한 기술 문서 모음 -- 서버리스, 클라우드 비용 절감, AI/LLM, 개발자 인프라를 다룹니다.
 >
 > English version: [README_EN.md](README_EN.md)
 
