@@ -1,4 +1,4 @@
-# caveman + rtk: AI 코딩 어시스턴트 토큰 최적화 완전 가이드
+# caveman + rtk - AI 코딩 어시스턴트 토큰 최적화 완전 가이드
 
 > "Why use many token when few token do trick?" — caveman 슬로건
 
