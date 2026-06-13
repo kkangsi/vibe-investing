@@ -1,0 +1,82 @@
+# TechDoc
+> Technical documents curated by Dennis Kim (@gameworkerkim). Covers serverless platforms, cloud cost optimization, AI/LLM, coding assistants, and developer infrastructure.
+
+## Serverless & SaaS Free Tier
+
+### CloudFlare
+- [Cloudflare Free Tier Guide](CloudFlare/Cloudflare%20free%20tier%20guide.md) | Comprehensive guide to Cloudflare's free tier: Workers, Pages, D1, R2, KV, security services.
+
+### OracleCloud
+- [Oracle Cloud Free Tier Guide](OracleCloud/02.%20Oracle%20Cloud%20Free%20Tier%20Guide.md) | Korean guide to Oracle Always Free Tier: ARM VMs, databases, networking.
+
+### Neon
+- [Neon Review](Neon/Neon_review.md) | Evaluation of Neon.tech serverless PostgreSQL: branching, pricing, free tier limits.
+
+### SQLite / Turso
+- [Turso Guide](SQLite_%20Turso/Turso_guide.md) | Distributed SQLite at the edge: setup, replication, free tier.
+
+### Serverless Redis
+- [Upstash Guide](Serverless_Redis/upstash_guide.md) | Serverless Redis/Kafka evaluation: per-request pricing, free tier comparison.
+
+### Vercel
+- [Vercel Analysis](vercel/vercel_analysis.md) | Platform analysis: pricing tiers, edge functions, limits, cost-effectiveness.
+
+### Headroom
+- [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | Serverless compute platform setup and deployment guide.
+
+### GitHub CDN
+- [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Free global CDN options: jsDelivr, GitHub CDN, alternatives.
+- [GitHub CDN Technical](github_cdn/github_cdn.md) | GitHub repos as free CDN with jsDelivr integration.
+
+## Cloud Cost Reduction
+
+### AWS
+- [AWS Cost Reduction for CEO](AWS/Aws%20cost%20reduction%20for%20ceo.md) | Executive-level strategies: reserved instances, savings plans, rightsizing.
+
+## AI / LLM
+
+### LLM (General)
+- [Caveman RTK Token Optimization](LLM/Caveman%20rtk%20token%20optimization.md) | Token optimization for LLM interactions: prompt engineering, context management.
+- [Quivr Guide](LLM/Quivr_guide.md) | Open-source second brain / knowledge management with LLMs.
+
+### LLM Security
+- [Secret Scanning LLM Harness Prompt](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | LLM-based secret scanning prompt harness design.
+
+### Local LLM
+- [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Install and run local LLMs (Llama, Mistral) with Ollama.
+
+## AI Coding Assistants
+
+### MiniMax Coding Guide
+- [README](MiniMax%20Coding%20Guide/README.md) | MiniMax AI coding assistant guide overview.
+- [MiniMax Coding Guide (EN)](MiniMax%20Coding%20Guide/minimax-coding-guide.en.md) | VS Code integration, agent workflows, price/performance comparison.
+- [MiniMax Coding Guide (KO)](MiniMax%20Coding%20Guide/minimax-coding-guide.ko.md) | Korean version.
+- [VS C# LLM Guide (EN)](MiniMax%20Coding%20Guide/visual-studio-csharp-llm-guide.en.md) | C# AI assistants for VS, DeepSeek/multi-LLM setup.
+- [VS C# LLM Guide (KO)](MiniMax%20Coding%20Guide/visual-studio-csharp-llm-guide.ko.md) | Korean version.
+
+## AI Agent & Website Standards
+
+### Agent-Friendly Website Guide
+- [Guide (EN)](agent-friendly-website-guide/agent-friendly-website-guide.en.md) | 11-chapter practical guide: semantic HTML, ARIA, Schema.org, llms.txt, WebMCP.
+- [Guide (KO)](agent-friendly-website-guide/agent-friendly-website-guide.ko.md) | Korean version.
+- [Guide (JA)](agent-friendly-website-guide/agent-friendly-website-guide.ja.md) | Japanese version.
+- [llms.txt](agent-friendly-website-guide/llms.txt) | Machine-readable index for AI agents.
+
+## Developer Tools
+
+### Bigfive
+- [Bigfive Getting Started](Bigfive/Bigfive%20getting%20started.md) | Web-based Big Five personality assessment framework.
+
+## Recent Updates (newest first)
+
+- 2026-06-13: Caveman RTK Token Optimization (fixes)
+- 2026-06-13: Quivr Guide (fixes)
+- 2026-06-12: Headroom Complete Guide (new)
+- 2026-06-12: Global Free CDN Guide (new)
+- 2026-06-10: GitHub CDN (updated)
+- 2026-06-09: Upstash Guide (new)
+- 2026-06-09: Turso Guide (new)
+- 2026-06-09: Neon Review (new)
+- 2026-06-09: Vercel Analysis (revised)
+- 2026-06-06: Secret Scanning LLM Harness Prompt (new)
+- 2026-06-04: MiniMax Coding Guide + VS C# LLM Guide (new)
