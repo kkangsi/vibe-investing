@@ -27,7 +27,6 @@ Documents evaluating and comparing serverless platforms and SaaS services with f
 | [Turso Guide](SQLite_%20Turso/Turso_guide.md) | Guide to Turso -- distributed SQLite at the edge with generous free tier, covering setup, replication, and use cases. | 2026-06-09 |
 | [Upstash Guide](Serverless_Redis/upstash_guide.md) | Evaluation and comparison guide for Upstash -- serverless Redis/Kafka with per-request pricing and free tier analysis. | 2026-06-09 |
 | [Vercel Analysis](vercel/vercel_analysis.md) | In-depth analysis of Vercel's platform: pricing tiers, edge functions, limits, and cost-effectiveness for different workloads. | 2026-06-09 |
-| [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | Complete guide to the Headroom project -- a serverless compute platform, covering setup, configuration, and deployment. | 2026-06-12 |
 | [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Guide to leveraging free global CDNs including jsDelivr, GitHub's raw content CDN, and alternatives for static asset delivery. | 2026-06-12 |
 | [GitHub CDN](github_cdn/github_cdn.md) | Technical deep-dive on using GitHub repositories as a free CDN with jsDelivr integration. | 2026-06-10 |
 
@@ -49,6 +48,7 @@ Documents covering large language models -- token optimization, local deployment
 | [Quivr Guide](LLM/Quivr_guide.md) | Guide to Quivr -- an open-source second brain / knowledge management platform powered by LLMs, covering setup and usage. | 2026-06-13 |
 | [Secret Scanning LLM Harness Prompt](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | Prompt harness design for using LLMs to scan codebases for secrets, API keys, and credentials with false-positive mitigation. | 2026-06-06 |
 | [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Step-by-step installation guide for Ollama -- running local LLMs (Llama, Mistral, etc.) on personal hardware. | 2026-05-xx |
+| [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | AI agent context compression tool -- 60-95% token savings. SmartCrusher, CodeCompressor, CacheAligner engines. Works with DeepSeek V4 Pro, Open Code, and any OpenAI/Anthropic-compatible tool. | 2026-06-12 |
 
 ## AI Coding Assistants
 
@@ -83,17 +83,17 @@ Documents added or significantly revised recently, ordered by commit date (newes
 |---|---|---|
 | 2026-06-13 | [Caveman RTK Token Optimization](LLM/Caveman%20rtk%20token%20optimization.md) | Formatting fixes |
 | 2026-06-13 | [Quivr Guide](LLM/Quivr_guide.md) | Minor text fixes |
-| 2026-06-12 | [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | New document |
-| 2026-06-12 | [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | New document |
+| 2026-06-12 | [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | LLM token compression tool |
+| 2026-06-12 | [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Free CDN guide |
 | 2026-06-10 | [GitHub CDN](github_cdn/github_cdn.md) | Updated with jsDelivr |
 | 2026-06-09 | [Upstash Guide](Serverless_Redis/upstash_guide.md) | New document |
 | 2026-06-09 | [Turso Guide](SQLite_%20Turso/Turso_guide.md) | New document |
 | 2026-06-09 | [Neon Review](Neon/Neon_review.md) | New document |
 | 2026-06-09 | [Vercel Analysis](vercel/vercel_analysis.md) | Revised |
+| 2026-06-07 | [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Refactor headings and formatting |
+| 2026-06-07 | [Agent-Friendly Website Guide](agent-friendly-website-guide/) | AI agent-friendly web guide |
 | 2026-06-06 | [Secret Scanning LLM Harness Prompt](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | New document |
 | 2026-06-04 | [MiniMax Coding Guide + VS C# LLM Guide](MiniMax%20Coding%20Guide/) | New documents |
-| 2026-06-07 | [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Refactor headings and formatting |
-| 2026-06-07 | [Agent-Friendly Website Guide](agent-friendly-website-guide/) | Restored repo + added AI Supercycle Dashboard |
 | 2026-05-30 | [AWS Cost Reduction for CEO](AWS/Aws%20cost%20reduction%20for%20ceo.md) | New document |
 | 2026-05-27 | [Bigfive Getting Started](Bigfive/Bigfive%20getting%20started.md) | Updated |
 | 2026-05-12 | [Cloudflare Free Tier Guide](CloudFlare/Cloudflare%20free%20tier%20guide.md) | Revised for clarity |

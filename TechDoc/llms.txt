@@ -21,9 +21,6 @@
 ### Vercel
 - [Vercel Analysis](vercel/vercel_analysis.md) | Platform analysis: pricing tiers, edge functions, limits, cost-effectiveness.
 
-### Headroom
-- [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | Serverless compute platform setup and deployment guide.
-
 ### GitHub CDN
 - [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Free global CDN options: jsDelivr, GitHub CDN, alternatives.
 - [GitHub CDN Technical](github_cdn/github_cdn.md) | GitHub repos as free CDN with jsDelivr integration.
@@ -44,6 +41,9 @@
 
 ### Local LLM
 - [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Install and run local LLMs (Llama, Mistral) with Ollama.
+
+### LLM Token Compression
+- [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | AI agent context compression: 60-95% token savings, SmartCrusher/CodeCompressor/CacheAligner engines.
 
 ## AI Coding Assistants
 
@@ -71,12 +71,18 @@
 
 - 2026-06-13: Caveman RTK Token Optimization (fixes)
 - 2026-06-13: Quivr Guide (fixes)
-- 2026-06-12: Headroom Complete Guide (new)
+- 2026-06-12: Headroom Complete Guide (LLM token compression)
 - 2026-06-12: Global Free CDN Guide (new)
 - 2026-06-10: GitHub CDN (updated)
 - 2026-06-09: Upstash Guide (new)
 - 2026-06-09: Turso Guide (new)
 - 2026-06-09: Neon Review (new)
 - 2026-06-09: Vercel Analysis (revised)
+- 2026-06-07: Ollama Install Guide (refactored)
+- 2026-06-07: Agent-Friendly Website Guide (added AI Supercycle Dashboard)
 - 2026-06-06: Secret Scanning LLM Harness Prompt (new)
 - 2026-06-04: MiniMax Coding Guide + VS C# LLM Guide (new)
+- 2026-05-30: AWS Cost Reduction for CEO (new)
+- 2026-05-27: Bigfive Getting Started (updated)
+- 2026-05-12: Cloudflare Free Tier Guide (revised)
+- 2026-05-09: Oracle Cloud Free Tier Guide (text fix)
