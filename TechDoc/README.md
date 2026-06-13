@@ -1,104 +1,106 @@
 # TechDoc
 
-> Technical documents curated by [Dennis Kim (@gameworkerkim)](https://github.com/gameworkerkim) -- covering serverless, cloud cost optimization, AI/LLM, and developer infrastructure.
+> [Dennis Kim (@gameworkerkim)](https://github.com/gameworkerkim)이 큐레이션한 기술 문서 모음 -- 서버리스, 클라우드 비용 절감, AI/LLM, 개발자 인프라를 다룹니다.
+>
+> English version: [README_EN.md](README_EN.md)
 
 ---
 
-## Table of Contents
+## 목차
 
-- [Serverless & SaaS Free Tier](#serverless--saas-free-tier)
-- [Cloud Cost Reduction](#cloud-cost-reduction)
+- [서버리스 & SaaS 무료 티어](#서버리스--saas-무료-티어)
+- [클라우드 비용 절감](#클라우드-비용-절감)
 - [AI / LLM](#ai--llm)
-- [AI Coding Assistants](#ai-coding-assistants)
-- [AI Agent & Website Standards](#ai-agent--website-staㄴdards)
-- [Developer Tools & Other](#developer-tools--other)
+- [AI 코딩 어시스턴트](#ai-코딩-어시스턴트)
+- [AI 에이전트 & 웹 표준](#ai-에이전트--웹-표준)
+- [개발자 도구 & 기타](#개발자-도구--기타)
 
 ---
 
-## Serverless & SaaS Free Tier
+## 서버리스 & SaaS 무료 티어
 
-Documents evaluating and comparing serverless platforms and SaaS services with free tier offerings -- practical guides for developers and startups looking to minimize infrastructure costs.
+무료 티어를 제공하는 서버리스 플랫폼과 SaaS 서비스를 평가/비교한 문서입니다. 인프라 비용을 최소화하려는 개발자와 스타트업을 위한 실무 가이드입니다.
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [Cloudflare Free Tier Guide](CloudFlare/Cloudflare%20free%20tier%20guide.md) | Comprehensive guide to Cloudflare's free tier services including Workers, Pages, D1, R2, KV, and security features. | 2026-05-12 |
-| [Oracle Cloud Free Tier Guide](OracleCloud/02.%20Oracle%20Cloud%20Free%20Tier%20Guide.md) | Korean-language guide to Oracle Cloud's Always Free Tier resources: ARM VMs, Compute, databases, networking. | 2026-05-09 |
-| [Neon Review](Neon/Neon_review.md) | Evaluation of Neon.tech -- serverless PostgreSQL with branching, free tier limits, pricing, and performance analysis. | 2026-06-09 |
-| [Turso Guide](SQLite_%20Turso/Turso_guide.md) | Guide to Turso -- distributed SQLite at the edge with generous free tier, covering setup, replication, and use cases. | 2026-06-09 |
-| [Upstash Guide](Serverless_Redis/upstash_guide.md) | Evaluation and comparison guide for Upstash -- serverless Redis/Kafka with per-request pricing and free tier analysis. | 2026-06-09 |
-| [Vercel Analysis](vercel/vercel_analysis.md) | In-depth analysis of Vercel's platform: pricing tiers, edge functions, limits, and cost-effectiveness for different workloads. | 2026-06-09 |
-| [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | Complete guide to the Headroom project -- a serverless compute platform, covering setup, configuration, and deployment. | 2026-06-12 |
-| [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Guide to leveraging free global CDNs including jsDelivr, GitHub's raw content CDN, and alternatives for static asset delivery. | 2026-06-12 |
-| [GitHub CDN](github_cdn/github_cdn.md) | Technical deep-dive on using GitHub repositories as a free CDN with jsDelivr integration. | 2026-06-10 |
+| [Cloudflare 무료 티어 가이드](CloudFlare/Cloudflare%20free%20tier%20guide.md) | Cloudflare 무료 티어 종합 가이드: Workers, Pages, D1, R2, KV, 보안 서비스. | 2026-05-12 |
+| [Oracle Cloud 무료 티어 가이드](OracleCloud/02.%20Oracle%20Cloud%20Free%20Tier%20Guide.md) | Oracle Cloud 평생 무료 티어 한국어 가이드: ARM VM, Compute, 데이터베이스, 네트워킹. | 2026-05-09 |
+| [Neon 리뷰](Neon/Neon_review.md) | Neon.tech 평가 -- 서버리스 PostgreSQL, 브랜칭, 무료 티어 제한, 가격, 성능 분석. | 2026-06-09 |
+| [Turso 가이드](SQLite_%20Turso/Turso_guide.md) | 엣지 분산 SQLite Turso 가이드 -- 셋업, 복제, 활용 사례, 무료 티어. | 2026-06-09 |
+| [Upstash 가이드](Serverless_Redis/upstash_guide.md) | 서버리스 Redis/Kafka Upstash 평가 및 비교 -- 요청 단위 과금, 무료 티어 분석. | 2026-06-09 |
+| [Vercel 분석](vercel/vercel_analysis.md) | Vercel 플랫폼 심층 분석: 가격 체계, 엣지 함수, 제한 사항, 워크로드별 비용 효율. | 2026-06-09 |
+| [Headroom 완전 가이드](Headroom/Headroom%20complete%20guide.md) | 서버리스 컴퓨트 플랫폼 Headroom 프로젝트 설정, 구성, 배포 완전 가이드. | 2026-06-12 |
+| [글로벌 무료 CDN 가이드](github_cdn/Global%20free%20cdn%20guide.md) | jsDelivr, GitHub raw CDN 등 글로벌 무료 CDN을 활용한 정적 에셋 전송 가이드. | 2026-06-12 |
+| [GitHub CDN](github_cdn/github_cdn.md) | GitHub 저장소를 jsDelivr와 연동해 무료 CDN으로 활용하는 기술 심층 가이드. | 2026-06-10 |
 
-## Cloud Cost Reduction
+## 클라우드 비용 절감
 
-Documents focused on reducing cloud infrastructure spending -- targeted at technical decision makers and executives.
+클라우드 인프라 지출 절감에 초점을 맞춘 문서입니다. 기술 의사결정자와 경영진을 대상으로 합니다.
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [AWS Cost Reduction for CEO](AWS/Aws%20cost%20reduction%20for%20ceo.md) | Executive-level guide to AWS cost reduction strategies: reserved instances, savings plans, rightsizing, and architectural optimizations. | 2026-05-30 |
+| [AWS 비용 절감 for CEO](AWS/Aws%20cost%20reduction%20for%20ceo.md) | 경영진을 위한 AWS 비용 절감 전략: 예약 인스턴스, Savings Plans, 사이징 최적화, 아키텍처 개선. | 2026-05-30 |
 
 ## AI / LLM
 
-Documents covering large language models -- token optimization, local deployment, security, and knowledge management.
+대규모 언어 모델 관련 문서 -- 토큰 최적화, 로컬 배포, 보안, 지식 관리.
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [Caveman RTK Token Optimization](LLM/Caveman%20rtk%20token%20optimization.md) | Token optimization techniques for LLM interactions -- reducing cost and latency through prompt engineering and context management. | 2026-06-13 |
-| [Quivr Guide](LLM/Quivr_guide.md) | Guide to Quivr -- an open-source second brain / knowledge management platform powered by LLMs, covering setup and usage. | 2026-06-13 |
-| [Secret Scanning LLM Harness Prompt](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | Prompt harness design for using LLMs to scan codebases for secrets, API keys, and credentials with false-positive mitigation. | 2026-06-06 |
-| [Ollama Install Guide](Local_LLM/Ollama_Install_Guilde.md) | Step-by-step installation guide for Ollama -- running local LLMs (Llama, Mistral, etc.) on personal hardware. | 2026-05-xx |
+| [Caveman RTK 토큰 최적화](LLM/Caveman%20rtk%20token%20optimization.md) | LLM 상호작용 토큰 최적화 기법 -- 프롬프트 엔지니어링과 컨텍스트 관리를 통한 비용/지연 감소. | 2026-06-13 |
+| [Quivr 가이드](LLM/Quivr_guide.md) | LLM 기반 오픈소스 세컨드 브레인/지식 관리 플랫폼 Quivr 설정 및 활용 가이드. | 2026-06-13 |
+| [시크릿 스캐닝 LLM 하니스 프롬프트](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | 코드베이스에서 시크릿, API 키, 자격 증명을 탐지하는 LLM 기반 프롬프트 하니스 설계. | 2026-06-06 |
+| [Ollama 설치 가이드](Local_LLM/Ollama_Install_Guilde.md) | 개인 하드웨어에서 로컬 LLM(Llama, Mistral 등)을 실행하는 Ollama 단계별 설치 가이드. | 2026-05-xx |
 
-## AI Coding Assistants
+## AI 코딩 어시스턴트
 
-Documents comparing and guiding AI coding assistants, pricing, and integration with development environments.
+AI 코딩 어시스턴트 비교, 가격, 개발 환경 통합을 다룬 문서입니다.
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [MiniMax Coding Guide (KO/EN)](MiniMax%20Coding%20Guide/) | Practical guide to using MiniMax as an AI coding assistant -- VS Code integration, agent workflows, and price/performance comparison against DeepSeek, Anthropic, and OpenAI. | 2026-06-04 |
-| [Visual Studio C# LLM Guide (KO/EN)](MiniMax%20Coding%20Guide/visual-studio-csharp-llm-guide.en.md) | Verified recommendations for C# coding AI assistants in Visual Studio + how to connect DeepSeek and other LLMs. | 2026-06-04 |
+| [MiniMax 코딩 가이드 (KO/EN)](MiniMax%20Coding%20Guide/) | MiniMax를 AI 코딩 어시스턴트로 활용하는 실무 가이드 -- VS Code 연동, 에이전트 워크플로우, DeepSeek/Anthropic/OpenAI 대비 가격/성능 비교. | 2026-06-04 |
+| [Visual Studio C# LLM 가이드 (KO/EN)](MiniMax%20Coding%20Guide/visual-studio-csharp-llm-guide.en.md) | Visual Studio용 C# 코딩 AI 어시스턴트 추천 + DeepSeek 및 다양한 LLM 연결 방법 (자료 검증 포함). | 2026-06-04 |
 
-## AI Agent & Website Standards
+## AI 에이전트 & 웹 표준
 
-Documents covering the emerging standard of building websites that AI agents can navigate, understand, and act on.
+AI 에이전트가 탐색하고 이해하며 작업을 수행할 수 있는 웹사이트 구축 표준을 다룬 문서입니다.
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [Agent-Friendly Website Guide (KO/EN/JA)](agent-friendly-website-guide/) | Trilingual guide (11 chapters + appendices) consolidating Google web.dev (2026-04), Chrome WebMCP EPP, and Jeremy Howard's llms.txt standard. Covers semantic HTML, ARIA, Schema.org JSON-LD, llms.txt, and WebMCP. CC BY 4.0. | 2026-05-19 |
+| [에이전트 친화 웹사이트 가이드 (KO/EN/JA)](agent-friendly-website-guide/) | Google web.dev(2026-04), Chrome WebMCP EPP, Jeremy Howard의 llms.txt 표준을 통합한 3개국어 11장+부록 실무 가이드. 시맨틱 HTML, ARIA, Schema.org JSON-LD, llms.txt, WebMCP 수록. CC BY 4.0. | 2026-05-19 |
 
-## Developer Tools & Other
+## 개발자 도구 & 기타
 
-| Document | Description | Last Updated |
+| 문서 | 설명 | 최종 수정일 |
 |---|---|---|
-| [Bigfive Getting Started](Bigfive/Bigfive%20getting%20started.md) | Getting started guide for the Bigfive personality assessment framework -- a web-based tool implementing the Big Five personality traits model. | 2026-05-27 |
+| [Bigfive 시작하기](Bigfive/Bigfive%20getting%20started.md) | Big Five 성격 특성 모델을 구현한 웹 기반 성격 평가 프레임워크 Bigfive 시작 가이드. | 2026-05-27 |
 
 ---
 
-## Recently Updated
+## 최근 업데이트
 
-Documents added or significantly revised recently, ordered by commit date (newest first):
+최근 추가되거나 크게 수정된 문서 (최신순):
 
-| Date | Document | Action |
+| 날짜 | 문서 | 내용 |
 |---|---|---|
-| 2026-06-13 | [Caveman RTK Token Optimization](LLM/Caveman%20rtk%20token%20optimization.md) | Formatting fixes |
-| 2026-06-13 | [Quivr Guide](LLM/Quivr_guide.md) | Minor text fixes |
-| 2026-06-12 | [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | New document |
-| 2026-06-12 | [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | New document |
-| 2026-06-10 | [GitHub CDN](github_cdn/github_cdn.md) | Updated with jsDelivr |
-| 2026-06-09 | [Upstash Guide](Serverless_Redis/upstash_guide.md) | New document |
-| 2026-06-09 | [Turso Guide](SQLite_%20Turso/Turso_guide.md) | New document |
-| 2026-06-09 | [Neon Review](Neon/Neon_review.md) | New document |
-| 2026-06-09 | [Vercel Analysis](vercel/vercel_analysis.md) | Revised |
-| 2026-06-06 | [Secret Scanning LLM Harness Prompt](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | New document |
-| 2026-06-04 | [MiniMax Coding Guide + VS C# LLM Guide](MiniMax%20Coding%20Guide/) | New documents |
+| 2026-06-13 | [Caveman RTK 토큰 최적화](LLM/Caveman%20rtk%20token%20optimization.md) | 서식 수정 |
+| 2026-06-13 | [Quivr 가이드](LLM/Quivr_guide.md) | 텍스트 수정 |
+| 2026-06-12 | [Headroom 완전 가이드](Headroom/Headroom%20complete%20guide.md) | 신규 문서 |
+| 2026-06-12 | [글로벌 무료 CDN 가이드](github_cdn/Global%20free%20cdn%20guide.md) | 신규 문서 |
+| 2026-06-10 | [GitHub CDN](github_cdn/github_cdn.md) | jsDelivr 내용 추가 |
+| 2026-06-09 | [Upstash 가이드](Serverless_Redis/upstash_guide.md) | 신규 문서 |
+| 2026-06-09 | [Turso 가이드](SQLite_%20Turso/Turso_guide.md) | 신규 문서 |
+| 2026-06-09 | [Neon 리뷰](Neon/Neon_review.md) | 신규 문서 |
+| 2026-06-09 | [Vercel 분석](vercel/vercel_analysis.md) | 개정 |
+| 2026-06-06 | [시크릿 스캐닝 LLM 하니스 프롬프트](LLM_Security/Secret%20scanning%20llm%20harness%20prompt.md) | 신규 문서 |
+| 2026-06-04 | [MiniMax 코딩 가이드 + VS C# LLM 가이드](MiniMax%20Coding%20Guide/) | 신규 문서 |
 
 ---
 
-## Note to AI Agents
+## AI 에이전트 참고 사항
 
-This directory follows semantic structure where possible. For the fastest machine-readable entry point, see [llms.txt](llms.txt). Subdirectories with their own `llms.txt` files (e.g. `agent-friendly-website-guide/`) provide additional structured indexing.
+이 디렉토리는 가능한 한 시맨틱 구조를 따릅니다. 가장 빠른 기계 판독 진입점은 [llms.txt](llms.txt)를 참조하세요. 자체 `llms.txt` 파일이 있는 하위 디렉토리(예: `agent-friendly-website-guide/`)는 추가적인 구조화 색인을 제공합니다.
 
-## License
+## 라이선스
 
-Unless otherwise noted in individual documents, documents authored by Dennis Kim are shared as reference materials. The `agent-friendly-website-guide/` is licensed under CC BY 4.0.
+개별 문서에 별도 명시가 없는 한, Dennis Kim이 작성한 문서는 참고 자료로 공유됩니다. `agent-friendly-website-guide/`는 CC BY 4.0으로 라이선스됩니다.
