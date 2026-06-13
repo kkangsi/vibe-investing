@@ -25,6 +25,12 @@
 - [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Free global CDN options: jsDelivr, GitHub CDN, alternatives.
 - [GitHub CDN Technical](github_cdn/github_cdn.md) | GitHub repos as free CDN with jsDelivr integration.
 
+### Free Email
+- [Free Email Guide](FreeEmail/FreeEmail_guide.md) | 8 free transactional email services compared: Resend, Brevo, Mailgun, MailerSend, Amazon SES, Mailtrap, SendGrid, Postmark.
+
+### OpenSource Firebase
+- [Supabase Complete Guide](OpenSource_Firebase/SuperBase_guide.md) | Open-source Firebase alternative: PostgreSQL, Auth, Storage, Realtime, Edge Functions, Vercel integration.
+
 ## Cloud Cost Reduction
 
 ### AWS
@@ -69,6 +75,8 @@
 
 ## Recent Updates (newest first)
 
+- 2026-06-14: Supabase Complete Guide (new)
+- 2026-06-14: Free Email Guide (new)
 - 2026-06-13: Caveman RTK Token Optimization (fixes)
 - 2026-06-13: Quivr Guide (fixes)
 - 2026-06-12: Headroom Complete Guide (LLM token compression)

@@ -31,6 +31,8 @@ Documents evaluating and comparing serverless platforms and SaaS services with f
 | [Vercel Analysis](vercel/vercel_analysis.md) | In-depth analysis of Vercel's platform: pricing tiers, edge functions, limits, and cost-effectiveness for different workloads. | 2026-06-09 |
 | [Global Free CDN Guide](github_cdn/Global%20free%20cdn%20guide.md) | Guide to leveraging free global CDNs including jsDelivr, GitHub's raw content CDN, and alternatives for static asset delivery. | 2026-06-12 |
 | [GitHub CDN](github_cdn/github_cdn.md) | Technical deep-dive on using GitHub repositories as a free CDN with jsDelivr integration. | 2026-06-10 |
+| [Free Email Guide](FreeEmail/FreeEmail_guide.md) | Comparison of 8 free transactional email services (Resend, Brevo, Mailgun, MailerSend, Amazon SES, Mailtrap, SendGrid, Postmark) with Vercel + Next.js recommendations. | 2026-06-14 |
+| [Supabase Complete Guide](OpenSource_Firebase/SuperBase_guide.md) | Open-source Firebase alternative guide -- PostgreSQL, Auth, Storage, Realtime, Edge Functions, Vercel integration, pricing analysis. | 2026-06-14 |
 
 ## Cloud Cost Reduction
 
@@ -83,6 +85,8 @@ Documents added or significantly revised recently, ordered by commit date (newes
 
 | Date | Document | Action |
 |---|---|---|
+| 2026-06-14 | [Supabase Complete Guide](OpenSource_Firebase/SuperBase_guide.md) | Open-source Firebase alternative |
+| 2026-06-14 | [Free Email Guide](FreeEmail/FreeEmail_guide.md) | Free email SaaS comparison |
 | 2026-06-13 | [Caveman RTK Token Optimization](LLM/Caveman%20rtk%20token%20optimization.md) | LLM token savings |
 | 2026-06-13 | [Quivr Guide](LLM/Quivr_guide.md) | AI as your personal assistant |
 | 2026-06-12 | [Headroom Complete Guide](Headroom/Headroom%20complete%20guide.md) | LLM token compression tool |
