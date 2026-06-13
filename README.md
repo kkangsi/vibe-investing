@@ -19,6 +19,42 @@ AI를 엑셀과 같은 도구로 보고, 시장의 소음에서 신호를 가려
 
 ---
 
+## NEW · Claude Fable 5 전체 시스템 프롬프트 유출 — LLM 개발자를 위한 인사이트 모음
+
+> *"AI의 두뇌를 해부한다 — Claude Fable 5부터 Sonnet 3.5까지, 12개 버전의 시스템 프롬프트가 전부 유출되었다."*
+
+Claude Fable 5의 내부 시스템 프롬프트가 완전히 추출됐다. 저작권·특허 변호사가 설계한 정교한 방어 로직, XML 기반 프롬프트 엔지니어링 패턴, 4가지 거절 전략, Fable 5 = Mythos 5 + Safety Guardrails 구조까지 낱낱이 분석한 심층 리포트. Claude를 쓰는 모든 개발자에게 즉시 적용 가능한 최적화 인사이트를 담았다 (Claude Fable 5가 차단되었어도 다른 Claude 버전에도 유효하다).
+
+→ **[Claude Fable 5 시스템 프롬프트 분석 전문 열기](https://github.com/gameworkerkim/vibe-investing/blob/main/Claude_Fable5_Prompt/README.md)**
+
+> *"LLM 내부는 블랙박스가 아니다. 유출된 시스템 프롬프트를 읽는 순간, 당신의 Claude는 3배 빨라진다."*
+
+---
+
+## NEW · [꿀팁 공개] 토큰 거지를 위한 토큰 최적화 유틸리티 caveman + rtk — 최대 95% 절감
+
+> *"Why use many token when few token do trick?" — caveman 슬로건*
+
+AI 코딩 어시스턴트의 API 비용이 부담되는가. caveman은 AI를 원시인처럼 말하게 해 출력 토큰을 65~75% 절감하고, rtk는 CLI 명령어 출력을 LLM 컨텍스트 도달 전 60~90% 압축하는 프록시다. 두 도구를 함께 쓰면 토큰 80~95% 절감 — Claude Code 컨텍스트가 30분에서 3시간으로 연장된다. caveman(71,000+★) + rtk(42,000+★), 이미 10만 명 이상이 선택한 검증된 조합.
+
+→ **[caveman + rtk 통합 최적화 가이드 전문 열기](https://github.com/gameworkerkim/vibe-investing/blob/main/TechDoc/LLM/Caveman%20rtk%20token%20optimization.md)**
+
+> *"두 도구는 상호 보완적이다. rtk가 입력을 압축하고, caveman이 출력을 압축한다. 동시에 사용할 때 토큰 절감 시너지가 극대화된다."*
+
+---
+
+## NEW · 나와 팀을 위한 지식 검색 LLM RAG — Quivr: 오픈소스 Second Brain
+
+> *"업무 시간의 20%는 정보를 찾는 데 사라진다. 이제 AI에게 물어봐라."*
+
+Quivr는 38,000+ GitHub 스타의 오픈소스 RAG 플랫폼이다. PDF·PPT·Excel·오디오까지 모든 파일을 업로드하면 자연어 검색이 가능해진다. 멀티 LLM(OpenAI·Claude·Mistral·Ollama 로컬모델)을 지원해 벤더 종속성 Zero, 완전한 데이터 프라이버시를 보장한다. Y Combinator 지원, 50,000+ 사용자, 6,000+ 기업 채택. 단 5줄 코드로 시작하는 Second Brain.
+
+→ **[Quivr 완전 가이드 전문 열기](https://github.com/gameworkerkim/vibe-investing/blob/main/TechDoc/LLM/Quivr_guide.md)**
+
+> *"RAG를 처음부터 구축할 필요 없다. Quivr는 Opinionated RAG로 생산 환경에서 즉시 사용 가능하다."*
+
+---
+
 ## NEW · GitHub 오픈소스 트레이딩 봇 17종 비교 분석 v2.0 — AI/LLM 확장판 (6월 10일 update)
 
 > *"LLM 트레이딩 봇은 강세장에서 자신감이 넘치고, 약세장에서 백테스트가 사라진다. 신뢰하지 말고 검증하라."*

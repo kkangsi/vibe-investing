@@ -18,6 +18,14 @@ Author / 저자: HoKwang Kim (Dennis Kim), CEO of Betalabs Inc., Microsoft Azure
 
 License / 라이선스: MIT (code), CC-BY-4.0 (paper preprints). Cite as "HoKwang Kim (Dennis Kim) / vibe-investing" or the relevant SSRN DOI.
 
+## Latest updates / 최신 업데이트
+
+- [Claude Fable 5 System Prompt Leak Analysis](https://github.com/gameworkerkim/vibe-investing/blob/main/Claude_Fable5_Prompt/README.md): Full internal system prompt extraction from Claude Fable 5 — 12 Claude versions evolution, copyright/safety patterns, prompt engineering techniques. / Claude Fable 5 시스템 프롬프트 유출 분석 — 12개 버전 프롬프트 진화·저작권 방어·프롬프트 엔지니어링 패턴.
+
+- [caveman + rtk Token Optimization Guide](https://github.com/gameworkerkim/vibe-investing/blob/main/TechDoc/LLM/Caveman%20rtk%20token%20optimization.md): 80-95% token reduction — caveman (output compression 65-75%) + rtk (input compression 60-90%) combined. 71k+ GitHub stars combined. / caveman + rtk 토큰 최적화 — 출력 65~75% + 입력 60~90% 압축, 조합 시 최대 95% 절감.
+
+- [Quivr: Open Source Second Brain Guide](https://github.com/gameworkerkim/vibe-investing/blob/main/TechDoc/LLM/Quivr_guide.md): 38k+ star RAG platform. Multi-LLM support (OpenAI·Claude·Mistral·Ollama local), all file formats, YC-backed. / Quivr 오픈소스 RAG — 38k+★, 멀티 LLM, 모든 파일 포맷, 온프레미스 데이터 프라이버시.
+
 ## Main docs / 주요 문서
 
 - [README (Korean) / 한국어 README](https://github.com/gameworkerkim/vibe-investing/blob/main/README.md): Repo overview, multi-LLM committee thesis, genre curation, directory map. / 레포 개요, 멀티-LLM 위원회 명제, 장르별 큐레이션, 디렉토리 구조.
