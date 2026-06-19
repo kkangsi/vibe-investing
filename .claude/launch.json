@@ -18,6 +18,13 @@
       "runtimeExecutable": "bash",
       "runtimeArgs": ["-c", "cd '01.Trading Strategy/Vibe_Invest_Dashboard' && exec npx wrangler pages dev --port 8788"],
       "port": 8788
+    },
+    {
+      "name": "toss-dashboard",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "toss-dashboard"],
+      "port": 3001,
+      "autoPort": true
     }
   ]
 }
