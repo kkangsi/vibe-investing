@@ -6,12 +6,12 @@
 
 ## 목차
 
-1. [서비스 개요](#1-서비스-개요)  
-2. [API 핵심 특징](#2-api-핵심-특징)  
-3. [빠른 시작 (Quick Start)](#3-빠른-시작-quick-start)  
-4. [실전에서 실수하기 쉬운 함정들](#4-실전에서-실수하기-쉬운-함정들)  
-5. [TypeScript 예제](#5-typescript-예제)  
-6. [Python 예제](#6-python-예제)  
+1. [서비스 개요](#1-서비스-개요)
+2. [API 핵심 특징](#2-api-핵심-특징)
+3. [빠른 시작 (Quick Start)](#3-빠른-시작-quick-start)
+4. [실전에서 실수하기 쉬운 함정들](#4-실전에서-실수하기-쉬운-함정들)
+5. [TypeScript 예제](#5-typescript-예제)
+6. [Python 예제](#6-python-예제)
 7. [전체 엔드포인트 레퍼런스](#7-전체-엔드포인트-레퍼런스)
 
 ---
@@ -64,7 +64,7 @@ Authorization: Bearer {access_token}
 
 ### 2.2 응답 구조 — `result` 키가 루트
 
-**모든 엔드포인트의 최상위 키는 `result`입니다.**  
+**모든 엔드포인트의 최상위 키는 `result`입니다.**
 `data`, `response`, `body` 같은 이름이 아닙니다.
 
 ```json
@@ -80,16 +80,16 @@ Authorization: Bearer {access_token}
 API가 반환하는 모든 가격 값은 **문자열**입니다. 반드시 숫자로 변환해야 합니다.
 
 ```typescript
-// ❌ 틀림
+//  틀림
 const price = data.lastPrice;          // "352500" — 문자열
 
-// ✅ 올바름
+//  올바름
 const price = parseFloat(data.lastPrice);  // 352500 — 숫자
 ```
 
 ### 2.4 변동률(changeRate)은 API에 없다
 
-현재가 엔드포인트는 `lastPrice`만 반환합니다. `changeRate`, `change` 필드가 없습니다.  
+현재가 엔드포인트는 `lastPrice`만 반환합니다. `changeRate`, `change` 필드가 없습니다.
 변동률이 필요하면 **캔들 2일치**를 가져와 직접 계산해야 합니다.
 
 ```typescript
@@ -176,36 +176,36 @@ curl "https://openapi.tossinvest.com/api/v1/candles?symbol=005930&interval=1d&co
 
 ---
 
-### ❌ 함정 1 — 응답 루트 키를 잘못 가정
+### 함정 1 — 응답 루트 키를 잘못 가정
 
 가장 흔한 실수. `data`, `prices`, `stocks` 등 일반적인 키 이름을 예상하다가 빈 데이터를 받게 됩니다.
 
 ```typescript
-// ❌ 이렇게 하면 undefined
+//  이렇게 하면 undefined
 const items = response.data ?? response.prices ?? [];
 
-// ✅ 실제 응답 키는 result
+//  실제 응답 키는 result
 const items = response.result ?? [];
 ```
 
 캔들은 한 단계 더 깊습니다:
 ```typescript
-// ❌ 틀림
+//  틀림
 const candles = response.result ?? [];
 
-// ✅ 올바름
+//  올바름
 const candles = response.result?.candles ?? [];
 ```
 
 ---
 
-### ❌ 함정 2 — 가격 값을 숫자로 착각
+### 함정 2 — 가격 값을 숫자로 착각
 
 ```typescript
-// ❌ 이렇게 하면 계산 결과가 문자열 연결됨
+//  이렇게 하면 계산 결과가 문자열 연결됨
 const change = item.lastPrice - item.prevClose;  // NaN 또는 "352500-363500"
 
-// ✅ parseFloat 필수
+//  parseFloat 필수
 const price = parseFloat(item.lastPrice);
 const prev  = parseFloat(candle.closePrice);
 const change = price - prev;  // -11000
@@ -213,15 +213,15 @@ const change = price - prev;  // -11000
 
 ---
 
-### ❌ 함정 3 — 변동률을 prices API에서 찾음
+### 함정 3 — 변동률을 prices API에서 찾음
 
 prices 엔드포인트에는 변동률 데이터가 없습니다.
 
 ```typescript
-// ❌ 없는 필드를 참조하면 항상 0
+//  없는 필드를 참조하면 항상 0
 const changeRate = item.changeRate ?? 0;  // 항상 0
 
-// ✅ 캔들 2일치로 직접 계산
+//  캔들 2일치로 직접 계산
 async function getChangeRate(symbol: string): Promise<number> {
   const res = await fetch(`/api/v1/candles?symbol=${symbol}&interval=1d&count=2`, ...);
   const candles = res.result.candles;
@@ -234,12 +234,12 @@ async function getChangeRate(symbol: string): Promise<number> {
 
 ---
 
-### ❌ 함정 4 — 토큰 24시간 후 자동 만료
+### 함정 4 — 토큰 24시간 후 자동 만료
 
 Refresh Token이 없으므로 만료 후에는 재발급 로직이 없으면 401 에러가 계속 발생합니다.
 
 ```typescript
-// ✅ 만료 1시간 전 선제 재발급 패턴
+//  만료 1시간 전 선제 재발급 패턴
 let cachedToken: { access_token: string; issued_at: number; expires_in: number } | null = null;
 
 async function getToken(): Promise<string> {
@@ -256,15 +256,15 @@ async function getToken(): Promise<string> {
 
 ---
 
-### ❌ 함정 5 — Upstash Redis REST URL 형식 오류
+### 함정 5 — Upstash Redis REST URL 형식 오류
 
 Upstash Redis를 쓸 때 redis-cli 연결 문자열을 REST URL로 혼동하면 즉시 에러가 납니다.
 
 ```bash
-# ❌ redis-cli 연결 문자열 — REST 클라이언트에서 사용 불가
+# redis-cli 연결 문자열 — REST 클라이언트에서 사용 불가
 UPSTASH_REDIS_REST_URL=redis-cli --tls -u redis://default:TOKEN@host:6379
 
-# ✅ Upstash REST URL — https:// 로 시작해야 함
+# Upstash REST URL — https:// 로 시작해야 함
 UPSTASH_REDIS_REST_URL=https://pet-sturgeon-119990.upstash.io
 ```
 
@@ -272,19 +272,19 @@ Upstash 콘솔(console.upstash.com) → 데이터베이스 선택 → **REST API
 
 ---
 
-### ❌ 함정 6 — Next.js 15의 serverComponentsExternalPackages 위치 변경
+### 함정 6 — Next.js 15의 serverComponentsExternalPackages 위치 변경
 
 Next.js 15부터 `experimental.serverComponentsExternalPackages`가 최상위로 이동했습니다.
 
 ```typescript
-// ❌ Next.js 14 이하 방식 — 경고 + 무시됨
+//  Next.js 14 이하 방식 — 경고 + 무시됨
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@neondatabase/serverless"],
   },
 };
 
-// ✅ Next.js 15 방식
+//  Next.js 15 방식
 const nextConfig = {
   serverExternalPackages: ["@neondatabase/serverless"],
 };
@@ -292,32 +292,32 @@ const nextConfig = {
 
 ---
 
-### ❌ 함정 7 — 캔들 interval은 `1d`와 `1m`만 지원
+### 함정 7 — 캔들 interval은 `1d`와 `1m`만 지원
 
 3분봉, 5분봉, 15분봉은 없습니다. 중간 주기가 필요하면 1분봉을 직접 리샘플링해야 합니다.
 
 ```typescript
-// ❌ 지원 안 됨
+//  지원 안 됨
 interval=5m
 interval=15m
 interval=1h
 
-// ✅ 지원되는 값
+//  지원되는 값
 interval=1m   // 1분봉
 interval=1d   // 일봉
 ```
 
 ---
 
-### ❌ 함정 8 — 배치 조회 시 심볼 구분자
+### 함정 8 — 배치 조회 시 심볼 구분자
 
 여러 종목을 한 번에 조회할 때 구분자는 쉼표(`,`)이며 공백 없이 붙여야 합니다.
 
 ```bash
-# ❌ 공백 포함 시 파싱 오류 가능
+# 공백 포함 시 파싱 오류 가능
 ?symbols=005930, 000660, AAPL
 
-# ✅ 공백 없이
+# 공백 없이
 ?symbols=005930,000660,AAPL
 ```
 
@@ -405,7 +405,7 @@ export async function getPrices(symbols: string[]): Promise<StockPrice[]> {
     (r.result as Array<{ symbol: string; lastPrice: string; currency: string; timestamp: string }>)
       .map((item) => ({
         symbol: item.symbol,
-        price: parseFloat(item.lastPrice),   // ★ 문자열 → 숫자 변환 필수
+        price: parseFloat(item.lastPrice),   //  문자열 → 숫자 변환 필수
         currency: item.currency as "KRW" | "USD",
         timestamp: item.timestamp,
       }))
@@ -429,7 +429,7 @@ export async function getCandles(symbol: string, count = 60): Promise<Candle[]> 
     count: String(Math.min(count, 200)),
   });
 
-  // ★ result.candles — result[] 아님
+  //  result.candles — result[] 아님
   const items = data.result?.candles ?? [];
   return items.map((c: Record<string, string>) => ({
     time: c.timestamp.split("T")[0],
@@ -549,11 +549,11 @@ class TossClient:
         for i in range(0, len(symbols), 200):
             chunk = symbols[i:i + 200]
             data = self._get("/api/v1/prices", {"symbols": ",".join(chunk)})
-            # ★ 루트 키는 result
+            #  루트 키는 result
             for item in data.get("result", []):
                 results.append({
                     "symbol": item["symbol"],
-                    "price": float(item["lastPrice"]),   # ★ 문자열 → float
+                    "price": float(item["lastPrice"]),   #  문자열 → float
                     "currency": item["currency"],
                     "timestamp": item["timestamp"],
                 })
@@ -570,12 +570,12 @@ class TossClient:
             "interval": "1d",
             "count": str(min(count, 200)),
         })
-        # ★ result.candles 경로
+        #  result.candles 경로
         candles = data.get("result", {}).get("candles", [])
         return [
             {
                 "time": c["timestamp"][:10],
-                "open":   float(c["openPrice"]),    # ★ 모두 문자열
+                "open":   float(c["openPrice"]),    #  모두 문자열
                 "high":   float(c["highPrice"]),
                 "low":    float(c["lowPrice"]),
                 "close":  float(c["closePrice"]),
@@ -677,5 +677,6 @@ if __name__ == "__main__":
 
 ---
 
-> **면책고지:** 이 문서는 실전 구현 경험을 바탕으로 작성됐습니다. API 스펙은 변경될 수 있으므로 공식 문서를 병행 참조하세요.  
+> **면책고지:** 이 문서는 실전 구현 경험을 바탕으로 작성됐습니다. API 스펙은 변경될 수 있으므로 공식 문서를 병행 참조하세요.
 > 투자 판단의 책임은 본인에게 있습니다.
+
