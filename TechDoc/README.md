@@ -10,6 +10,7 @@
 
 | 문서 | 설명 |
 |---|---|
+| [TimesFM 분석 가이드](TimesFM/TimesFM_분석_가이드.md) | Google Research 시계열 파운데이션 모델 -- 장단점, 주식/Polymarket 활용, 중국·해외 경쟁 프로젝트 비교 |
 | [AI 코딩 워크플로우 가이드](effective_LLM/AI%20coding%20workflow%20claude%20code%20cursor%20chatgpt.md) | Claude Code, Cursor, ChatGPT를 활용한 실전 AI 코딩 워크플로우 비교 및 전략 가이드 |
 | [Open Code 리뷰 가이드](LLM/Open%20code%20review%20guide.md) | AI 코딩 CLI 도구 Open Code 심층 리뷰 -- DeepSeek V4 Pro 연동, 설정 최적화, 도구별 비교 |
 | [Supabase 완전 가이드](OpenSource_Firebase/SuperBase_guide.md) | 오픈소스 Firebase 대안 -- PostgreSQL, Auth, Storage, Realtime, Edge Functions, Vercel 통합 |
