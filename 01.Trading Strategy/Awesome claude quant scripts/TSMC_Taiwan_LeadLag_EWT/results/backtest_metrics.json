@@ -1,0 +1,21 @@
+{
+  "data_source": "reconstructed",
+  "strategy_TSMC_momentum": {
+    "total_return_%": 61.48,
+    "CAGR_%": 7.86,
+    "vol_ann_%": 13.83,
+    "sharpe": 0.62,
+    "MDD_%": -28.98,
+    "months": 76
+  },
+  "benchmark_buy_and_hold": {
+    "total_return_%": 132.39,
+    "CAGR_%": 14.24,
+    "vol_ann_%": 19.33,
+    "sharpe": 0.79,
+    "MDD_%": -34.66,
+    "months": 76
+  },
+  "turnover_events": 10,
+  "pct_time_full_long_%": 42.9
+}

@@ -1,0 +1,13 @@
+{
+  "data_source": "reconstructed",
+  "best_lag_months": -8,
+  "best_corr": 0.526,
+  "interpretation": "lag<=0 이면 TSMC 가 동행/후행",
+  "granger_like": {
+    "r2_restricted": 0.9676,
+    "r2_full": 0.9696,
+    "incremental_r2_from_tsmc": 0.002,
+    "lags": 3,
+    "n": 74
+  }
+}
