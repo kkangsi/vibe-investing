@@ -5,7 +5,7 @@
 
 ## 들어가며 - 차트 한 장이 말하는 것
 
-![Powered Up — Cumulative monthly returns through August (Source: Card Ladder, FactSet via WSJ)](Poweredup_chart.png)
+![Powered Up — Cumulative monthly returns through August (Source: Card Ladder, FactSet via WSJ)](Poweredup_chart.jpg)
 
 WSJ의 "Powered Up" 차트(데이터: Card Ladder, FactSet)는 단순하지만 도발적이다. 2004년부터 2025년 8월까지의 누적 월간 수익률에서 **포켓몬 카드는 3,821%**를 기록하며 Meta Platforms를 추월했고, Baseball cards와 S&P 500(~483%)을 한참 아래에 남겨두었다. 차트의 노란 선은 2025년 들어 거의 수직으로 꺾여 올라간다.
 
